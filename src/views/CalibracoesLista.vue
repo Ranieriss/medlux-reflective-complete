@@ -646,6 +646,9 @@ import calibracaoService from '@/services/calibracaoService'
 import { buscarEquipamentosDoUsuario, detectarTipoEquipamento } from '@/services/equipamentoService'
 import supabase from '@/services/supabase'
 
+// Ambiente
+const IS_DEV = import.meta.env.DEV
+
 export default {
   name: 'CalibracoesLista',
   
@@ -816,18 +819,29 @@ export default {
           return
         }
         
-        console.log('👤 Usuário logado:', {
-          id: usuario.id,
-          email: usuario.email,
-          perfil: usuario.perfil
-        })
+        if (IS_DEV) {
+          console.log('👤 Usuário logado:', {
+            id: usuario.id,
+            perfil: usuario.perfil
+          })
+        }
         
+        console.log('⏳ Buscando equipamentos...')
         const response = await buscarEquipamentosDoUsuario(
           usuario.id, 
           usuario.perfil
         )
         
-        console.log('📦 Resposta buscarEquipamentosDoUsuario:', response)
+        if (IS_DEV) {
+          console.log('📦 Resposta buscarEquipamentosDoUsuario:', response)
+        }
+        
+        if (!response || response.length === 0) {
+          console.warn('⚠️ Nenhum equipamento encontrado')
+          mostrarNotificacao('Nenhum equipamento disponível', 'warning')
+          equipamentos.value = []
+          return
+        }
         
         equipamentos.value = response.map(eq => ({
           ...eq,
@@ -835,12 +849,13 @@ export default {
           descricao_tipo: eq.tipoDetalhado?.descricao || eq.nome
         }))
         
-        console.log(`✅ ${equipamentos.value.length} equipamentos carregados para ${usuario.perfil}:`, equipamentos.value)
+        console.log(`✅ ${equipamentos.value.length} equipamentos carregados`)
         
         // Se for operador com apenas 1 equipamento, selecionar automaticamente
         if (authStore.isOperador && equipamentos.value.length === 1) {
           formMedicaoData.value.equipamento_id = equipamentos.value[0].id
           await onEquipamentoChange(equipamentos.value[0].id)
+          console.log('✅ Equipamento auto-selecionado')
         }
         
       } catch (error) {
@@ -852,16 +867,30 @@ export default {
     }
     
     // Watch para mudanças no equipamento selecionado
-    const onEquipamentoChange = (equipamentoId) => {
-      const equip = equipamentos.value.find(e => e.id === equipamentoId)
-      if (!equip) return
+    const onEquipamentoChange = async (equipamentoId) => {
+      console.log('🔄 Equipamento mudou:', equipamentoId)
       
+      if (!equipamentoId) {
+        console.warn('⚠️ ID de equipamento inválido')
+        return
+      }
+      
+      const equip = equipamentos.value.find(e => e.id === equipamentoId)
+      
+      if (!equip) {
+        console.error('❌ Equipamento não encontrado:', equipamentoId)
+        return
+      }
+      
+      console.log('✅ Equipamento encontrado:', equip.codigo)
       equipamentoSelecionado.value = equip
       tipoEquipamentoDetectado.value = equip.tipoDetalhado
       
       // Ajustar formulário baseado no tipo
       if (tipoEquipamentoDetectado.value) {
         const tipo = tipoEquipamentoDetectado.value
+        
+        console.log('🔧 Ajustando formulário para tipo:', tipo.tipo)
         
         // Ajustar quantidade de medições
         const qtd = tipo.quantidadeMedicoes || 5
@@ -875,11 +904,13 @@ export default {
         // Preencher nome do técnico automaticamente
         formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario
         
-        console.log(`📋 Formulário ajustado para ${tipo.descricao}:`, {
+        console.log(`📋 Formulário configurado:`, {
           medicoes: qtd,
           geometria: tipo.geometrias,
           simuladorChuva: tipo.simuladorChuva
         })
+      } else {
+        console.warn('⚠️ Tipo de equipamento não detectado')
       }
     }
     
@@ -946,7 +977,9 @@ export default {
     })
     
     const abrirDialogNovo = async () => {
-      console.log('🔵 Abrindo dialog novo...')
+      console.log('🔵 Abrindo dialog de nova medição...')
+      
+      // Reset de estado
       modoEdicao.value = false
       formMedicaoData.value = { ...formMedicaoInicial }
       resultadoValidacao.value = null
@@ -959,20 +992,32 @@ export default {
       const proxima = new Date(hoje.setFullYear(hoje.getFullYear() + 1))
       formMedicaoData.value.proxima_calibracao = proxima.toISOString().split('T')[0]
       
+      console.log('📅 Data de calibração definida:', {
+        hoje: formMedicaoData.value.data_calibracao,
+        proxima: formMedicaoData.value.proxima_calibracao
+      })
+      
       // Carregar equipamentos antes de abrir o dialog
-      console.log('⏳ Carregando equipamentos...')
+      console.log('⏳ Carregando equipamentos antes de abrir dialog...')
       await carregarEquipamentos()
-      console.log(`✅ Equipamentos carregados: ${equipamentos.value.length}`, equipamentos.value)
+      
+      console.log(`✅ ${equipamentos.value.length} equipamentos disponíveis`)
       
       // Se operador com 1 equipamento, selecionar automaticamente
       if (authStore.isOperador && equipamentos.value.length === 1) {
+        console.log('🎯 Operador com 1 equipamento - seleção automática')
         formMedicaoData.value.equipamento_id = equipamentos.value[0].id
-        onEquipamentoChange(equipamentos.value[0].id)
-        console.log('✅ Equipamento selecionado automaticamente:', equipamentos.value[0])
+        await onEquipamentoChange(equipamentos.value[0].id)
+        console.log('✅ Equipamento auto-selecionado:', equipamentos.value[0].codigo)
+      } else if (equipamentos.value.length === 0) {
+        console.error('❌ Nenhum equipamento disponível')
+        mostrarNotificacao('Nenhum equipamento disponível. Contate o administrador.', 'error')
+        return
       }
       
+      // Abrir dialog
       dialogMedicao.value = true
-      console.log('✅ Dialog aberto!')
+      console.log('✅ Dialog aberto com sucesso!')
     }
     
     const fecharDialog = () => {
