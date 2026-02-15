@@ -809,10 +809,25 @@ export default {
       try {
         // Busca equipamentos conforme perfil do usuário
         const usuario = authStore.usuario
+        
+        if (!usuario) {
+          console.error('❌ Usuário não autenticado')
+          mostrarNotificacao('Usuário não autenticado', 'error')
+          return
+        }
+        
+        console.log('👤 Usuário logado:', {
+          id: usuario.id,
+          email: usuario.email,
+          perfil: usuario.perfil
+        })
+        
         const response = await buscarEquipamentosDoUsuario(
           usuario.id, 
           usuario.perfil
         )
+        
+        console.log('📦 Resposta buscarEquipamentosDoUsuario:', response)
         
         equipamentos.value = response.map(eq => ({
           ...eq,
@@ -820,7 +835,7 @@ export default {
           descricao_tipo: eq.tipoDetalhado?.descricao || eq.nome
         }))
         
-        console.log(`✅ ${equipamentos.value.length} equipamentos carregados para ${usuario.perfil}`)
+        console.log(`✅ ${equipamentos.value.length} equipamentos carregados para ${usuario.perfil}:`, equipamentos.value)
         
         // Se for operador com apenas 1 equipamento, selecionar automaticamente
         if (authStore.isOperador && equipamentos.value.length === 1) {
@@ -829,6 +844,7 @@ export default {
         }
         
       } catch (error) {
+        console.error('❌ Erro ao carregar equipamentos:', error)
         mostrarNotificacao('Erro ao carregar equipamentos: ' + error.message, 'error')
       } finally {
         loadingEquipamentos.value = false

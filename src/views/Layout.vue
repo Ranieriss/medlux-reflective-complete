@@ -51,8 +51,16 @@
             </v-list-item-subtitle>
           </v-list-item>
           <v-divider />
-          <v-list-item prepend-icon="mdi-account-cog" title="Perfil" />
-          <v-list-item prepend-icon="mdi-cog" title="Configurações" />
+          <v-list-item 
+            prepend-icon="mdi-account-cog" 
+            title="Perfil"
+            @click="irParaPerfil"
+          />
+          <v-list-item 
+            prepend-icon="mdi-cog" 
+            title="Configurações"
+            @click="irParaConfiguracoes"
+          />
           <v-divider />
           <v-list-item
             prepend-icon="mdi-logout"
@@ -200,6 +208,14 @@ const menuItems = computed(() => {
 })
 
 // Métodos
+const irParaPerfil = () => {
+  router.push('/perfil')
+}
+
+const irParaConfiguracoes = () => {
+  router.push('/configuracoes')
+}
+
 const handleLogout = () => {
   authStore.logout()
   router.push('/login')
