@@ -808,7 +808,7 @@ export default {
       loadingEquipamentos.value = true
       try {
         // Busca equipamentos conforme perfil do usuário
-        const usuario = authStore.usuario
+        const usuario = authStore.usuario.value
         
         if (!usuario) {
           console.error('❌ Usuário não autenticado')
@@ -840,7 +840,7 @@ export default {
         // Se for operador com apenas 1 equipamento, selecionar automaticamente
         if (authStore.isOperador && equipamentos.value.length === 1) {
           formMedicaoData.value.equipamento_id = equipamentos.value[0].id
-          onEquipamentoChange(equipamentos.value[0].id)
+          await onEquipamentoChange(equipamentos.value[0].id)
         }
         
       } catch (error) {

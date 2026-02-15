@@ -209,11 +209,11 @@ const menuItems = computed(() => {
 
 // Métodos
 const irParaPerfil = () => {
-  router.push('/perfil')
+  router.push('/sistema')  // Reutiliza tela de sistema por enquanto
 }
 
 const irParaConfiguracoes = () => {
-  router.push('/configuracoes')
+  router.push('/sistema')  // Reutiliza tela de sistema por enquanto
 }
 
 const handleLogout = () => {
