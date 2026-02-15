@@ -17,6 +17,7 @@
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "pinia": "^2.1.7",
     "qrcode": "^1.5.3",
     "v-mask": "^2.3.0",
