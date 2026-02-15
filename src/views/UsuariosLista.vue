@@ -191,6 +191,40 @@
               </v-col>
             </v-row>
             
+            <!-- Documentos (Foto e Cautela) -->
+            <v-row dense class="mt-2" v-if="usuario.foto_url || usuario.cautela_url">
+              <v-col cols="12">
+                <v-divider class="mb-2" />
+                <div class="text-caption text-medium-emphasis mb-2">Documentos:</div>
+              </v-col>
+              <v-col v-if="usuario.foto_url" cols="6">
+                <v-btn
+                  size="small"
+                  color="info"
+                  variant="tonal"
+                  block
+                  :href="usuario.foto_url"
+                  target="_blank"
+                  prepend-icon="mdi-camera"
+                >
+                  Ver Foto
+                </v-btn>
+              </v-col>
+              <v-col v-if="usuario.cautela_url" cols="6">
+                <v-btn
+                  size="small"
+                  color="primary"
+                  variant="tonal"
+                  block
+                  :href="usuario.cautela_url"
+                  target="_blank"
+                  prepend-icon="mdi-file-document"
+                >
+                  Ver Cautela
+                </v-btn>
+              </v-col>
+            </v-row>
+            
             <!-- Stats -->
             <v-row dense class="mt-2">
               <v-col cols="12">
@@ -334,6 +368,34 @@
                   color="success"
                   hide-details
                   inset
+                />
+              </v-col>
+
+              <!-- Foto URL -->
+              <v-col cols="12">
+                <v-text-field
+                  v-model="usuarioForm.foto_url"
+                  label="URL da Foto do Usuário"
+                  variant="outlined"
+                  density="comfortable"
+                  prepend-inner-icon="mdi-camera"
+                  placeholder="https://drive.google.com/..."
+                  hint="Cole o link público da foto (Google Drive, Dropbox, etc.)"
+                  persistent-hint
+                />
+              </v-col>
+
+              <!-- Cautela URL -->
+              <v-col cols="12">
+                <v-text-field
+                  v-model="usuarioForm.cautela_url"
+                  label="URL da Cautela Assinada"
+                  variant="outlined"
+                  density="comfortable"
+                  prepend-inner-icon="mdi-file-document"
+                  placeholder="https://drive.google.com/..."
+                  hint="Cole o link público do termo de responsabilidade assinado"
+                  persistent-hint
                 />
               </v-col>
             </v-row>
@@ -564,7 +626,9 @@ const usuarioForm = ref({
   telefone: '',
   senha: '',
   perfil: 'operador',
-  ativo: true
+  ativo: true,
+  foto_url: '',
+  cautela_url: ''
 })
 
 // Options
@@ -659,9 +723,13 @@ const abrirDialogNovo = () => {
   usuarioForm.value = {
     nome: '',
     email: '',
+    cpf: '',
+    telefone: '',
     senha: '',
     perfil: 'tecnico',
-    ativo: true
+    ativo: true,
+    foto_url: '',
+    cautela_url: ''
   }
   dialogForm.value = true
 }
@@ -672,8 +740,12 @@ const editarUsuario = (usuario) => {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
+    cpf: usuario.cpf || '',
+    telefone: usuario.telefone || '',
     perfil: usuario.perfil,
-    ativo: usuario.ativo
+    ativo: usuario.ativo,
+    foto_url: usuario.foto_url || '',
+    cautela_url: usuario.cautela_url || ''
   }
   dialogForm.value = true
 }
@@ -693,8 +765,12 @@ const salvarUsuario = async () => {
         .from('usuarios')
         .update({
           nome: usuarioForm.value.nome,
+          cpf: usuarioForm.value.cpf || null,
+          telefone: usuarioForm.value.telefone || null,
           perfil: usuarioForm.value.perfil,
-          ativo: usuarioForm.value.ativo
+          ativo: usuarioForm.value.ativo,
+          foto_url: usuarioForm.value.foto_url || null,
+          cautela_url: usuarioForm.value.cautela_url || null
         })
         .eq('id', usuarioForm.value.id)
 
@@ -707,9 +783,13 @@ const salvarUsuario = async () => {
         .insert([{
           nome: usuarioForm.value.nome,
           email: usuarioForm.value.email,
+          cpf: usuarioForm.value.cpf || null,
+          telefone: usuarioForm.value.telefone || null,
           senha_hash: usuarioForm.value.senha, // TODO: Hash em produção
           perfil: usuarioForm.value.perfil,
-          ativo: usuarioForm.value.ativo
+          ativo: usuarioForm.value.ativo,
+          foto_url: usuarioForm.value.foto_url || null,
+          cautela_url: usuarioForm.value.cautela_url || null
         }])
 
       if (error) throw error
