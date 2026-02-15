@@ -329,21 +329,50 @@
                   variant="outlined"
                   :rules="[rules.required]"
                   :loading="loadingEquipamentos"
+                  @update:model-value="onEquipamentoChange"
+                  :disabled="authStore.isOperador && equipamentos.length === 1"
                 >
                   <template v-slot:item="{ props, item }">
                     <v-list-item v-bind="props">
                       <template v-slot:prepend>
-                        <v-chip size="small" color="primary">{{ item.raw.codigo }}</v-chip>
+                        <v-icon :icon="item.raw.tipoDetalhado?.icon || 'mdi-speedometer'" />
                       </template>
                       <template v-slot:title>
+                        <v-chip size="small" color="primary" class="mr-2">{{ item.raw.codigo }}</v-chip>
                         {{ item.raw.nome }}
                       </template>
                       <template v-slot:subtitle>
-                        {{ item.raw.tipo }} - {{ item.raw.localizacao }}
+                        {{ item.raw.tipoDetalhado?.descricao || item.raw.tipo }}
                       </template>
                     </v-list-item>
                   </template>
                 </v-autocomplete>
+                
+                <!-- Informações do Equipamento Detectado -->
+                <v-alert
+                  v-if="tipoEquipamentoDetectado"
+                  type="info"
+                  variant="tonal"
+                  density="compact"
+                  class="mt-2"
+                >
+                  <v-row dense align="center">
+                    <v-col cols="auto">
+                      <v-icon :icon="tipoEquipamentoDetectado.icon" />
+                    </v-col>
+                    <v-col>
+                      <strong>{{ tipoEquipamentoDetectado.descricao }}</strong><br>
+                      <small>
+                        Geometria{{ tipoEquipamentoDetectado.geometrias.length > 1 ? 's' : '' }}: 
+                        {{ tipoEquipamentoDetectado.geometrias.join(', ') }}
+                        • Medições recomendadas: {{ tipoEquipamentoDetectado.quantidadeMedicoes }}
+                        <span v-if="tipoEquipamentoDetectado.simuladorChuva">
+                          • <v-icon size="small">mdi-weather-rainy</v-icon> Simulador de Chuva
+                        </span>
+                      </small>
+                    </v-col>
+                  </v-row>
+                </v-alert>
               </v-col>
 
               <!-- Dados da Medição -->
@@ -370,8 +399,8 @@
                 />
               </v-col>
 
-              <!-- Tipo de Película/Material -->
-              <v-col cols="12" md="6">
+              <!-- Tipo de Película (apenas vertical) -->
+              <v-col v-if="mostrarCamposPelicula" cols="12" md="6">
                 <v-select
                   v-model="formMedicao.tipo_pelicula"
                   :items="tipoPeliculaOptions"
@@ -379,6 +408,20 @@
                   prepend-inner-icon="mdi-layers"
                   variant="outlined"
                   :rules="[rules.required]"
+                  hint="Para sinalização vertical (placas)"
+                />
+              </v-col>
+              
+              <!-- Tipo de Material (apenas horizontal) -->
+              <v-col v-if="mostrarCamposMaterial" cols="12" md="6">
+                <v-select
+                  v-model="formMedicao.tipo_material"
+                  :items="['Tinta Convencional', 'Termoplástico', 'Tinta à Base d\'Água', 'Tinta à Base Solvente', 'Plástico Pré-Fabricado Tipo I', 'Plástico Pré-Fabricado Tipo II']"
+                  label="Tipo de Material *"
+                  prepend-inner-icon="mdi-palette"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                  hint="Para sinalização horizontal (tintas)"
                 />
               </v-col>
 
@@ -397,11 +440,12 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="formMedicao.geometria_medicao"
-                  :items="geometriaOptions"
+                  :items="geometriasDisponiveis"
                   label="Geometria de Medição *"
                   prepend-inner-icon="mdi-angle-acute"
                   variant="outlined"
                   :rules="[rules.required]"
+                  hint="Baseado no tipo de equipamento selecionado"
                 />
               </v-col>
 
@@ -413,6 +457,20 @@
                   prepend-inner-icon="mdi-account-hard-hat"
                   variant="outlined"
                   :rules="[rules.required]"
+                  :readonly="authStore.isOperador"
+                  hint="Nome do operador responsável pela medição"
+                />
+              </v-col>
+              
+              <!-- Condições Ambientais (opcional para chuva) -->
+              <v-col v-if="mostrarSimuladorChuva" cols="12" md="6">
+                <v-select
+                  v-model="formMedicao.condicoes_medicao"
+                  :items="['Seco', 'Simulador de Chuva']"
+                  label="Condições de Medição"
+                  prepend-inner-icon="mdi-weather-rainy"
+                  variant="outlined"
+                  hint="Equipamento com simulador de chuva"
                 />
               </v-col>
 
@@ -578,20 +636,27 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import calibracaoService from '@/services/calibracaoService'
-import equipamentoService from '@/services/equipamentoService'
+import { buscarEquipamentosDoUsuario, detectarTipoEquipamento } from '@/services/equipamentoService'
+import supabase from '@/services/supabase'
 
 export default {
   name: 'CalibracoesLista',
   
   setup() {
+    // Auth store
+    const authStore = useAuthStore()
+    
     // Estados
     const loading = ref(false)
     const loadingEquipamentos = ref(false)
     const medicoes = ref([])
     const equipamentos = ref([])
     const stats = ref({})
+    const equipamentoSelecionado = ref(null)
+    const tipoEquipamentoDetectado = ref(null)
     
     // Dialogs
     const dialogMedicao = ref(false)
@@ -714,17 +779,88 @@ export default {
     const carregarEquipamentos = async () => {
       loadingEquipamentos.value = true
       try {
-        const response = await equipamentoService.listar()
+        // Busca equipamentos conforme perfil do usuário
+        const usuario = authStore.usuario
+        const response = await buscarEquipamentosDoUsuario(
+          usuario.id, 
+          usuario.perfil
+        )
+        
         equipamentos.value = response.map(eq => ({
           ...eq,
-          nome_completo: `${eq.codigo} - ${eq.nome}`
+          nome_completo: `${eq.codigo} - ${eq.nome}`,
+          descricao_tipo: eq.tipoDetalhado?.descricao || eq.nome
         }))
+        
+        console.log(`✅ ${equipamentos.value.length} equipamentos carregados para ${usuario.perfil}`)
+        
+        // Se for operador com apenas 1 equipamento, selecionar automaticamente
+        if (authStore.isOperador && equipamentos.value.length === 1) {
+          formMedicaoData.value.equipamento_id = equipamentos.value[0].id
+          onEquipamentoChange(equipamentos.value[0].id)
+        }
+        
       } catch (error) {
         mostrarNotificacao('Erro ao carregar equipamentos: ' + error.message, 'error')
       } finally {
         loadingEquipamentos.value = false
       }
     }
+    
+    // Watch para mudanças no equipamento selecionado
+    const onEquipamentoChange = (equipamentoId) => {
+      const equip = equipamentos.value.find(e => e.id === equipamentoId)
+      if (!equip) return
+      
+      equipamentoSelecionado.value = equip
+      tipoEquipamentoDetectado.value = equip.tipoDetalhado
+      
+      // Ajustar formulário baseado no tipo
+      if (tipoEquipamentoDetectado.value) {
+        const tipo = tipoEquipamentoDetectado.value
+        
+        // Ajustar quantidade de medições
+        const qtd = tipo.quantidadeMedicoes || 5
+        formMedicaoData.value.valores_medicoes = Array(qtd).fill(0)
+        
+        // Definir geometria padrão
+        if (tipo.geometrias && tipo.geometrias.length > 0) {
+          formMedicaoData.value.geometria_medicao = tipo.geometrias[0]
+        }
+        
+        // Preencher nome do técnico automaticamente
+        formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario
+        
+        console.log(`📋 Formulário ajustado para ${tipo.descricao}:`, {
+          medicoes: qtd,
+          geometria: tipo.geometrias,
+          simuladorChuva: tipo.simuladorChuva
+        })
+      }
+    }
+    
+    // Computed para opções dinâmicas baseadas no equipamento
+    const geometriasDisponiveis = computed(() => {
+      if (!tipoEquipamentoDetectado.value) return geometriaOptions
+      return tipoEquipamentoDetectado.value.geometrias || geometriaOptions
+    })
+    
+    const tipoMedicao = computed(() => {
+      if (!tipoEquipamentoDetectado.value) return null
+      return tipoEquipamentoDetectado.value.tipo
+    })
+    
+    const mostrarCamposPelicula = computed(() => {
+      return tipoMedicao.value === 'vertical'
+    })
+    
+    const mostrarCamposMaterial = computed(() => {
+      return tipoMedicao.value === 'horizontal'
+    })
+    
+    const mostrarSimuladorChuva = computed(() => {
+      return tipoEquipamentoDetectado.value?.simuladorChuva === true
+    })
     
     const abrirDialogNovo = () => {
       modoEdicao.value = false
@@ -889,12 +1025,17 @@ export default {
     })
     
     return {
+      // Auth
+      authStore,
+      
       // Estados
       loading,
       loadingEquipamentos,
       medicoes,
       equipamentos,
       stats,
+      equipamentoSelecionado,
+      tipoEquipamentoDetectado,
       
       // Dialogs
       dialogMedicao,
@@ -913,10 +1054,15 @@ export default {
       validacaoOptions,
       tipoEquipamentoOptions,
       
-      // Opções
+      // Opções Dinâmicas
       tipoPeliculaOptions,
       corOptions,
       geometriaOptions,
+      geometriasDisponiveis,
+      tipoMedicao,
+      mostrarCamposPelicula,
+      mostrarCamposMaterial,
+      mostrarSimuladorChuva,
       
       // Headers
       headers,
@@ -936,6 +1082,7 @@ export default {
       salvarMedicao,
       gerarLaudoPDF,
       aplicarFiltros,
+      onEquipamentoChange,
       
       // Helpers
       formatarData,

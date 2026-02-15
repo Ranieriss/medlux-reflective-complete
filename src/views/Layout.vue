@@ -128,33 +128,52 @@ const notificacoesCount = ref(3) // TODO: Implementar sistema de notificações
 
 // Menu items baseado em permissões
 const menuItems = computed(() => {
-  const items = [
-    {
-      title: 'Dashboard',
-      icon: 'mdi-view-dashboard',
-      to: '/dashboard'
-    },
-    {
-      title: 'Equipamentos',
+  const items = []
+  
+  // Dashboard - todos veem
+  items.push({
+    title: 'Dashboard',
+    icon: 'mdi-view-dashboard',
+    to: '/dashboard'
+  })
+  
+  // Operadores veem apenas medições e seus equipamentos
+  if (authStore.isOperador) {
+    items.push({
+      title: 'Meus Equipamentos',
       icon: 'mdi-devices',
-      to: '/equipamentos'
-    },
-    {
-      title: 'Vínculos',
-      icon: 'mdi-link-variant',
-      to: '/vinculos'
-    },
-    {
-      title: 'Medições',
+      to: '/equipamentos',
+      badge: null
+    })
+    items.push({
+      title: 'Minhas Medições',
       icon: 'mdi-chart-line',
       to: '/calibracoes'
-    },
-    {
-      title: 'Relatórios',
-      icon: 'mdi-file-chart',
-      to: '/relatorios'
-    }
-  ]
+    })
+    return items
+  }
+  
+  // Admin e Técnicos veem tudo
+  items.push({
+    title: 'Equipamentos',
+    icon: 'mdi-devices',
+    to: '/equipamentos'
+  })
+  items.push({
+    title: 'Vínculos',
+    icon: 'mdi-link-variant',
+    to: '/vinculos'
+  })
+  items.push({
+    title: 'Medições',
+    icon: 'mdi-chart-line',
+    to: '/calibracoes'
+  })
+  items.push({
+    title: 'Relatórios',
+    icon: 'mdi-file-chart',
+    to: '/relatorios'
+  })
 
   // Adicionar itens administrativos
   if (authStore.isAdmin) {

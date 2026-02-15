@@ -11,8 +11,10 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isAdmin = computed(() => usuario.value?.perfil === 'administrador' || usuario.value?.perfil === 'admin')
   const isTecnico = computed(() => usuario.value?.perfil === 'tecnico')
+  const isOperador = computed(() => usuario.value?.perfil === 'operador')
   const nomeUsuario = computed(() => usuario.value?.nome || 'Usuário')
   const emailUsuario = computed(() => usuario.value?.email || '')
+  const perfilUsuario = computed(() => usuario.value?.perfil || 'operador')
 
   // Actions
   const login = async (email, senha) => {
@@ -114,10 +116,26 @@ export const useAuthStore = defineStore('auth', () => {
     const permissoesTecnico = [
       'ver_equipamentos',
       'ver_vinculos',
-      'ver_calibracoes'
+      'ver_calibracoes',
+      'criar_medicoes'
     ]
     
-    return permissoesTecnico.includes(permissao)
+    // Operadores têm permissões básicas
+    const permissoesOperador = [
+      'ver_equipamentos_vinculados',
+      'criar_medicoes',
+      'ver_medicoes'
+    ]
+    
+    if (usuario.value.perfil === 'tecnico') {
+      return permissoesTecnico.includes(permissao)
+    }
+    
+    if (usuario.value.perfil === 'operador') {
+      return permissoesOperador.includes(permissao)
+    }
+    
+    return false
   }
 
   return {
@@ -128,8 +146,10 @@ export const useAuthStore = defineStore('auth', () => {
     // Getters
     isAdmin,
     isTecnico,
+    isOperador,
     nomeUsuario,
     emailUsuario,
+    perfilUsuario,
     
     // Actions
     login,
