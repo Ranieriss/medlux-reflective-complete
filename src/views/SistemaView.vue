@@ -259,16 +259,57 @@
               <h2 class="text-h4 font-weight-bold mb-2">MEDLUX Reflective</h2>
               <p class="text-h6 text-secondary mb-4">Sistema de Gestão de Equipamentos</p>
               <p class="text-body-2 mb-4">
-                Desenvolvido com Vue 3, Vuetify 3 e Supabase<br>
                 Sistema completo para gestão de equipamentos de medição com controle de calibração,
-                vínculos de custódia e auditoria integrada.
+                vínculos de custódia e auditoria integrada. Conforme ISO 9001:2015 e ABNT NBR 14723.
               </p>
-              <v-chip color="primary" class="mr-2">Vue 3</v-chip>
-              <v-chip color="secondary" class="mr-2">Vuetify 3</v-chip>
-              <v-chip color="success" class="mr-2">Supabase</v-chip>
-              <v-chip color="info">PostgreSQL</v-chip>
+              <v-chip color="primary" class="mr-2 mb-2">Vue 3</v-chip>
+              <v-chip color="secondary" class="mr-2 mb-2">Vuetify 3</v-chip>
+              <v-chip color="success" class="mr-2 mb-2">Supabase</v-chip>
+              <v-chip color="info" class="mb-2">PostgreSQL</v-chip>
+
+              <v-divider class="my-6" />
+
+              <div class="mb-6">
+                <h3 class="text-h6 font-weight-bold mb-3">Desenvolvido por:</h3>
+                
+                <v-card class="mx-auto mb-4" max-width="600" variant="outlined">
+                  <v-card-text>
+                    <div class="d-flex align-center mb-2">
+                      <v-icon color="primary" class="mr-2">mdi-account-tie</v-icon>
+                      <span class="text-h6 font-weight-bold">Paulo Ranieri dos Santos</span>
+                    </div>
+                    <div class="text-body-2 text-left">
+                      <div class="mb-1"><v-icon size="small" class="mr-2">mdi-school</v-icon>Engenheiro Químico</div>
+                      <div class="mb-1"><v-icon size="small" class="mr-2">mdi-cog</v-icon>Técnico em Automação Industrial</div>
+                      <div class="mb-1"><v-icon size="small" class="mr-2">mdi-code-braces</v-icon>Desenvolvedor de Aplicativos</div>
+                      <div class="mb-1"><v-icon size="small" class="mr-2">mdi-whatsapp</v-icon>WhatsApp: +55 (48) 99608-3062</div>
+                      <div><v-icon size="small" class="mr-2">mdi-email</v-icon>Email: ranieri.santos16@gmail.com</div>
+                    </div>
+                  </v-card-text>
+                </v-card>
+
+                <v-card class="mx-auto" max-width="600" variant="outlined">
+                  <v-card-text>
+                    <div class="d-flex align-center mb-2">
+                      <v-icon color="success" class="mr-2">mdi-factory</v-icon>
+                      <span class="text-h6 font-weight-bold">I.C.D. Indústria</span>
+                    </div>
+                    <div class="text-body-2 text-left">
+                      <div class="mb-1"><strong>Razão Social:</strong> I.C.D. Indústria, Comércio e Distribuição de Materiais para Infraestrutura Viária Ltda.</div>
+                      <div class="mb-1"><strong>CNPJ:</strong> 10.954.989/0001-26</div>
+                      <div class="mb-1"><strong>Endereço:</strong> Rua Juliano Lucchi, 118 – Jardim Eldorado - Palhoça - SC</div>
+                      <div class="mb-1"><strong>CEP:</strong> 88.133-540</div>
+                      <div class="mb-1"><v-icon size="small" class="mr-2">mdi-phone</v-icon>Telefone: (48) 2106-3022</div>
+                      <div class="mb-1"><v-icon size="small" class="mr-2">mdi-web</v-icon>Site: www.icdvias.com.br</div>
+                      <div><strong>Slogan:</strong> "TECNOLOGIA EM MATERIAIS A SERVIÇO DA VIDA!"</div>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </div>
+
               <div class="mt-6 text-caption text-secondary">
-                © {{ new Date().getFullYear() }} MEDLUX Reflective. Todos os direitos reservados.
+                © {{ new Date().getFullYear() }} MEDLUX Reflective. Todos os direitos reservados.<br>
+                Desenvolvido com ❤️ por Paulo Ranieri dos Santos e I.C.D. Indústria
               </div>
             </div>
           </v-card-text>
