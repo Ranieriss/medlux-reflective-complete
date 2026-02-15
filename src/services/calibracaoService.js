@@ -4,6 +4,7 @@
 // ============================================
 
 import { supabase } from './supabase'
+import laudoPDFService from './laudoPDFService'
 
 /**
  * Buscar critérios de retrorrefletância
@@ -416,4 +417,66 @@ export const quantidadeMedicoesRecomendada = {
   horizontal: 10, // NBR 14723: mínimo 10 pontos
   tachas: 2,      // NBR 14636: ambas geometrias
   tachoes: 1      // NBR 15576: mínimo 1
+}
+
+/**
+ * Gerar laudo PDF de medição
+ */
+export const gerarLaudoPDF = async (calibracaoId) => {
+  try {
+    // Buscar dados completos da calibração
+    const { data: calibracao, error } = await supabase
+      .from('vw_calibracoes_status')
+      .select('*')
+      .eq('calibracao_id', calibracaoId)
+      .single()
+
+    if (error) throw error
+    if (!calibracao) throw new Error('Calibração não encontrada')
+
+    // Buscar valores de medições
+    const { data: historico, error: errorHistorico } = await supabase
+      .from('historico_calibracoes')
+      .select('*')
+      .eq('id', calibracaoId)
+      .single()
+
+    if (errorHistorico) throw errorHistorico
+
+    // Mesclar dados
+    const dadosCompletos = {
+      ...calibracao,
+      valores_medicoes: historico.valores_medicoes || [],
+      temperatura_ambiente: historico.temperatura_ambiente,
+      umidade_relativa: historico.umidade_relativa,
+      observacoes: historico.observacoes,
+      condicoes_medicao: historico.condicoes_medicao,
+    }
+
+    // Gerar PDF
+    const resultado = await laudoPDFService.gerarLaudo(dadosCompletos)
+
+    return { success: true, ...resultado }
+  } catch (error) {
+    console.error('❌ Erro ao gerar laudo PDF:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Export default com todos os métodos
+export default {
+  buscarCriterios,
+  buscarCriterioEspecifico,
+  validarMedicoes,
+  calcularValidacao,
+  registrarCalibracao,
+  listarCalibracoes,
+  obterCalibracao,
+  obterEstatisticas,
+  gerarLaudoPDF,
+  tiposPelicula,
+  tiposMaterial,
+  coresMedicao,
+  geometriasPorTipo,
+  quantidadeMedicoesRecomendada,
 }
