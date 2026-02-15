@@ -95,13 +95,14 @@ export async function buscarEquipamentosDoUsuario(usuarioId, perfil) {
       const { data, error } = await supabase
         .from('equipamentos')
         .select('*')
-        .eq('status', 'ativo')
         .order('codigo', { ascending: true })
       
       if (error) throw error
       
+      console.log(`📦 Equipamentos encontrados: ${data?.length || 0}`)
+      
       // Enriquecer com informações de tipo
-      return data.map(eq => ({
+      return (data || []).map(eq => ({
         ...eq,
         tipoDetalhado: detectarTipoEquipamento(eq.codigo)
       }))
@@ -136,7 +137,7 @@ export async function buscarEquipamentosDoUsuario(usuarioId, perfil) {
     // Mapear e enriquecer
     const equipamentos = data
       .map(v => v.equipamentos)
-      .filter(eq => eq && eq.status === 'ativo')
+      .filter(eq => eq !== null)
       .map(eq => ({
         ...eq,
         tipoDetalhado: detectarTipoEquipamento(eq.codigo)
