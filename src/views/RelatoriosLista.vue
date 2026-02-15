@@ -530,7 +530,7 @@ const gerarPDFEquipamentos = (dados) => {
         .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
       </style>
     </head>
-    <body>
+    <body onload="window.print()">
       <div class="header">
         <h1>📊 MEDLUX Reflective</h1>
         <h2>Relatório de Equipamentos</h2>
@@ -566,7 +566,7 @@ const gerarPDFEquipamentos = (dados) => {
         <p>MEDLUX Reflective © ${new Date().getFullYear()} - Sistema de Gestão de Equipamentos</p>
         <p>Total de registros: ${dados.length}</p>
       </div>
-      <script>window.print();</script>
+      
     </body>
     </html>
   `
@@ -596,7 +596,7 @@ const gerarPDFVinculos = (dados) => {
         .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
       </style>
     </head>
-    <body>
+    <body onload="window.print()">
       <div class="header">
         <h1>📊 MEDLUX Reflective</h1>
         <h2>Relatório de Vínculos</h2>
@@ -630,7 +630,7 @@ const gerarPDFVinculos = (dados) => {
         <p>MEDLUX Reflective © ${new Date().getFullYear()} - Sistema de Gestão de Equipamentos</p>
         <p>Total de registros: ${dados.length}</p>
       </div>
-      <script>window.print();</script>
+      
     </body>
     </html>
   `
@@ -661,7 +661,7 @@ const gerarPDFCalibracao = (dados) => {
         .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
       </style>
     </head>
-    <body>
+    <body onload="window.print()">
       <div class="header">
         <h1>📊 MEDLUX Reflective</h1>
         <h2>Relatório de Calibração</h2>
@@ -697,7 +697,7 @@ const gerarPDFCalibracao = (dados) => {
         <p>MEDLUX Reflective © ${new Date().getFullYear()} - Sistema de Gestão de Equipamentos</p>
         <p>Total de registros: ${dados.length}</p>
       </div>
-      <script>window.print();</script>
+      
     </body>
     </html>
   `
@@ -727,7 +727,7 @@ const gerarPDFAuditoria = (dados) => {
         .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
       </style>
     </head>
-    <body>
+    <body onload="window.print()">
       <div class="header">
         <h1>📊 MEDLUX Reflective</h1>
         <h2>Relatório de Auditoria</h2>
@@ -761,7 +761,7 @@ const gerarPDFAuditoria = (dados) => {
         <p>MEDLUX Reflective © ${new Date().getFullYear()} - Sistema de Gestão de Equipamentos</p>
         <p>Total de registros: ${dados.length}</p>
       </div>
-      <script>window.print();</script>
+      
     </body>
     </html>
   `
