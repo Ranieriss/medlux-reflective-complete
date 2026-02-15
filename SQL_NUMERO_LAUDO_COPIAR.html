@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL - Numeração de Laudos MEDLUX</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .instructions {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+        
+        .instructions h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        .instructions ol li {
+            margin-bottom: 8px;
+        }
+        
+        .sql-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .sql-code {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 25px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre;
+        }
+        
+        .sql-code::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        .sql-code::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        
+        .sql-code::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 5px;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .feedback {
+            display: none;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .feedback.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+            display: block;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔢 Patch SQL - Numeração de Laudos</h1>
+            <p>MEDLUX Reflective - Sistema de Medição de Retrorrefletância</p>
+        </div>
+        
+        <div class="content">
+            <div class="instructions">
+                <h2>📋 Instruções de Instalação</h2>
+                <ol>
+                    <li>Clique no botão <strong>"COPIAR SQL"</strong> abaixo</li>
+                    <li>Acesse o <strong>Supabase Dashboard</strong></li>
+                    <li>Navegue até <strong>SQL Editor</strong> no menu lateral</li>
+                    <li><strong>Cole</strong> o código SQL copiado</li>
+                    <li>Clique em <strong>RUN</strong></li>
+                    <li>Aguarde a mensagem: <strong>✅ Patch 01 aplicado com sucesso!</strong></li>
+                </ol>
+            </div>
+            
+            <div class="sql-container">
+                <div class="sql-code" id="sqlCode">-- ==============================================================
+-- PATCH 01: Sistema de Numeração Automática de Laudos
+-- ==============================================================
+-- Data: 2026-02-15
+-- Versão: 1.0.0
+-- Descrição: Adiciona campo numero_laudo e geração automática
+-- Formato: REL-2026-0001 (REL-{ANO}-{SEQUENCIAL})
+-- ==============================================================
+
+-- 1. Adicionar coluna numero_laudo
+ALTER TABLE historico_calibracoes 
+ADD COLUMN IF NOT EXISTS numero_laudo VARCHAR(50) UNIQUE;
+
+-- 2. Criar índice para performance
+CREATE INDEX IF NOT EXISTS idx_numero_laudo 
+ON historico_calibracoes(numero_laudo);
+
+-- 3. Função para gerar próximo número
+CREATE OR REPLACE FUNCTION gerar_numero_laudo()
+RETURNS VARCHAR AS $$
+DECLARE
+  ano_atual INT;
+  proximo_numero INT;
+  numero_formatado VARCHAR(50);
+BEGIN
+  -- Obter ano atual
+  ano_atual := EXTRACT(YEAR FROM CURRENT_DATE);
+  
+  -- Buscar maior número existente para o ano
+  SELECT COALESCE(
+    MAX(
+      CAST(
+        SUBSTRING(numero_laudo FROM '\\d{4}$') AS INT
+      )
+    ), 
+    0
+  ) + 1
+  INTO proximo_numero
+  FROM historico_calibracoes
+  WHERE numero_laudo LIKE 'REL-' || ano_atual || '-%';
+  
+  -- Formatar número: REL-2026-0001
+  numero_formatado := 'REL-' || ano_atual || '-' || LPAD(proximo_numero::TEXT, 4, '0');
+  
+  RETURN numero_formatado;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Trigger para preencher automaticamente
+CREATE OR REPLACE FUNCTION trigger_gerar_numero_laudo()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.numero_laudo IS NULL THEN
+    NEW.numero_laudo := gerar_numero_laudo();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Remover trigger antigo se existir
+DROP TRIGGER IF EXISTS auto_numero_laudo ON historico_calibracoes;
+
+-- Criar novo trigger
+CREATE TRIGGER auto_numero_laudo
+BEFORE INSERT ON historico_calibracoes
+FOR EACH ROW
+EXECUTE FUNCTION trigger_gerar_numero_laudo();
+
+-- 5. Back-fill: preencher registros existentes
+DO $$
+DECLARE
+  registro RECORD;
+  contador INT := 1;
+  ano INT;
+BEGIN
+  -- Para cada ano com calibrações
+  FOR ano IN 
+    SELECT DISTINCT EXTRACT(YEAR FROM data_calibracao)::INT AS ano 
+    FROM historico_calibracoes 
+    WHERE numero_laudo IS NULL 
+    ORDER BY ano 
+  LOOP
+    contador := 1;
+    
+    -- Para cada calibração do ano
+    FOR registro IN 
+      SELECT id 
+      FROM historico_calibracoes 
+      WHERE EXTRACT(YEAR FROM data_calibracao) = ano 
+        AND numero_laudo IS NULL
+      ORDER BY created_at
+    LOOP
+      UPDATE historico_calibracoes
+      SET numero_laudo = 'REL-' || ano || '-' || LPAD(contador::TEXT, 4, '0')
+      WHERE id = registro.id;
+      
+      contador := contador + 1;
+    END LOOP;
+  END LOOP;
+END $$;
+
+-- 6. Verificação
+SELECT 
+  numero_laudo, 
+  data_calibracao, 
+  equipamento_id,
+  created_at
+FROM historico_calibracoes 
+ORDER BY created_at DESC 
+LIMIT 10;
+
+-- Mensagem de sucesso
+SELECT '✅ Patch 01 aplicado com sucesso!' AS status;
+
+-- ==============================================================
+-- Fim do Patch
+-- ==============================================================</div>
+            </div>
+            
+            <div class="button-container">
+                <button class="btn btn-primary" onclick="copiarSQL()">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    COPIAR SQL
+                </button>
+            </div>
+            
+            <div class="feedback" id="feedback">
+                ✅ SQL copiado com sucesso! Agora cole no Supabase SQL Editor e clique em RUN.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function copiarSQL() {
+            const sqlCode = document.getElementById('sqlCode').textContent;
+            const feedback = document.getElementById('feedback');
+            
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                feedback.classList.add('success');
+                
+                setTimeout(() => {
+                    feedback.classList.remove('success');
+                }, 5000);
+            }).catch(err => {
+                alert('Erro ao copiar. Por favor, selecione e copie manualmente.');
+                console.error('Erro:', err);
+            });
+        }
+    </script>
+</body>
+</html>
