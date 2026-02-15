@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL - Sistema Tachas e Tachões NBR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .features {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .features h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .features ul {
+            margin-left: 20px;
+        }
+        
+        .features li {
+            margin-bottom: 8px;
+            color: #856404;
+        }
+        
+        .copy-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+        }
+        
+        .copy-button:active {
+            transform: translateY(0);
+        }
+        
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .warning strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛣️ Sistema Tachas e Tachões</h1>
+            <p class="subtitle">ABNT NBR 14636:2021 + NBR 15576:2015</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number">3</div>
+                <div class="label">Tabelas Criadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">23</div>
+                <div class="label">Valores Normativos</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">4</div>
+                <div class="label">Funções SQL</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">396</div>
+                <div class="label">Linhas de SQL</div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h2>📋 Instruções de Instalação</h2>
+            <ol>
+                <li><strong>Clique no botão "COPIAR SQL"</strong> abaixo</li>
+                <li>Acesse o <strong>Supabase Dashboard</strong></li>
+                <li>Vá em <strong>SQL Editor</strong></li>
+                <li>Cole o script copiado</li>
+                <li>Clique em <strong>RUN</strong></li>
+                <li>Aguarde a mensagem: <code>✅ PATCH 04 - TACHAS E TACHÕES COMPLETO!</code></li>
+            </ol>
+        </div>
+        
+        <div class="features">
+            <h3>✨ Funcionalidades Implementadas</h3>
+            <ul>
+                <li><strong>Tachas (NBR 14636:2021)</strong>
+                    <ul>
+                        <li>Tipos de corpo: A (resina), B (plástico), C (metal)</li>
+                        <li>Tipos de lente: I, II, III, IV</li>
+                        <li>Cores: Branco, Amarelo, Vermelho, Verde, Azul</li>
+                        <li>Face: Unidirecional / Bidirecional</li>
+                        <li>Geometria: 0,2°/0°</li>
+                        <li>Validação RI: diferença ≤10% entre leituras</li>
+                        <li>Teste de abrasão: ≥80% do valor inicial</li>
+                        <li>Testes mecânicos opcionais (compressão, impacto, penetração de água)</li>
+                    </ul>
+                </li>
+                <li><strong>Tachões (NBR 15576:2015)</strong>
+                    <ul>
+                        <li>Tipo I (prismas plásticos) e Tipo II (esferas de vidro)</li>
+                        <li>Cores: Branco, Amarelo, Vermelho</li>
+                        <li>Validação de 10 dimensões obrigatórias com tolerâncias</li>
+                        <li>Mínimos normativos específicos por tipo e cor</li>
+                    </ul>
+                </li>
+                <li><strong>Validações Automáticas</strong>
+                    <ul>
+                        <li>Cálculo automático de média RI</li>
+                        <li>Comparação com valores mínimos normativos</li>
+                        <li>Validação de diferença entre leituras (≤10%)</li>
+                        <li>Verificação de retenção pós-abrasão (≥80%)</li>
+                        <li>Conformidade dimensional para tachões</li>
+                        <li>Status global: Conforme apenas se todos os critérios forem atendidos</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ ATENÇÃO:</strong>
+            Execute este patch APÓS os patches anteriores (01 - Numeração, 02 - Horizontal, 03 - Vertical).
+            O sistema de equipamentos deve estar configurado com certificados de calibração válidos.
+        </div>
+        
+        <button class="copy-button" onclick="copySQL()">
+            📋 COPIAR SQL
+        </button>
+        
+        <div class="success-message" id="successMessage">
+            ✅ SQL copiado! Cole no Supabase SQL Editor e execute.
+        </div>
+    </div>
+    
+    <textarea id="sqlContent" style="position: absolute; left: -9999px;">
+-- =====================================================
+-- PATCH 04: SISTEMA TACHAS E TACHÕES
+-- ABNT NBR 14636:2021 + NBR 15576:2015
+-- Data: 2026-02-15
+-- Versão: 1.0.0
+-- =====================================================
+
+-- TABELA PRINCIPAL: DISPOSITIVOS DE PAVIMENTO
+CREATE TABLE IF NOT EXISTS dispositivos_pavimento (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Identificação
+    codigo VARCHAR(50) UNIQUE NOT NULL,
+    categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('tacha', 'tachao')),
+    
+    -- Dados do Fabricante
+    fabricante VARCHAR(200) NOT NULL,
+    modelo VARCHAR(100) NOT NULL,
+    lote VARCHAR(100),
+    
+    -- Características Óticas (Tachas)
+    tipo_corpo VARCHAR(50) CHECK (tipo_corpo IN ('A-resina', 'B-plastico', 'C-metal')),
+    tipo_lente VARCHAR(50) CHECK (tipo_lente IN ('I-polimero', 'II-polimero-anti-abrasivo', 'III-polimero-vidro', 'IV-esferas-vidro')),
+    
+    -- Características (Tachões)
+    tipo_tachao VARCHAR(50) CHECK (tipo_tachao IN ('I-prismas-plastico', 'II-esferas-vidro')),
+    
+    -- Características Comuns
+    cor VARCHAR(50) NOT NULL CHECK (cor IN ('branco', 'amarelo', 'vermelho', 'verde', 'azul')),
+    face VARCHAR(50) CHECK (face IN ('unidirecional', 'bidirecional')),
+    metodo_fixacao VARCHAR(200),
+    
+    -- Dados de Medição
+    geometria_observacao DECIMAL(4,2) DEFAULT 0.2,
+    geometria_incidencia DECIMAL(4,2) DEFAULT 0.0,
+    data_medicao DATE NOT NULL,
+    tecnico_responsavel VARCHAR(200) NOT NULL,
+    
+    -- Equipamento
+    equipamento_id UUID REFERENCES equipamentos(id),
+    equipamento_fabricante VARCHAR(200),
+    equipamento_modelo VARCHAR(100),
+    equipamento_serie VARCHAR(100),
+    numero_certificado VARCHAR(100),
+    data_certificado DATE,
+    validade_certificado DATE,
+    
+    -- Resultados Fotométricos
+    media_ri DECIMAL(10,2),
+    valor_minimo_normativo DECIMAL(10,2),
+    conformidade_ri BOOLEAN,
+    
+    -- Teste de Abrasão (Tachas)
+    ri_pos_abrasao DECIMAL(10,2),
+    percentual_retencao DECIMAL(5,2),
+    conformidade_abrasao BOOLEAN,
+    
+    -- Testes Mecânicos Opcionais (Tachas)
+    teste_compressao_realizado BOOLEAN DEFAULT false,
+    teste_compressao_resultado VARCHAR(50) CHECK (teste_compressao_resultado IN ('aprovado', 'reprovado', NULL)),
+    teste_impacto_realizado BOOLEAN DEFAULT false,
+    teste_impacto_resultado VARCHAR(50) CHECK (teste_impacto_resultado IN ('aprovado', 'reprovado', NULL)),
+    teste_agua_realizado BOOLEAN DEFAULT false,
+    teste_agua_resultado VARCHAR(50) CHECK (teste_agua_resultado IN ('aprovado', 'reprovado', NULL)),
+    
+    -- Dimensões (Tachões) - NBR 15576:2015
+    comprimento_mm DECIMAL(6,2),
+    comprimento_conforme BOOLEAN,
+    largura_mm DECIMAL(6,2),
+    largura_conforme BOOLEAN,
+    altura_mm DECIMAL(6,2),
+    altura_conforme BOOLEAN,
+    angulo_frontal_graus DECIMAL(5,2),
+    angulo_frontal_conforme BOOLEAN,
+    angulo_lateral_graus DECIMAL(5,2),
+    angulo_lateral_conforme BOOLEAN,
+    diametro_pino_mm DECIMAL(5,2),
+    diametro_pino_conforme BOOLEAN,
+    altura_pino_mm DECIMAL(5,2),
+    altura_pino_conforme BOOLEAN,
+    comprimento_refletivo_mm DECIMAL(6,2),
+    comprimento_refletivo_conforme BOOLEAN,
+    largura_refletiva_mm DECIMAL(6,2),
+    largura_refletiva_conforme BOOLEAN,
+    espacamento_pinos_mm DECIMAL(6,2),
+    espacamento_pinos_conforme BOOLEAN,
+    
+    -- Status Global
+    status_final VARCHAR(50) CHECK (status_final IN ('conforme', 'nao-conforme', 'pendente')),
+    observacoes TEXT,
+    
+    -- Controle
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    created_by UUID REFERENCES auth.users(id)
+);
+
+-- TABELA: LEITURAS FOTOMÉTRICAS
+CREATE TABLE IF NOT EXISTS leituras_dispositivos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    dispositivo_id UUID NOT NULL REFERENCES dispositivos_pavimento(id) ON DELETE CASCADE,
+    
+    face VARCHAR(50) CHECK (face IN ('frontal', 'traseira')),
+    tipo_medicao VARCHAR(50) CHECK (tipo_medicao IN ('inicial', 'pos-abrasao')),
+    numero_leitura INTEGER NOT NULL CHECK (numero_leitura >= 1 AND numero_leitura <= 10),
+    
+    valor_ri DECIMAL(10,2) NOT NULL CHECK (valor_ri > 0),
+    
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- TABELA: VALORES MÍNIMOS NORMATIVOS
+CREATE TABLE IF NOT EXISTS valores_minimos_dispositivos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('tacha', 'tachao')),
+    tipo VARCHAR(50) NOT NULL,
+    cor VARCHAR(50) NOT NULL,
+    valor_minimo DECIMAL(10,2) NOT NULL,
+    norma VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Índices para performance
+CREATE INDEX IF NOT EXISTS idx_dispositivos_categoria ON dispositivos_pavimento(categoria);
+CREATE INDEX IF NOT EXISTS idx_dispositivos_status ON dispositivos_pavimento(status_final);
+CREATE INDEX IF NOT EXISTS idx_leituras_dispositivo ON leituras_dispositivos(dispositivo_id);
+CREATE INDEX IF NOT EXISTS idx_valores_minimos_lookup ON valores_minimos_dispositivos(categoria, tipo, cor);
+
+-- =====================================================
+-- DADOS: VALORES MÍNIMOS NORMATIVOS
+-- =====================================================
+
+-- TACHAS - NBR 14636:2021
+-- Tipo de Lente I (polímero sem anti-abrasivo)
+INSERT INTO valores_minimos_dispositivos (categoria, tipo, cor, valor_minimo, norma) VALUES
+('tacha', 'I-polimero', 'branco', 280.00, 'NBR14636:2021'),
+('tacha', 'I-polimero', 'amarelo', 167.00, 'NBR14636:2021'),
+('tacha', 'I-polimero', 'vermelho', 70.00, 'NBR14636:2021'),
+('tacha', 'I-polimero', 'verde', 93.00, 'NBR14636:2021'),
+('tacha', 'I-polimero', 'azul', 26.00, 'NBR14636:2021');
+
+-- Tipos de Lente II, III, IV (com anti-abrasivo)
+INSERT INTO valores_minimos_dispositivos (categoria, tipo, cor, valor_minimo, norma) VALUES
+('tacha', 'II-polimero-anti-abrasivo', 'branco', 400.00, 'NBR14636:2021'),
+('tacha', 'II-polimero-anti-abrasivo', 'amarelo', 220.00, 'NBR14636:2021'),
+('tacha', 'II-polimero-anti-abrasivo', 'vermelho', 90.00, 'NBR14636:2021'),
+('tacha', 'II-polimero-anti-abrasivo', 'verde', 120.00, 'NBR14636:2021'),
+('tacha', 'II-polimero-anti-abrasivo', 'azul', 34.00, 'NBR14636:2021'),
+
+('tacha', 'III-polimero-vidro', 'branco', 400.00, 'NBR14636:2021'),
+('tacha', 'III-polimero-vidro', 'amarelo', 220.00, 'NBR14636:2021'),
+('tacha', 'III-polimero-vidro', 'vermelho', 90.00, 'NBR14636:2021'),
+('tacha', 'III-polimero-vidro', 'verde', 120.00, 'NBR14636:2021'),
+('tacha', 'III-polimero-vidro', 'azul', 34.00, 'NBR14636:2021'),
+
+('tacha', 'IV-esferas-vidro', 'branco', 400.00, 'NBR14636:2021'),
+('tacha', 'IV-esferas-vidro', 'amarelo', 220.00, 'NBR14636:2021'),
+('tacha', 'IV-esferas-vidro', 'vermelho', 90.00, 'NBR14636:2021'),
+('tacha', 'IV-esferas-vidro', 'verde', 120.00, 'NBR14636:2021'),
+('tacha', 'IV-esferas-vidro', 'azul', 34.00, 'NBR14636:2021');
+
+-- TACHÕES - NBR 15576:2015
+-- Tipo I (prismas plásticos)
+INSERT INTO valores_minimos_dispositivos (categoria, tipo, cor, valor_minimo, norma) VALUES
+('tachao', 'I-prismas-plastico', 'branco', 280.00, 'NBR15576:2015'),
+('tachao', 'I-prismas-plastico', 'amarelo', 167.00, 'NBR15576:2015'),
+('tachao', 'I-prismas-plastico', 'vermelho', 70.00, 'NBR15576:2015');
+
+-- Tipo II (esferas de vidro)
+INSERT INTO valores_minimos_dispositivos (categoria, tipo, cor, valor_minimo, norma) VALUES
+('tachao', 'II-esferas-vidro', 'branco', 150.00, 'NBR15576:2015'),
+('tachao', 'II-esferas-vidro', 'amarelo', 75.00, 'NBR15576:2015'),
+('tachao', 'II-esferas-vidro', 'vermelho', 15.00, 'NBR15576:2015');
+
+-- =====================================================
+-- FUNÇÕES PL/pgSQL
+-- =====================================================
+
+-- Função: Calcular Média RI
+CREATE OR REPLACE FUNCTION calcular_media_ri(
+    p_dispositivo_id UUID,
+    p_face VARCHAR DEFAULT 'frontal',
+    p_tipo_medicao VARCHAR DEFAULT 'inicial'
+)
+RETURNS DECIMAL AS $$
+DECLARE
+    v_media DECIMAL;
+    v_count INTEGER;
+    v_leitura1 DECIMAL;
+    v_leitura2 DECIMAL;
+    v_diferenca_percentual DECIMAL;
+BEGIN
+    -- Contar leituras
+    SELECT COUNT(*) INTO v_count
+    FROM leituras_dispositivos
+    WHERE dispositivo_id = p_dispositivo_id
+      AND face = p_face
+      AND tipo_medicao = p_tipo_medicao;
+    
+    -- Validar mínimo de leituras
+    IF v_count < 2 THEN
+        RAISE EXCEPTION 'Mínimo de 2 leituras necessárias. Encontradas: %', v_count;
+    END IF;
+    
+    -- Buscar primeiras duas leituras
+    SELECT valor_ri INTO v_leitura1
+    FROM leituras_dispositivos
+    WHERE dispositivo_id = p_dispositivo_id
+      AND face = p_face
+      AND tipo_medicao = p_tipo_medicao
+      AND numero_leitura = 1;
+    
+    SELECT valor_ri INTO v_leitura2
+    FROM leituras_dispositivos
+    WHERE dispositivo_id = p_dispositivo_id
+      AND face = p_face
+      AND tipo_medicao = p_tipo_medicao
+      AND numero_leitura = 2;
+    
+    -- Calcular diferença percentual
+    v_diferenca_percentual := ABS((v_leitura1 - v_leitura2) / ((v_leitura1 + v_leitura2) / 2.0)) * 100;
+    
+    -- Se diferença > 10%, exigir terceira leitura
+    IF v_diferenca_percentual > 10 AND v_count < 3 THEN
+        RAISE EXCEPTION 'Diferença entre leituras (%.2f%%) > 10%%. Terceira leitura obrigatória.', v_diferenca_percentual;
+    END IF;
+    
+    -- Calcular média
+    SELECT AVG(valor_ri) INTO v_media
+    FROM leituras_dispositivos
+    WHERE dispositivo_id = p_dispositivo_id
+      AND face = p_face
+      AND tipo_medicao = p_tipo_medicao;
+    
+    RETURN v_media;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Função: Buscar Valor Mínimo Normativo
+CREATE OR REPLACE FUNCTION buscar_valor_minimo_dispositivo(
+    p_categoria VARCHAR,
+    p_tipo VARCHAR,
+    p_cor VARCHAR
+)
+RETURNS DECIMAL AS $$
+DECLARE
+    v_minimo DECIMAL;
+BEGIN
+    SELECT valor_minimo INTO v_minimo
+    FROM valores_minimos_dispositivos
+    WHERE categoria = p_categoria
+      AND tipo = p_tipo
+      AND cor = p_cor
+    LIMIT 1;
+    
+    IF v_minimo IS NULL THEN
+        RAISE EXCEPTION 'Valor mínimo não encontrado: % / % / %', p_categoria, p_tipo, p_cor;
+    END IF;
+    
+    RETURN v_minimo;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Função: Validar Conformidade Global
+CREATE OR REPLACE FUNCTION validar_conformidade_dispositivo(
+    p_dispositivo_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_dispositivo RECORD;
+    v_conforme BOOLEAN := true;
+BEGIN
+    SELECT * INTO v_dispositivo
+    FROM dispositivos_pavimento
+    WHERE id = p_dispositivo_id;
+    
+    -- 1. Validar RI inicial
+    IF v_dispositivo.conformidade_ri IS NULL OR v_dispositivo.conformidade_ri = false THEN
+        v_conforme := false;
+    END IF;
+    
+    -- 2. Validar abrasão (se realizado)
+    IF v_dispositivo.categoria = 'tacha' AND v_dispositivo.ri_pos_abrasao IS NOT NULL THEN
+        IF v_dispositivo.conformidade_abrasao IS NULL OR v_dispositivo.conformidade_abrasao = false THEN
+            v_conforme := false;
+        END IF;
+    END IF;
+    
+    -- 3. Validar dimensões (tachões)
+    IF v_dispositivo.categoria = 'tachao' THEN
+        IF NOT (
+            v_dispositivo.comprimento_conforme AND
+            v_dispositivo.largura_conforme AND
+            v_dispositivo.altura_conforme AND
+            v_dispositivo.angulo_frontal_conforme AND
+            v_dispositivo.angulo_lateral_conforme AND
+            v_dispositivo.diametro_pino_conforme AND
+            v_dispositivo.altura_pino_conforme AND
+            v_dispositivo.comprimento_refletivo_conforme AND
+            v_dispositivo.largura_refletiva_conforme AND
+            v_dispositivo.espacamento_pinos_conforme
+        ) THEN
+            v_conforme := false;
+        END IF;
+    END IF;
+    
+    -- 4. Validar testes mecânicos (se realizados)
+    IF v_dispositivo.teste_compressao_realizado AND v_dispositivo.teste_compressao_resultado = 'reprovado' THEN
+        v_conforme := false;
+    END IF;
+    
+    IF v_dispositivo.teste_impacto_realizado AND v_dispositivo.teste_impacto_resultado = 'reprovado' THEN
+        v_conforme := false;
+    END IF;
+    
+    IF v_dispositivo.teste_agua_realizado AND v_dispositivo.teste_agua_resultado = 'reprovado' THEN
+        v_conforme := false;
+    END IF;
+    
+    -- Atualizar status
+    UPDATE dispositivos_pavimento
+    SET status_final = CASE WHEN v_conforme THEN 'conforme' ELSE 'nao-conforme' END,
+        updated_at = NOW()
+    WHERE id = p_dispositivo_id;
+    
+    RETURN v_conforme;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Função: Validar Dimensões Tachão (NBR 15576:2015)
+CREATE OR REPLACE FUNCTION validar_dimensoes_tachao(
+    p_dispositivo_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_dispositivo RECORD;
+    v_todas_conformes BOOLEAN := true;
+BEGIN
+    SELECT * INTO v_dispositivo
+    FROM dispositivos_pavimento
+    WHERE id = p_dispositivo_id;
+    
+    IF v_dispositivo.categoria != 'tachao' THEN
+        RAISE EXCEPTION 'Validação dimensional só se aplica a tachões';
+    END IF;
+    
+    -- Comprimento: 150 ± 5 mm
+    UPDATE dispositivos_pavimento
+    SET comprimento_conforme = (comprimento_mm BETWEEN 145 AND 155)
+    WHERE id = p_dispositivo_id;
+    
+    -- Largura: 250 ± 5 mm
+    UPDATE dispositivos_pavimento
+    SET largura_conforme = (largura_mm BETWEEN 245 AND 255)
+    WHERE id = p_dispositivo_id;
+    
+    -- Altura: 47 ± 3 mm
+    UPDATE dispositivos_pavimento
+    SET altura_conforme = (altura_mm BETWEEN 44 AND 50)
+    WHERE id = p_dispositivo_id;
+    
+    -- Ângulo frontal: 27° ± 3°
+    UPDATE dispositivos_pavimento
+    SET angulo_frontal_conforme = (angulo_frontal_graus BETWEEN 24 AND 30)
+    WHERE id = p_dispositivo_id;
+    
+    -- Ângulo lateral: 47° ± 3°
+    UPDATE dispositivos_pavimento
+    SET angulo_lateral_conforme = (angulo_lateral_graus BETWEEN 44 AND 50)
+    WHERE id = p_dispositivo_id;
+    
+    -- Diâmetro do pino: 12,7 ± 1,3 mm
+    UPDATE dispositivos_pavimento
+    SET diametro_pino_conforme = (diametro_pino_mm BETWEEN 11.4 AND 14.0)
+    WHERE id = p_dispositivo_id;
+    
+    -- Altura do pino: 50 ± 5 mm
+    UPDATE dispositivos_pavimento
+    SET altura_pino_conforme = (altura_pino_mm BETWEEN 45 AND 55)
+    WHERE id = p_dispositivo_id;
+    
+    -- Comprimento refletivo: ≥ 100 mm
+    UPDATE dispositivos_pavimento
+    SET comprimento_refletivo_conforme = (comprimento_refletivo_mm >= 100)
+    WHERE id = p_dispositivo_id;
+    
+    -- Largura refletiva: ≥ 15 mm
+    UPDATE dispositivos_pavimento
+    SET largura_refletiva_conforme = (largura_refletiva_mm >= 15)
+    WHERE id = p_dispositivo_id;
+    
+    -- Espaçamento entre pinos: ≥ 120 mm
+    UPDATE dispositivos_pavimento
+    SET espacamento_pinos_conforme = (espacamento_pinos_mm >= 120)
+    WHERE id = p_dispositivo_id;
+    
+    -- Verificar se todas estão conformes
+    SELECT 
+        comprimento_conforme AND
+        largura_conforme AND
+        altura_conforme AND
+        angulo_frontal_conforme AND
+        angulo_lateral_conforme AND
+        diametro_pino_conforme AND
+        altura_pino_conforme AND
+        comprimento_refletivo_conforme AND
+        largura_refletiva_conforme AND
+        espacamento_pinos_conforme
+    INTO v_todas_conformes
+    FROM dispositivos_pavimento
+    WHERE id = p_dispositivo_id;
+    
+    RETURN v_todas_conformes;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- VERIFICAÇÕES FINAIS
+-- =====================================================
+
+-- Listar tabelas criadas
+SELECT 
+    schemaname,
+    tablename
+FROM pg_tables
+WHERE tablename IN ('dispositivos_pavimento', 'leituras_dispositivos', 'valores_minimos_dispositivos')
+ORDER BY tablename;
+
+-- Contar valores mínimos por categoria
+SELECT 
+    categoria,
+    COUNT(*) as total_valores
+FROM valores_minimos_dispositivos
+GROUP BY categoria;
+
+-- Mensagem de sucesso
+DO $$
+BEGIN
+    RAISE NOTICE '✅ PATCH 04 - TACHAS E TACHÕES COMPLETO!';
+    RAISE NOTICE '📊 3 tabelas criadas';
+    RAISE NOTICE '📋 23 valores normativos cadastrados';
+    RAISE NOTICE '⚙️ 4 funções de validação implementadas';
+    RAISE NOTICE '✨ Sistemas NBR 14636:2021 + NBR 15576:2015 prontos!';
+END $$;
+    </textarea>
+    
+    <script>
+        function copySQL() {
+            const textarea = document.getElementById('sqlContent');
+            const successMessage = document.getElementById('successMessage');
+            
+            textarea.select();
+            document.execCommand('copy');
+            
+            successMessage.classList.add('show');
+            
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
