@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL - Número Sequencial de Laudo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .instructions {
+            background: #f0f7ff;
+            border-left: 4px solid #0074D9;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .instructions h2 {
+            color: #0074D9;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            color: #333;
+        }
+        
+        .sql-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .sql-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .sql-box::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        .sql-box::-webkit-scrollbar-track {
+            background: #2d2d2d;
+            border-radius: 5px;
+        }
+        
+        .sql-box::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 5px;
+        }
+        
+        .sql-box::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #0074D9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,116,217,0.3);
+        }
+        
+        .copy-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,116,217,0.4);
+        }
+        
+        .copy-button:active {
+            transform: translateY(0);
+        }
+        
+        .copy-button.copied {
+            background: #2ECC40;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            margin-top: 20px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            color: #856404;
+        }
+        
+        .comment {
+            color: #6a9955;
+        }
+        
+        .keyword {
+            color: #569cd6;
+        }
+        
+        .string {
+            color: #ce9178;
+        }
+        
+        .function {
+            color: #dcdcaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 SQL - Número Sequencial de Laudo</h1>
+        <p class="subtitle">MEDLUX Reflective - Sistema de Gestão de Equipamentos</p>
+        
+        <div class="instructions">
+            <h2>📋 Como Usar:</h2>
+            <ol>
+                <li>Clique no botão <strong>"📋 COPIAR SQL"</strong> abaixo</li>
+                <li>Acesse o <strong>Supabase Dashboard</strong> → <strong>SQL Editor</strong></li>
+                <li>Cole o SQL copiado (Ctrl+V ou Cmd+V)</li>
+                <li>Clique em <strong>"RUN"</strong> ou pressione <strong>Ctrl+Enter</strong></li>
+                <li>Aguarde a mensagem: <strong>"✅ Patch 01 aplicado com sucesso!"</strong></li>
+            </ol>
+        </div>
+        
+        <div class="sql-container">
+            <button class="copy-button" onclick="copiarSQL()">📋 COPIAR SQL</button>
+            <pre class="sql-box" id="sqlCode">-- PATCH 01: Adicionar campo numero_laudo e função de geração automática
+-- Execute este script no SQL Editor do Supabase
+
+-- 1. Adicionar coluna numero_laudo
+ALTER TABLE historico_calibracoes 
+ADD COLUMN IF NOT EXISTS numero_laudo VARCHAR(50) UNIQUE;
+
+-- 2. Criar índice para performance
+CREATE INDEX IF NOT EXISTS idx_numero_laudo ON historico_calibracoes(numero_laudo);
+
+-- 3. Criar função para gerar próximo número de laudo
+CREATE OR REPLACE FUNCTION gerar_numero_laudo()
+RETURNS VARCHAR AS $$
+DECLARE
+  ano_atual INT;
+  proximo_numero INT;
+  numero_formatado VARCHAR(50);
+BEGIN
+  -- Obter ano atual
+  ano_atual := EXTRACT(YEAR FROM CURRENT_DATE);
+  
+  -- Buscar último número do ano
+  SELECT COALESCE(
+    MAX(
+      CAST(
+        SUBSTRING(numero_laudo FROM '\d{4}$') AS INT
+      )
+    ), 0
+  ) + 1
+  INTO proximo_numero
+  FROM historico_calibracoes
+  WHERE numero_laudo LIKE 'REL-' || ano_atual || '-%';
+  
+  -- Formatar número: REL-2026-0001
+  numero_formatado := 'REL-' || ano_atual || '-' || LPAD(proximo_numero::TEXT, 4, '0');
+  
+  RETURN numero_formatado;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Criar trigger para gerar número automaticamente ao inserir
+CREATE OR REPLACE FUNCTION trigger_gerar_numero_laudo()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.numero_laudo IS NULL THEN
+    NEW.numero_laudo := gerar_numero_laudo();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS auto_numero_laudo ON historico_calibracoes;
+
+CREATE TRIGGER auto_numero_laudo
+BEFORE INSERT ON historico_calibracoes
+FOR EACH ROW
+EXECUTE FUNCTION trigger_gerar_numero_laudo();
+
+-- 5. Atualizar registros existentes (se houver)
+DO $$
+DECLARE
+  registro RECORD;
+  contador INT := 1;
+  ano INT;
+BEGIN
+  -- Agrupar por ano e atualizar
+  FOR ano IN 
+    SELECT DISTINCT EXTRACT(YEAR FROM data_calibracao)::INT as ano
+    FROM historico_calibracoes 
+    WHERE numero_laudo IS NULL
+    ORDER BY ano
+  LOOP
+    contador := 1;
+    FOR registro IN 
+      SELECT id 
+      FROM historico_calibracoes 
+      WHERE EXTRACT(YEAR FROM data_calibracao) = ano 
+        AND numero_laudo IS NULL
+      ORDER BY created_at
+    LOOP
+      UPDATE historico_calibracoes
+      SET numero_laudo = 'REL-' || ano || '-' || LPAD(contador::TEXT, 4, '0')
+      WHERE id = registro.id;
+      
+      contador := contador + 1;
+    END LOOP;
+  END LOOP;
+END $$;
+
+-- 6. Verificar funcionamento
+SELECT 
+  numero_laudo,
+  data_calibracao,
+  equipamento_id,
+  created_at
+FROM historico_calibracoes
+ORDER BY created_at DESC
+LIMIT 10;
+
+-- Resultado esperado:
+-- REL-2026-0001
+-- REL-2026-0002
+-- REL-2026-0003
+-- ...
+
+SELECT '✅ Patch 01 aplicado com sucesso!' as status;</pre>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            ✅ <strong>SQL copiado com sucesso!</strong> Agora cole no Supabase SQL Editor e execute.
+        </div>
+        
+        <div class="warning">
+            ⚠️ <strong>Importante:</strong> Este SQL cria automaticamente números sequenciais no formato <code>REL-2026-0001</code> para todos os laudos. Cada novo laudo receberá o próximo número da sequência do ano atual.
+        </div>
+    </div>
+    
+    <script>
+        function copiarSQL() {
+            const sqlCode = document.getElementById('sqlCode').textContent;
+            const button = document.querySelector('.copy-button');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Copiar para clipboard
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                // Feedback visual
+                button.textContent = '✅ COPIADO!';
+                button.classList.add('copied');
+                successMessage.classList.add('show');
+                
+                // Resetar após 3 segundos
+                setTimeout(() => {
+                    button.textContent = '📋 COPIAR SQL';
+                    button.classList.remove('copied');
+                    successMessage.classList.remove('show');
+                }, 3000);
+            }).catch(err => {
+                alert('Erro ao copiar: ' + err);
+            });
+        }
+        
+        // Atalho de teclado: Ctrl/Cmd + C
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                copiarSQL();
+            }
+        });
+    </script>
+</body>
+</html>
