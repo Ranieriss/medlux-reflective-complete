@@ -994,11 +994,6 @@ const excluirEquipamento = async () => {
     excluindo.value = false
   }
 }
-    mostrarSnackbar('Erro ao excluir equipamento', 'error')
-  } finally {
-    excluindo.value = false
-  }
-}
 
 const mostrarQRCode = async (equipamento) => {
   equipamentoSelecionado.value = equipamento
