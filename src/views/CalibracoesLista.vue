@@ -163,7 +163,7 @@
       <v-card-text>
         <v-data-table
           :headers="headers"
-          :items="medicoes"
+          :items="medicoesFiltradas"
           :loading="loading"
           :items-per-page="10"
           class="elevation-0"
@@ -442,11 +442,14 @@
                 <v-select
                   v-model="formMedicaoData.geometria_medicao"
                   :items="geometriasDisponiveis"
+                  item-title="title"
+                  item-value="value"
                   label="Geometria de Medição *"
                   prepend-inner-icon="mdi-angle-acute"
                   variant="outlined"
                   :rules="[rules.required]"
-                  hint="Baseado no tipo de equipamento selecionado"
+                  hint="Geometrias disponíveis conforme tipo de equipamento e norma"
+                  persistent-hint
                 />
               </v-col>
 
@@ -733,8 +736,27 @@ export default {
       'Branco', 'Amarelo', 'Vermelho', 'Verde', 'Azul', 'Marrom'
     ]
     
+    // Geometrias por tipo de equipamento (conforme normas)
+    const geometriasPorTipo = {
+      vertical: [
+        { title: '0,2° / -4° (Padrão NBR 15426)', value: '0,2°/-4°' }
+      ],
+      horizontal: [
+        { title: '15m / 1,5° (NBR 14723)', value: '15m/1,5°' },
+        { title: '30m / 1,0° (NBR 16410)', value: '30m/1,0°' }
+      ],
+      tachas: [
+        { title: '0,2° / 0° (Frontal)', value: '0,2°/0°' },
+        { title: '0,2° / 20° (Inclinação)', value: '0,2°/20°' }
+      ],
+      tachoes: [
+        { title: '0,2° / 0° (Frontal)', value: '0,2°/0°' },
+        { title: '0,2° / 20° (Inclinação)', value: '0,2°/20°' }
+      ]
+    }
+    
     const geometriaOptions = [
-      '0,2°/-4°', '15m/1,5°', '0,2°/0°', '0,2°/20°'
+      '0,2°/-4°', '15m/1,5°', '30m/1,0°', '0,2°/0°', '0,2°/20°'
     ]
     
     // Headers da tabela
@@ -848,7 +870,14 @@ export default {
     // Computed para opções dinâmicas baseadas no equipamento
     const geometriasDisponiveis = computed(() => {
       if (!tipoEquipamentoDetectado.value) return geometriaOptions
-      return tipoEquipamentoDetectado.value.geometrias || geometriaOptions
+      
+      const tipo = tipoEquipamentoDetectado.value.tipo
+      if (geometriasPorTipo[tipo]) {
+        console.log(`🔍 Geometrias disponíveis para ${tipo}:`, geometriasPorTipo[tipo])
+        return geometriasPorTipo[tipo]
+      }
+      
+      return geometriaOptions
     })
     
     const tipoMedicao = computed(() => {
@@ -866,6 +895,38 @@ export default {
     
     const mostrarSimuladorChuva = computed(() => {
       return tipoEquipamentoDetectado.value?.simuladorChuva === true
+    })
+    
+    // Filtrar medições baseado nos filtros selecionados
+    const medicoesFiltradas = computed(() => {
+      let resultado = medicoes.value
+      
+      // Filtro de busca (código ou nome do equipamento)
+      if (filtros.value.busca && filtros.value.busca.trim()) {
+        const termo = filtros.value.busca.toLowerCase()
+        resultado = resultado.filter(m => 
+          (m.equipamento_codigo && m.equipamento_codigo.toLowerCase().includes(termo)) ||
+          (m.equipamento_nome && m.equipamento_nome.toLowerCase().includes(termo))
+        )
+      }
+      
+      // Filtro de status
+      if (filtros.value.status && filtros.value.status !== 'todos') {
+        resultado = resultado.filter(m => m.status_vencimento === filtros.value.status)
+      }
+      
+      // Filtro de validação
+      if (filtros.value.validacao && filtros.value.validacao !== 'todos') {
+        resultado = resultado.filter(m => m.status_validacao === filtros.value.validacao)
+      }
+      
+      // Filtro de tipo
+      if (filtros.value.tipo && filtros.value.tipo !== 'todos') {
+        resultado = resultado.filter(m => m.equipamento_tipo === filtros.value.tipo)
+      }
+      
+      console.log(`🔍 Medições filtradas: ${resultado.length} de ${medicoes.value.length}`)
+      return resultado
     })
     
     const abrirDialogNovo = () => {

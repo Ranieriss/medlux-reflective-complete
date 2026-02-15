@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
+import QRCode from 'qrcode'
 
 /**
  * Serviço para gerar Laudos/Relatórios de Medição de Retrorrefletância
@@ -82,8 +83,8 @@ class LaudoPDFService {
         yPos = this.adicionarObservacoes(doc, yPos, dadosMedicao)
       }
 
-      // Assinatura
-      this.adicionarAssinatura(doc, dadosMedicao)
+      // Assinatura com QR Code
+      await this.adicionarAssinatura(doc, dadosMedicao)
 
       // Rodapé
       this.adicionarRodape(doc)
@@ -366,30 +367,72 @@ class LaudoPDFService {
   /**
    * Adicionar assinatura
    */
-  adicionarAssinatura(doc, dados) {
+  /**
+   * Adicionar assinatura com QR Code
+   */
+  async adicionarAssinatura(doc, dados) {
     const pageHeight = doc.internal.pageSize.height
     const pageWidth = doc.internal.pageSize.width
     
-    const yPos = pageHeight - 50
+    const yPos = pageHeight - 60 // Increased space for QR code
 
-    // Linha de assinatura
+    // Generate QR Code URL
+    // URL should point to where the calibration certificate can be verified
+    const baseUrl = window.location.origin
+    const qrCodeUrl = `${baseUrl}/calibracoes/${dados.calibracao_id || dados.id}`
+    
+    try {
+      // Generate QR code as data URL
+      const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        width: 200,
+        margin: 1
+      })
+      
+      // Add QR code on the left side
+      const qrSize = 30
+      const qrX = 15
+      const qrY = yPos - 10
+      
+      doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize)
+      
+      // Add text below QR code
+      doc.setFontSize(7)
+      doc.setTextColor(...this.cores.textoClaro)
+      doc.text('Verificar certificado', qrX + qrSize/2, qrY + qrSize + 4, { align: 'center' })
+      
+      // Report number (if available)
+      if (dados.numero_laudo) {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...this.cores.primaria)
+        doc.text(`Laudo Nº: ${dados.numero_laudo}`, qrX + qrSize + 10, qrY + 10)
+      }
+    } catch (error) {
+      console.error('Erro ao gerar QR Code:', error)
+      // Continue without QR code if there's an error
+    }
+
+    // Signature line (on the right side)
+    const signatureX = pageWidth / 2 + 10
     doc.setDrawColor(...this.cores.textoClaro)
     doc.setLineWidth(0.3)
-    doc.line(pageWidth / 2 - 40, yPos, pageWidth / 2 + 40, yPos)
+    doc.line(signatureX - 30, yPos, signatureX + 30, yPos)
 
-    // Nome do técnico
+    // Technician name
     doc.setFontSize(9)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...this.cores.texto)
-    doc.text(dados.tecnico_responsavel || 'Técnico Responsável', pageWidth / 2, yPos + 5, { align: 'center' })
+    doc.text(dados.tecnico_responsavel || 'Técnico Responsável', signatureX, yPos + 5, { align: 'center' })
 
-    // Cargo
+    // Position
     doc.setFontSize(8)
     doc.setTextColor(...this.cores.textoClaro)
-    doc.text('Técnico em Medição de Retrorrefletância', pageWidth / 2, yPos + 10, { align: 'center' })
+    doc.text('Técnico em Medição de Retrorrefletância', signatureX, yPos + 10, { align: 'center' })
 
-    // Data de emissão
-    doc.text(`Emitido em: ${this.formatarData(new Date())}`, pageWidth / 2, yPos + 15, { align: 'center' })
+    // Issue date
+    doc.text(`Emitido em: ${this.formatarData(new Date())}`, signatureX, yPos + 15, { align: 'center' })
   }
 
   /**
