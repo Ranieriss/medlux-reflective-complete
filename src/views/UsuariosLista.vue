@@ -293,12 +293,13 @@
                 <v-text-field
                   v-model="usuarioForm.cpf"
                   label="CPF *"
-                  v-mask="'###.###.###-##'"
                   :rules="cpfRules"
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-card-account-details"
                   placeholder="000.000.000-00"
+                  maxlength="14"
+                  @input="formatarCPFInput"
                 />
               </v-col>
 
@@ -307,12 +308,13 @@
                 <v-text-field
                   v-model="usuarioForm.telefone"
                   label="Telefone *"
-                  v-mask="'(##) #####-####'"
                   :rules="telefoneRules"
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-phone"
                   placeholder="(00) 00000-0000"
+                  maxlength="15"
+                  @input="formatarTelefoneInput"
                 />
               </v-col>
 
@@ -588,6 +590,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
+import { formatCPF, formatTelefone, unformatCPF, unformatTelefone, validarCPF, validarTelefone } from '@/utils/formatters'
 
 // State
 const usuarios = ref([])
@@ -740,8 +743,8 @@ const editarUsuario = (usuario) => {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
-    cpf: usuario.cpf || '',
-    telefone: usuario.telefone || '',
+    cpf: formatCPF(usuario.cpf || ''),
+    telefone: formatTelefone(usuario.telefone || ''),
     perfil: usuario.perfil,
     ativo: usuario.ativo,
     foto_url: usuario.foto_url || '',
@@ -759,14 +762,18 @@ const salvarUsuario = async () => {
   try {
     salvando.value = true
 
+    // Preparar dados (remover formatação)
+    const cpfLimpo = unformatCPF(usuarioForm.value.cpf)
+    const telefoneLimpo = unformatTelefone(usuarioForm.value.telefone)
+
     if (modoEdicao.value) {
       // Update
       const { error } = await supabase
         .from('usuarios')
         .update({
           nome: usuarioForm.value.nome,
-          cpf: usuarioForm.value.cpf || null,
-          telefone: usuarioForm.value.telefone || null,
+          cpf: cpfLimpo || null,
+          telefone: telefoneLimpo || null,
           perfil: usuarioForm.value.perfil,
           ativo: usuarioForm.value.ativo,
           foto_url: usuarioForm.value.foto_url || null,
@@ -783,8 +790,8 @@ const salvarUsuario = async () => {
         .insert([{
           nome: usuarioForm.value.nome,
           email: usuarioForm.value.email,
-          cpf: usuarioForm.value.cpf || null,
-          telefone: usuarioForm.value.telefone || null,
+          cpf: cpfLimpo || null,
+          telefone: telefoneLimpo || null,
           senha_hash: usuarioForm.value.senha, // TODO: Hash em produção
           perfil: usuarioForm.value.perfil,
           ativo: usuarioForm.value.ativo,
@@ -990,6 +997,33 @@ const setupRealtimeSubscription = () => {
       }
     )
     .subscribe()
+}
+
+// Formatação de CPF e Telefone
+const formatarCPFInput = (event) => {
+  const input = event.target
+  const value = input.value
+  const formatted = formatCPF(value)
+  usuarioForm.value.cpf = formatted
+  // Atualizar cursor
+  setTimeout(() => {
+    input.setSelectionRange(formatted.length, formatted.length)
+  }, 0)
+}
+
+const formatarTelefoneInput = (event) => {
+  const input = event.target
+  const value = input.value
+  const formatted = formatTelefone(value)
+  usuarioForm.value.telefone = formatted
+  // Atualizar cursor
+  setTimeout(() => {
+    input.setSelectionRange(formatted.length, formatted.length)
+  }, 0)
+}
+
+const formatarCPFDisplay = (cpf) => {
+  return formatCPF(cpf)
 }
 
 // Lifecycle
