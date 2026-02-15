@@ -977,7 +977,7 @@ const salvarEquipamento = async () => {
       numero_serie: equipamentoForm.value.numero_serie,
       localizacao: equipamentoForm.value.localizacao,
       data_aquisicao: equipamentoForm.value.data_aquisicao || null,
-      data_ultima_calibracao: equipamentoForm.value.ultima_calibracao || null,
+      ultima_calibracao: equipamentoForm.value.ultima_calibracao || null,
       proxima_calibracao: equipamentoForm.value.proxima_calibracao || null,
       observacoes: equipamentoForm.value.observacoes || '',
       foto_url: equipamentoForm.value.foto || null,
