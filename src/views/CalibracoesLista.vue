@@ -811,25 +811,47 @@ export default {
       loadingEquipamentos.value = true
       try {
         // Busca equipamentos conforme perfil do usuário
+        // authStore.usuario já é um ref, então não precisa .value aqui
         const usuario = authStore.usuario.value
+        
+        console.log('🔍 DEBUG: authStore completo:', {
+          usuario: authStore.usuario.value,
+          isAuthenticated: authStore.isAuthenticated,
+          isAdmin: authStore.isAdmin,
+          nomeUsuario: authStore.nomeUsuario
+        })
         
         if (!usuario) {
           console.error('❌ Usuário não autenticado')
-          mostrarNotificacao('Usuário não autenticado', 'error')
-          return
+          console.error('❌ localStorage:', localStorage.getItem('medlux_auth'))
+          
+          // Tentar restaurar sessão
+          console.log('🔄 Tentando restaurar sessão...')
+          await authStore.restaurarSessao()
+          
+          // Verificar novamente
+          const usuarioRestaurado = authStore.usuario.value
+          if (!usuarioRestaurado) {
+            mostrarNotificacao('Sessão expirada. Por favor, faça login novamente.', 'error')
+            return
+          }
+          
+          console.log('✅ Sessão restaurada:', usuarioRestaurado.email)
         }
+        
+        const usuarioAtual = authStore.usuario.value
         
         if (IS_DEV) {
           console.log('👤 Usuário logado:', {
-            id: usuario.id,
-            perfil: usuario.perfil
+            id: usuarioAtual.id,
+            perfil: usuarioAtual.perfil
           })
         }
         
         console.log('⏳ Buscando equipamentos...')
         const response = await buscarEquipamentosDoUsuario(
-          usuario.id, 
-          usuario.perfil
+          usuarioAtual.id, 
+          usuarioAtual.perfil
         )
         
         if (IS_DEV) {
