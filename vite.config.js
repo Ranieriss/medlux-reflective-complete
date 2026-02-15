@@ -20,7 +20,11 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true,
-    strictPort: true
+    host: '0.0.0.0',
+    strictPort: true,
+    cors: true,
+    hmr: {
+      clientPort: 3000
+    }
   }
 })
