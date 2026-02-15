@@ -1,0 +1,318 @@
+# 🚀 MEDLUX Reflective - Sistema de Gestão de Equipamentos
+
+Sistema completo de gestão de equipamentos refletivos de sinalização viária com controle de calibração, custódia, rastreabilidade e auditoria.
+
+## 📋 Funcionalidades Implementadas
+
+### ✅ Módulo de Equipamentos (CRUD Completo)
+- ✅ Cadastro de equipamentos com validação avançada
+- ✅ Listagem com filtros inteligentes (tipo, status, calibração)
+- ✅ Edição inline via modal
+- ✅ Exclusão com confirmação
+- ✅ Upload e visualização de foto do equipamento
+- ✅ Geração automática de QR Code por equipamento
+- ✅ Alertas de calibração vencida/próxima
+- ✅ Histórico de alterações (auditoria)
+- ✅ Interface responsiva (mobile-first)
+
+### ✅ Sistema de Autenticação
+- ✅ Login/Logout funcional
+- ✅ Controle de permissões (Admin/Técnico)
+- ✅ Rotas protegidas
+- ✅ Sessão persistente
+
+### ✅ Dashboard
+- ✅ Cards com estatísticas em tempo real
+- ✅ Alertas de calibração
+- ✅ Resumo visual do sistema
+
+### 🚧 Em Desenvolvimento
+- ⏳ Gestão de Vínculos/Custódia
+- ⏳ Sistema de Calibração
+- ⏳ Relatórios com exportação
+- ⏳ Auditoria completa
+- ⏳ Configurações do sistema
+
+## 🛠️ Tecnologias
+
+- **Vue 3.4.21** - Framework JavaScript progressivo
+- **Vuetify 3.5.10** - UI Material Design
+- **Vite 5.4.21** - Build tool ultrarrápido
+- **Pinia 2.1.7** - State management
+- **Vue Router 4.2.5** - Gerenciamento de rotas
+- **Dexie.js 3.2.7** - IndexedDB wrapper
+- **date-fns 3.3.1** - Manipulação de datas
+- **QRCode 1.5.3** - Geração de QR Codes
+
+## 🚀 Como Rodar
+
+### Pré-requisitos
+- Node.js 18+ instalado
+- npm ou yarn
+
+### Instalação
+
+```bash
+# 1. Clonar o repositório (se ainda não clonou)
+git clone https://github.com/Ranieriss/medlux-reflective-complete.git
+cd medlux-reflective-complete
+
+# 2. Instalar dependências
+npm install
+
+# 3. Rodar em modo desenvolvimento
+npm run dev
+
+# 4. Abrir navegador em http://localhost:3000
+```
+
+### Credenciais de Acesso
+
+| Perfil | Email | Senha | Permissões |
+|--------|-------|-------|------------|
+| **ADMIN** | admin@medlux.com | 2308 | Acesso total ao sistema |
+| **TÉCNICO** | joao.silva@medlux.com | 1234 | Visualizar equipamentos vinculados |
+
+## 📁 Estrutura do Projeto
+
+```
+medlux-reflective-complete/
+├── node_modules/
+├── public/
+├── src/
+│   ├── main.js                 # Bootstrap da aplicação
+│   ├── App.vue                 # Componente raiz
+│   ├── router/
+│   │   └── index.js            # Configuração de rotas
+│   ├── stores/
+│   │   └── auth.js             # Store de autenticação
+│   ├── services/
+│   │   └── db.js               # IndexedDB com Dexie
+│   ├── views/
+│   │   ├── Login.vue           # Tela de login
+│   │   ├── Layout.vue          # Layout principal
+│   │   ├── Dashboard.vue       # Dashboard
+│   │   ├── EquipamentosLista.vue  # ⭐ CRUD de equipamentos
+│   │   ├── UsuariosLista.vue   # Gestão de usuários
+│   │   ├── VinculosLista.vue   # Vínculos/custódia
+│   │   ├── RelatoriosLista.vue # Relatórios
+│   │   ├── AuditoriaView.vue   # Auditoria
+│   │   └── SistemaView.vue     # Configurações
+│   └── styles/
+│       ├── variables.css       # Variáveis CSS
+│       └── main.css            # Estilos globais
+├── index.html
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
+## 🗄️ Banco de Dados (IndexedDB)
+
+### Tabelas
+
+1. **equipamentos**
+   - ID, código, tipo, marca, modelo, numero_serie
+   - data_aquisicao, ultima_calibracao, proxima_calibracao
+   - status, localizacao, observacoes, foto
+
+2. **usuarios**
+   - ID, nome, email, senha (hash), perfil, ativo, data_cadastro
+
+3. **vinculos**
+   - ID, equipamento_id, usuario_id, data_vinculo, data_desvinculo
+   - termo_responsabilidade, status
+
+4. **historico_calibracoes**
+   - ID, equipamento_id, data_calibracao, certificado
+   - validade, laboratorio, resultado, observacoes
+
+5. **auditoria**
+   - ID, usuario_id, acao, tabela, registro_id, timestamp, detalhes
+
+6. **logs_erro**
+   - ID, tipo, mensagem, stack, timestamp, usuario_id
+
+### Dados Demo
+
+O sistema já vem com dados de demonstração:
+
+- **3 equipamentos** (H-2024-001, V-2023-045, T-2024-003)
+- **3 usuários** (1 admin + 2 técnicos)
+- **Dados de calibração** com diferentes status
+
+## 🎨 Design System
+
+### Paleta de Cores
+
+```css
+--color-primary: #0074D9    /* Azul */
+--color-secondary: #001F3F  /* Navy */
+--color-accent: #39CCCC     /* Cyan */
+--color-success: #2ECC40    /* Verde */
+--color-warning: #FFDC00    /* Amarelo */
+--color-error: #FF4136      /* Vermelho */
+```
+
+### Estilo Visual
+
+- ✨ **Dark mode** obrigatório
+- 🔮 **Glassmorphism** (backdrop-filter: blur)
+- 💫 **Neon glow effects**
+- ✨ **Shimmer animations**
+- 📱 **Mobile-first responsive**
+
+## ⚙️ Funcionalidades do CRUD de Equipamentos
+
+### 1. Cadastro de Equipamento
+
+Campos obrigatórios:
+- Código único (ex: H-2024-001)
+- Tipo (Horizontal/Vertical/Tachas)
+- Marca e Modelo
+- Número de Série
+- Data de Aquisição
+- Status
+
+Campos opcionais:
+- Calibrações (última e próxima)
+- Localização
+- Foto do equipamento
+- Observações
+
+### 2. Listagem com Filtros
+
+- **Busca textual**: Código, marca ou modelo
+- **Filtro por tipo**: Horizontal, Vertical, Tachas
+- **Filtro por status**: Ativo, Manutenção, Inativo
+- **Filtro por calibração**: Vencida, Próxima (30 dias), Em dia
+
+### 3. Alertas Visuais
+
+- ❌ **Vermelho**: Calibração vencida
+- ⚠️ **Amarelo**: Calibração vencendo em 30 dias
+- ✅ **Verde**: Calibração em dia
+
+### 4. QR Code
+
+Cada equipamento possui um QR Code único gerado automaticamente com seu código, facilitando a identificação e rastreamento.
+
+### 5. Auditoria Automática
+
+Todas as ações são registradas:
+- Criação de equipamento
+- Edição de dados
+- Exclusão
+
+## 🧪 Como Testar
+
+### 1. Login
+1. Acesse `http://localhost:3000`
+2. Use as credenciais de admin ou técnico
+3. Clique em "Entrar"
+
+### 2. Dashboard
+1. Visualize os cards com estatísticas
+2. Observe os alertas de calibração
+
+### 3. Equipamentos (CRUD Completo)
+
+#### Criar Novo
+1. Clique em "Novo Equipamento"
+2. Preencha o formulário
+3. (Opcional) Faça upload de uma foto
+4. Clique em "Salvar"
+5. ✅ Equipamento criado e auditoria registrada
+
+#### Listar e Filtrar
+1. Use os filtros no topo da página
+2. Busque por código, marca ou modelo
+3. Filtre por tipo, status ou calibração
+
+#### Visualizar
+1. Clique no ícone de olho (👁️)
+2. Veja todos os detalhes do equipamento
+
+#### Editar
+1. Clique no ícone de lápis (✏️)
+2. Modifique os campos desejados
+3. Clique em "Salvar"
+4. ✅ Equipamento atualizado e auditoria registrada
+
+#### Ver QR Code
+1. Clique no ícone de QR Code
+2. Visualize o código gerado
+
+#### Excluir
+1. Clique no ícone de lixeira (🗑️)
+2. Confirme a exclusão
+3. ✅ Equipamento excluído e auditoria registrada
+
+## 📊 Próximos Passos
+
+### Funcionalidades Prioritárias
+
+1. **Gestão de Vínculos** (Alta Prioridade)
+   - Vincular equipamento a técnico
+   - Upload de termo de responsabilidade
+   - Assinatura digital
+   - Desvincular equipamento
+
+2. **Sistema de Calibração** (Alta Prioridade)
+   - Registrar nova calibração
+   - Upload de certificado
+   - Alertas automáticos
+   - Dashboard de calibrações
+
+3. **Relatórios** (Média Prioridade)
+   - Equipamentos por status
+   - Calibrações vencidas
+   - Vínculos ativos
+   - Exportar PDF/Excel
+
+4. **Auditoria Avançada** (Baixa Prioridade)
+   - Logs detalhados
+   - Filtros avançados
+   - Diff antes/depois
+
+## 🐛 Troubleshooting
+
+### Problema: Localhost bloqueado
+
+**Solução**: Use o Ngrok para criar um túnel público
+
+```powershell
+# Terminal 1 - Vite
+npm run dev
+
+# Terminal 2 - Ngrok
+ngrok http 3000
+```
+
+### Problema: Banco vazio após reload
+
+**Solução**: Os dados demo são carregados automaticamente no primeiro acesso. Se o banco foi limpo:
+
+```javascript
+// No console do navegador
+import { popularDadosDemo } from './services/db'
+await popularDadosDemo()
+```
+
+### Problema: Erro de validação no formulário
+
+**Solução**: Certifique-se de que todos os campos obrigatórios (*) estão preenchidos.
+
+## 📝 Licença
+
+© 2024 MEDLUX Reflective - Todos os direitos reservados
+
+## 👨‍💻 Desenvolvedor
+
+Sistema desenvolvido para gestão profissional de equipamentos refletivos de sinalização viária.
+
+---
+
+**Status do Projeto**: ✅ CRUD de Equipamentos 100% funcional
+
+**Próxima Feature**: 🚧 Gestão de Vínculos/Custódia
