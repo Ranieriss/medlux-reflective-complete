@@ -1,11 +1,14 @@
 <template>
   <v-app>
-    <router-view />
+    <ErrorBoundary>
+      <router-view />
+    </ErrorBoundary>
   </v-app>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
+import ErrorBoundary from '@/components/ErrorBoundary.vue'
 
 onMounted(() => {
   console.log('🚀 MEDLUX Reflective iniciado')
