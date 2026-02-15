@@ -929,7 +929,7 @@ export default {
       return resultado
     })
     
-    const abrirDialogNovo = () => {
+    const abrirDialogNovo = async () => {
       modoEdicao.value = false
       formMedicaoData.value = { ...formMedicaoInicial }
       resultadoValidacao.value = null
@@ -941,6 +941,9 @@ export default {
       const hoje = new Date()
       const proxima = new Date(hoje.setFullYear(hoje.getFullYear() + 1))
       formMedicaoData.value.proxima_calibracao = proxima.toISOString().split('T')[0]
+      
+      // Carregar equipamentos antes de abrir o dialog
+      await carregarEquipamentos()
       
       // Se operador com 1 equipamento, selecionar automaticamente
       if (authStore.isOperador && equipamentos.value.length === 1) {
