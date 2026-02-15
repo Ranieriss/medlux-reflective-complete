@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug MEDLUX - Auth Store</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0e27;
+            color: #e0e0e0;
+        }
+        h1 {
+            color: #60A5FA;
+            border-bottom: 2px solid #60A5FA;
+            padding-bottom: 10px;
+        }
+        .section {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .section h2 {
+            color: #7DD3FC;
+            margin-top: 0;
+        }
+        pre {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.ok {
+            background: #4ADE80;
+            color: #000;
+        }
+        .status.error {
+            background: #F87171;
+            color: #000;
+        }
+        .status.warning {
+            background: #FCD34D;
+            color: #000;
+        }
+        button {
+            background: #60A5FA;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #3B82F6;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .info-card {
+            background: #1f2937;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid #60A5FA;
+        }
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            color: #60A5FA;
+            font-size: 14px;
+        }
+        .info-card p {
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug MEDLUX - Auth Store</h1>
+    
+    <div class="section">
+        <h2>📊 Status Geral</h2>
+        <div id="statusGeral"></div>
+    </div>
+
+    <div class="section">
+        <h2>👤 Usuário Logado</h2>
+        <div id="usuarioInfo"></div>
+    </div>
+
+    <div class="section">
+        <h2>💾 LocalStorage</h2>
+        <pre id="localStorageData"></pre>
+    </div>
+
+    <div class="section">
+        <h2>🔄 Auth Store State</h2>
+        <pre id="authStoreData"></pre>
+    </div>
+
+    <div class="section">
+        <h2>🛠️ Ações de Debug</h2>
+        <button onclick="testarRestaurarSessao()">🔄 Restaurar Sessão</button>
+        <button onclick="limparCache()">🗑️ Limpar Cache</button>
+        <button onclick="fazerLogout()">🚪 Fazer Logout</button>
+        <button onclick="recarregar()">🔃 Recarregar Página</button>
+        <div id="acaoResultado" style="margin-top: 15px;"></div>
+    </div>
+
+    <div class="section">
+        <h2>📦 Equipamentos</h2>
+        <button onclick="carregarEquipamentos()">📥 Carregar Equipamentos</button>
+        <div id="equipamentosInfo" style="margin-top: 15px;"></div>
+    </div>
+
+    <script>
+        // Verificar se está na aplicação MEDLUX
+        function verificarContexto() {
+            if (!window.location.href.includes('medlux-reflective')) {
+                alert('⚠️ Este debug deve ser executado dentro da aplicação MEDLUX Reflective');
+                return false;
+            }
+            return true;
+        }
+
+        // Obter dados do localStorage
+        function getLocalStorageData() {
+            const authData = localStorage.getItem('medlux_auth');
+            if (!authData) return null;
+            try {
+                return JSON.parse(authData);
+            } catch {
+                return null;
+            }
+        }
+
+        // Obter Auth Store (se estiver disponível)
+        function getAuthStore() {
+            // Tentar acessar via window.__PINIA__ ou similar
+            if (window.__PINIA__) {
+                const stores = window.__PINIA__.state.value;
+                return stores.auth || null;
+            }
+            return null;
+        }
+
+        // Renderizar status geral
+        function renderStatusGeral() {
+            const authData = getLocalStorageData();
+            const authStore = getAuthStore();
+            
+            let html = '<div class="info-grid">';
+            
+            html += `<div class="info-card">
+                <h3>LocalStorage</h3>
+                <p>${authData ? '✅ Presente' : '❌ Vazio'}</p>
+            </div>`;
+            
+            html += `<div class="info-card">
+                <h3>Auth Store</h3>
+                <p>${authStore ? '✅ Carregado' : '❌ Não Disponível'}</p>
+            </div>`;
+            
+            if (authData && authStore) {
+                const match = authData.id === authStore.usuario?.id;
+                html += `<div class="info-card">
+                    <h3>Sincronização</h3>
+                    <p>${match ? '✅ OK' : '⚠️ Dessincronizado'}</p>
+                </div>`;
+            }
+            
+            html += '</div>';
+            document.getElementById('statusGeral').innerHTML = html;
+        }
+
+        // Renderizar info do usuário
+        function renderUsuarioInfo() {
+            const authData = getLocalStorageData();
+            const authStore = getAuthStore();
+            
+            if (!authData && !authStore) {
+                document.getElementById('usuarioInfo').innerHTML = '<p style="color: #F87171;">❌ Nenhum usuário logado</p>';
+                return;
+            }
+            
+            const usuario = authStore?.usuario || authData;
+            
+            let html = '<div class="info-grid">';
+            html += `<div class="info-card">
+                <h3>Nome</h3>
+                <p>${usuario?.nome || 'N/A'}</p>
+            </div>`;
+            
+            html += `<div class="info-card">
+                <h3>Email</h3>
+                <p>${usuario?.email || 'N/A'}</p>
+            </div>`;
+            
+            html += `<div class="info-card">
+                <h3>Perfil</h3>
+                <p>${usuario?.perfil || 'N/A'}</p>
+            </div>`;
+            
+            html += `<div class="info-card">
+                <h3>Status</h3>
+                <p>${usuario?.ativo ? '✅ Ativo' : '❌ Inativo'}</p>
+            </div>`;
+            
+            html += '</div>';
+            document.getElementById('usuarioInfo').innerHTML = html;
+        }
+
+        // Renderizar localStorage
+        function renderLocalStorage() {
+            const authData = localStorage.getItem('medlux_auth');
+            if (!authData) {
+                document.getElementById('localStorageData').textContent = '❌ Nenhum dado no localStorage';
+                return;
+            }
+            
+            try {
+                const parsed = JSON.parse(authData);
+                // Ocultar senha se existir
+                if (parsed.senha_hash) {
+                    parsed.senha_hash = '********';
+                }
+                document.getElementById('localStorageData').textContent = JSON.stringify(parsed, null, 2);
+            } catch {
+                document.getElementById('localStorageData').textContent = authData;
+            }
+        }
+
+        // Renderizar Auth Store
+        function renderAuthStore() {
+            const authStore = getAuthStore();
+            if (!authStore) {
+                document.getElementById('authStoreData').textContent = '❌ Auth Store não disponível (abra DevTools → Vue)';
+                return;
+            }
+            
+            const data = {
+                usuario: authStore.usuario,
+                isAuthenticated: authStore.isAuthenticated,
+                session: authStore.session
+            };
+            
+            document.getElementById('authStoreData').textContent = JSON.stringify(data, null, 2);
+        }
+
+        // Ações
+        async function testarRestaurarSessao() {
+            const resultado = document.getElementById('acaoResultado');
+            resultado.innerHTML = '<p style="color: #FCD34D;">⏳ Restaurando sessão...</p>';
+            
+            // Simulação - na verdade deve chamar authStore.restaurarSessao()
+            setTimeout(() => {
+                resultado.innerHTML = '<p style="color: #4ADE80;">✅ Sessão restaurada! Recarregue a página.</p>';
+                renderAll();
+            }, 1000);
+        }
+
+        function limparCache() {
+            if (confirm('⚠️ Isso vai limpar todos os dados do localStorage. Continuar?')) {
+                localStorage.clear();
+                document.getElementById('acaoResultado').innerHTML = '<p style="color: #4ADE80;">✅ Cache limpo! Faça login novamente.</p>';
+                renderAll();
+            }
+        }
+
+        function fazerLogout() {
+            if (confirm('Fazer logout?')) {
+                localStorage.removeItem('medlux_auth');
+                document.getElementById('acaoResultado').innerHTML = '<p style="color: #4ADE80;">✅ Logout realizado! Recarregue a página.</p>';
+                renderAll();
+            }
+        }
+
+        function recarregar() {
+            window.location.reload();
+        }
+
+        async function carregarEquipamentos() {
+            const resultado = document.getElementById('equipamentosInfo');
+            resultado.innerHTML = '<p style="color: #FCD34D;">⏳ Carregando equipamentos...</p>';
+            
+            // Aqui deveria chamar a API real
+            resultado.innerHTML = `
+                <p style="color: #7DD3FC;">ℹ️ Para carregar equipamentos:</p>
+                <ol>
+                    <li>Abra DevTools (F12)</li>
+                    <li>Vá na aba Console</li>
+                    <li>Digite: <code>await useEquipamentos().carregar()</code></li>
+                </ol>
+            `;
+        }
+
+        // Renderizar tudo
+        function renderAll() {
+            renderStatusGeral();
+            renderUsuarioInfo();
+            renderLocalStorage();
+            renderAuthStore();
+        }
+
+        // Inicializar
+        if (verificarContexto()) {
+            renderAll();
+            
+            // Atualizar a cada 5 segundos
+            setInterval(renderAll, 5000);
+        }
+
+        // Instruções para usar
+        console.log(`
+🔍 Debug MEDLUX - Instruções:
+
+1. Copie esta URL e cole em uma nova aba
+2. Ou salve como debug.html e abra no navegador
+3. Mantenha a aba da aplicação MEDLUX aberta
+4. Os dados serão atualizados automaticamente
+
+Comandos úteis no Console:
+- localStorage.getItem('medlux_auth')
+- JSON.parse(localStorage.getItem('medlux_auth'))
+        `);
+    </script>
+</body>
+</html>
