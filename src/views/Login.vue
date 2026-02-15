@@ -6,14 +6,14 @@
           <!-- Logo e Título -->
           <div class="text-center mb-8">
             <div class="logo-container mb-4">
-              <v-icon size="80" color="primary" class="glow-primary">
-                mdi-chart-box
-              </v-icon>
+              <img 
+                src="/logo-medlux.svg" 
+                alt="MEDLUX Reflective Logo" 
+                style="max-width: 280px; width: 100%; height: auto;"
+                class="logo-image"
+              />
             </div>
-            <h1 class="text-h4 font-weight-bold mb-2">
-              MEDLUX Reflective
-            </h1>
-            <p class="text-subtitle-1 text-secondary">
+            <p class="text-subtitle-1 text-secondary mt-2">
               Sistema de Gestão de Equipamentos
             </p>
           </div>
@@ -60,7 +60,82 @@
               <v-icon left class="mr-2">mdi-login</v-icon>
               Entrar
             </v-btn>
+
+            <!-- Botão Esqueci a Senha -->
+            <div class="text-center">
+              <v-btn
+                variant="text"
+                color="primary"
+                size="small"
+                @click="abrirRecuperacaoSenha"
+              >
+                <v-icon class="mr-1" size="small">mdi-lock-reset</v-icon>
+                Esqueci minha senha
+              </v-btn>
+            </div>
           </v-form>
+
+          <!-- Dialog de Recuperação de Senha -->
+          <v-dialog v-model="dialogRecuperacao" max-width="500px">
+            <v-card class="glass">
+              <v-card-title class="d-flex align-center justify-space-between">
+                <span class="text-h5">
+                  <v-icon class="mr-2" color="primary">mdi-lock-reset</v-icon>
+                  Recuperar Senha
+                </span>
+                <v-btn icon variant="text" @click="dialogRecuperacao = false">
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
+              </v-card-title>
+
+              <v-card-text>
+                <p class="text-body-2 mb-4">
+                  Digite seu e-mail cadastrado. Enviaremos um link para redefinir sua senha.
+                </p>
+
+                <v-form ref="formRecuperacaoRef" @submit.prevent="enviarRecuperacao">
+                  <v-text-field
+                    v-model="emailRecuperacao"
+                    label="E-mail"
+                    prepend-inner-icon="mdi-email"
+                    type="email"
+                    :rules="emailRules"
+                    variant="outlined"
+                    density="comfortable"
+                  />
+                </v-form>
+
+                <!-- Mensagem de sucesso/erro -->
+                <v-alert
+                  v-if="mensagemRecuperacao"
+                  :type="tipoMensagemRecuperacao"
+                  variant="tonal"
+                  class="mt-4"
+                >
+                  {{ mensagemRecuperacao }}
+                </v-alert>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer />
+                <v-btn
+                  variant="text"
+                  @click="dialogRecuperacao = false"
+                >
+                  Cancelar
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  :loading="enviandoRecuperacao"
+                  :disabled="enviandoRecuperacao"
+                  @click="enviarRecuperacao"
+                >
+                  <v-icon class="mr-2">mdi-email-send</v-icon>
+                  Enviar Link
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
 
           <!-- Credenciais Demo -->
           <v-divider class="my-4" />
@@ -103,11 +178,19 @@ const authStore = useAuthStore()
 
 // State
 const formRef = ref(null)
+const formRecuperacaoRef = ref(null)
 const email = ref('')
 const senha = ref('')
 const mostrarSenha = ref(false)
 const carregando = ref(false)
 const erro = ref('')
+
+// Recuperação de senha
+const dialogRecuperacao = ref(false)
+const emailRecuperacao = ref('')
+const enviandoRecuperacao = ref(false)
+const mensagemRecuperacao = ref('')
+const tipoMensagemRecuperacao = ref('success')
 
 // Validações
 const emailRules = [
@@ -144,6 +227,47 @@ const handleLogin = async () => {
     carregando.value = false
   }
 }
+
+// Recuperação de senha
+const abrirRecuperacaoSenha = () => {
+  dialogRecuperacao.value = true
+  emailRecuperacao.value = ''
+  mensagemRecuperacao.value = ''
+}
+
+const enviarRecuperacao = async () => {
+  const { valid } = await formRecuperacaoRef.value.validate()
+  
+  if (!valid) return
+
+  enviandoRecuperacao.value = true
+  mensagemRecuperacao.value = ''
+
+  try {
+    // Simular envio de email de recuperação
+    // Em produção, você deve chamar uma API real do Supabase ou seu backend
+    // Ex: await authStore.resetPassword(emailRecuperacao.value)
+    
+    // Simulação de delay (remover em produção)
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // Sucesso
+    mensagemRecuperacao.value = `Um link de recuperação foi enviado para ${emailRecuperacao.value}. Verifique sua caixa de entrada e spam.`
+    tipoMensagemRecuperacao.value = 'success'
+    
+    // Fechar dialog após 3 segundos
+    setTimeout(() => {
+      dialogRecuperacao.value = false
+    }, 3000)
+    
+  } catch (error) {
+    console.error('Erro ao enviar recuperação:', error)
+    mensagemRecuperacao.value = 'Erro ao enviar e-mail de recuperação. Tente novamente.'
+    tipoMensagemRecuperacao.value = 'error'
+  } finally {
+    enviandoRecuperacao.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -167,6 +291,15 @@ const handleLogin = async () => {
 
 .logo-container {
   animation: scale-in 0.5s ease-out;
+}
+
+.logo-image {
+  filter: drop-shadow(0 0 10px rgba(0, 116, 217, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
 }
 
 .glass {

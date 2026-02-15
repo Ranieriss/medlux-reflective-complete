@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e27;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#001F3F;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0074D9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#39CCCC;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rect -->
+  <rect width="400" height="120" rx="10" fill="url(#bgGradient)"/>
+  
+  <!-- MEDLUX text -->
+  <text x="120" y="50" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="url(#textGradient)">
+    MEDLUX
+  </text>
+  
+  <!-- Reflective text -->
+  <text x="120" y="80" font-family="Arial, sans-serif" font-size="20" font-weight="300" fill="#39CCCC">
+    REFLECTIVE
+  </text>
+  
+  <!-- Icon - Reflection symbol -->
+  <g transform="translate(30, 30)">
+    <!-- Rays -->
+    <line x1="30" y1="30" x2="50" y2="10" stroke="#0074D9" stroke-width="3" opacity="0.8"/>
+    <line x1="30" y1="30" x2="55" y2="25" stroke="#0074D9" stroke-width="3" opacity="0.7"/>
+    <line x1="30" y1="30" x2="55" y2="35" stroke="#0074D9" stroke-width="3" opacity="0.7"/>
+    <line x1="30" y1="30" x2="50" y2="50" stroke="#0074D9" stroke-width="3" opacity="0.8"/>
+    
+    <line x1="30" y1="30" x2="10" y2="10" stroke="#39CCCC" stroke-width="3" opacity="0.8"/>
+    <line x1="30" y1="30" x2="5" y2="25" stroke="#39CCCC" stroke-width="3" opacity="0.7"/>
+    <line x1="30" y1="30" x2="5" y2="35" stroke="#39CCCC" stroke-width="3" opacity="0.7"/>
+    <line x1="30" y1="30" x2="10" y2="50" stroke="#39CCCC" stroke-width="3" opacity="0.8"/>
+    
+    <!-- Center circle -->
+    <circle cx="30" cy="30" r="8" fill="#0074D9" opacity="0.9"/>
+    <circle cx="30" cy="30" r="5" fill="#39CCCC"/>
+  </g>
+  
+  <!-- Small tagline -->
+  <text x="120" y="100" font-family="Arial, sans-serif" font-size="12" fill="#7FDBFF" opacity="0.7">
+    Sistema de Gestão de Equipamentos
+  </text>
+</svg>

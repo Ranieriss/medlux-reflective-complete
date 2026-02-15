@@ -402,7 +402,7 @@
           <v-btn
             color="primary"
             :loading="salvando"
-            :disabled="!formValido || salvando"
+            :disabled="salvando"
             @click="salvarEquipamento"
           >
             <v-icon class="mr-2">mdi-content-save</v-icon>
