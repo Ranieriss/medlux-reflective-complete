@@ -320,7 +320,7 @@
               <!-- Equipamento -->
               <v-col cols="12">
                 <v-autocomplete
-                  v-model="formMedicaoData.equipamento_id"
+                  v-model="formMedicao.equipamento_id"
                   :items="equipamentos"
                   item-title="nome_completo"
                   item-value="id"
@@ -331,7 +331,6 @@
                   :loading="loadingEquipamentos"
                   @update:model-value="onEquipamentoChange"
                   :disabled="authStore.isOperador && equipamentos.length === 1"
-                  clearable
                 >
                   <template v-slot:item="{ props, item }">
                     <v-list-item v-bind="props">
@@ -379,7 +378,7 @@
               <!-- Dados da Medição -->
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="formMedicaoData.data_calibracao"
+                  v-model="formMedicao.data_calibracao"
                   label="Data da Medição *"
                   type="date"
                   prepend-inner-icon="mdi-calendar"
@@ -390,7 +389,7 @@
 
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="formMedicaoData.proxima_calibracao"
+                  v-model="formMedicao.proxima_calibracao"
                   label="Próxima Medição *"
                   type="date"
                   prepend-inner-icon="mdi-calendar-clock"
@@ -403,7 +402,7 @@
               <!-- Tipo de Película (apenas vertical) -->
               <v-col v-if="mostrarCamposPelicula" cols="12" md="6">
                 <v-select
-                  v-model="formMedicaoData.tipo_pelicula"
+                  v-model="formMedicao.tipo_pelicula"
                   :items="tipoPeliculaOptions"
                   label="Tipo de Película *"
                   prepend-inner-icon="mdi-layers"
@@ -416,7 +415,7 @@
               <!-- Tipo de Material (apenas horizontal) -->
               <v-col v-if="mostrarCamposMaterial" cols="12" md="6">
                 <v-select
-                  v-model="formMedicaoData.tipo_material"
+                  v-model="formMedicao.tipo_material"
                   :items="['Tinta Convencional', 'Termoplástico', 'Tinta à Base d\'Água', 'Tinta à Base Solvente', 'Plástico Pré-Fabricado Tipo I', 'Plástico Pré-Fabricado Tipo II']"
                   label="Tipo de Material *"
                   prepend-inner-icon="mdi-palette"
@@ -428,7 +427,7 @@
 
               <v-col cols="12" md="6">
                 <v-select
-                  v-model="formMedicaoData.cor_medicao"
+                  v-model="formMedicao.cor_medicao"
                   :items="corOptions"
                   label="Cor *"
                   prepend-inner-icon="mdi-palette"
@@ -440,7 +439,7 @@
               <!-- Geometria -->
               <v-col cols="12" md="6">
                 <v-select
-                  v-model="formMedicaoData.geometria_medicao"
+                  v-model="formMedicao.geometria_medicao"
                   :items="geometriasDisponiveis"
                   label="Geometria de Medição *"
                   prepend-inner-icon="mdi-angle-acute"
@@ -453,7 +452,7 @@
               <!-- Técnico Responsável -->
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="formMedicaoData.tecnico_responsavel"
+                  v-model="formMedicao.tecnico_responsavel"
                   label="Técnico Responsável *"
                   prepend-inner-icon="mdi-account-hard-hat"
                   variant="outlined"
@@ -466,7 +465,7 @@
               <!-- Condições Ambientais (opcional para chuva) -->
               <v-col v-if="mostrarSimuladorChuva" cols="12" md="6">
                 <v-select
-                  v-model="formMedicaoData.condicoes_medicao"
+                  v-model="formMedicao.condicoes_medicao"
                   :items="['Seco', 'Simulador de Chuva']"
                   label="Condições de Medição"
                   prepend-inner-icon="mdi-weather-rainy"
@@ -484,13 +483,13 @@
                   </v-card-title>
                   <v-row>
                     <v-col
-                      v-for="(valor, index) in formMedicaoData.valores_medicoes"
+                      v-for="(valor, index) in formMedicao.valores_medicoes"
                       :key="index"
                       cols="6"
                       md="3"
                     >
                       <v-text-field
-                        v-model.number="formMedicaoData.valores_medicoes[index]"
+                        v-model.number="formMedicao.valores_medicoes[index]"
                         :label="`Medição ${index + 1}`"
                         type="number"
                         step="0.01"
@@ -500,7 +499,7 @@
                       >
                         <template v-slot:append-inner>
                           <v-btn
-                            v-if="formMedicaoData.valores_medicoes.length > 1"
+                            v-if="formMedicao.valores_medicoes.length > 1"
                             icon="mdi-delete"
                             size="x-small"
                             color="error"
@@ -517,12 +516,12 @@
                         variant="outlined"
                         prepend-icon="mdi-plus"
                         @click="adicionarMedicao"
-                        :disabled="formMedicaoData.valores_medicoes.length >= 10"
+                        :disabled="formMedicao.valores_medicoes.length >= 10"
                       >
                         Adicionar Medição
                       </v-btn>
                       <span class="text-caption text-medium-emphasis ml-4">
-                        {{ formMedicaoData.valores_medicoes.length }} / 10 medições
+                        {{ formMedicao.valores_medicoes.length }} / 10 medições
                       </span>
                     </v-col>
                   </v-row>
@@ -532,7 +531,7 @@
               <!-- Condições Ambientais -->
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model.number="formMedicaoData.temperatura_ambiente"
+                  v-model.number="formMedicao.temperatura_ambiente"
                   label="Temperatura (°C)"
                   type="number"
                   step="0.1"
@@ -543,7 +542,7 @@
 
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model.number="formMedicaoData.umidade_relativa"
+                  v-model.number="formMedicao.umidade_relativa"
                   label="Umidade Relativa (%)"
                   type="number"
                   step="0.1"
@@ -555,7 +554,7 @@
               <!-- Observações -->
               <v-col cols="12">
                 <v-textarea
-                  v-model="formMedicaoData.observacoes"
+                  v-model="formMedicao.observacoes"
                   label="Observações"
                   prepend-inner-icon="mdi-note-text"
                   variant="outlined"
@@ -873,19 +872,10 @@ export default {
       formMedicaoData.value = { ...formMedicaoInicial }
       resultadoValidacao.value = null
       
-      // Preencher técnico responsável automaticamente
-      formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario
-      
       // Calcular próxima calibração (12 meses)
       const hoje = new Date()
       const proxima = new Date(hoje.setFullYear(hoje.getFullYear() + 1))
       formMedicaoData.value.proxima_calibracao = proxima.toISOString().split('T')[0]
-      
-      // Se operador com 1 equipamento, selecionar automaticamente
-      if (authStore.isOperador && equipamentos.value.length === 1) {
-        formMedicaoData.value.equipamento_id = equipamentos.value[0].id
-        onEquipamentoChange(equipamentos.value[0].id)
-      }
       
       dialogMedicao.value = true
     }
@@ -1060,7 +1050,7 @@ export default {
       calculando,
       
       // Form
-      formMedicaoData: formMedicaoData,
+      formMedicao: formMedicaoData,
       resultadoValidacao,
       
       // Filtros
