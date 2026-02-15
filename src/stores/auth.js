@@ -24,7 +24,6 @@ export const useAuthStore = defineStore('auth', () => {
         .from('usuarios')
         .select('*')
         .eq('email', email)
-        .eq('ativo', true)
         .single()
 
       if (errorBusca) {
@@ -83,7 +82,6 @@ export const useAuthStore = defineStore('auth', () => {
           .from('usuarios')
           .select('*')
           .eq('id', usuarioSalvo.id)
-          .eq('ativo', true)
           .single()
 
         if (error || !usuarioAtual) {
