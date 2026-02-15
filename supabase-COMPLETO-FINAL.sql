@@ -20,15 +20,16 @@ CREATE TABLE IF NOT EXISTS logs_erro (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_logs_erro_created_at ON logs_erro(created_at DESC);
-CREATE INDEX idx_logs_erro_severidade ON logs_erro(severidade);
-CREATE INDEX idx_logs_erro_resolvido ON logs_erro(resolvido) WHERE NOT resolvido;
+CREATE INDEX IF NOT EXISTS idx_logs_erro_created_at ON logs_erro(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_logs_erro_severidade ON logs_erro(severidade);
+CREATE INDEX IF NOT EXISTS idx_logs_erro_resolvido ON logs_erro(resolvido) WHERE NOT resolvido;
 
 COMMENT ON TABLE logs_erro IS 'Registro de erros do sistema para debug e monitoramento';
 
 -- 🔐 2. ADICIONAR POLÍTICA RLS PARA LOGS DE ERRO
 ALTER TABLE logs_erro ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins podem ver todos os logs" ON logs_erro;
 CREATE POLICY "Admins podem ver todos os logs"
 ON logs_erro FOR SELECT
 TO authenticated
@@ -40,6 +41,7 @@ USING (
     )
 );
 
+DROP POLICY IF EXISTS "Qualquer autenticado pode inserir logs" ON logs_erro;
 CREATE POLICY "Qualquer autenticado pode inserir logs"
 ON logs_erro FOR INSERT
 TO authenticated
@@ -55,13 +57,14 @@ CREATE TABLE IF NOT EXISTS tokens_recuperacao_senha (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_tokens_recuperacao_token ON tokens_recuperacao_senha(token);
-CREATE INDEX idx_tokens_recuperacao_usuario ON tokens_recuperacao_senha(usuario_id);
-CREATE INDEX idx_tokens_recuperacao_expira ON tokens_recuperacao_senha(expira_em);
+CREATE INDEX IF NOT EXISTS idx_tokens_recuperacao_token ON tokens_recuperacao_senha(token);
+CREATE INDEX IF NOT EXISTS idx_tokens_recuperacao_usuario ON tokens_recuperacao_senha(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_tokens_recuperacao_expira ON tokens_recuperacao_senha(expira_em);
 
 -- Política RLS para tokens
 ALTER TABLE tokens_recuperacao_senha ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Usuários podem gerenciar seus tokens" ON tokens_recuperacao_senha;
 CREATE POLICY "Usuários podem gerenciar seus tokens"
 ON tokens_recuperacao_senha FOR ALL
 TO authenticated
