@@ -184,15 +184,9 @@ export async function getEquipamento(id) {
  */
 export async function createEquipamento(equipamento) {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-
     const { data, error } = await supabase
       .from('equipamentos')
-      .insert([{
-        ...equipamento,
-        created_by: user?.id,
-        updated_by: user?.id
-      }])
+      .insert([equipamento])
       .select()
       .single()
 
@@ -221,14 +215,9 @@ export async function updateEquipamento(id, updates) {
       .eq('id', id)
       .single()
 
-    const { data: { user } } = await supabase.auth.getUser()
-
     const { data, error } = await supabase
       .from('equipamentos')
-      .update({
-        ...updates,
-        updated_by: user?.id
-      })
+      .update(updates)
       .eq('id', id)
       .select()
       .single()
