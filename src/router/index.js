@@ -54,6 +54,24 @@ const routes = [
         meta: { title: 'Medições' }
       },
       {
+        path: 'medicoes-horizontal',
+        name: 'MedicoesHorizontal',
+        component: () => import('@/views/MedicaoHorizontal.vue'),
+        meta: { title: 'Medição Horizontal - NBR 14723' }
+      },
+      {
+        path: 'medicoes-vertical',
+        name: 'MedicoesVertical',
+        component: () => import('@/views/MedicaoVertical.vue'),
+        meta: { title: 'Medição Vertical - NBR 15426' }
+      },
+      {
+        path: 'dispositivos',
+        name: 'Dispositivos',
+        component: () => import('@/views/DispositivosLista.vue'),
+        meta: { title: 'Tachas e Tachões - NBR 14636 + NBR 15576' }
+      },
+      {
         path: 'relatorios',
         name: 'Relatorios',
         component: () => import('@/views/RelatoriosLista.vue'),
