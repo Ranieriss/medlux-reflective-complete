@@ -22,9 +22,21 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
     strictPort: true,
-    cors: true,
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true
+    },
     hmr: {
-      clientPort: 3000
+      protocol: 'wss',
+      host: '3000-ie4tc4um27gylss7lvwlv-d0b9e1e2.sandbox.novita.ai',
+      clientPort: 443
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
   }
 })
