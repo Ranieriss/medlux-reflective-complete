@@ -754,11 +754,17 @@ const equipamentosFiltrados = computed(() => {
   // Filtro de busca
   if (filtros.value.busca) {
     const busca = filtros.value.busca.toLowerCase()
-    resultado = resultado.filter(eq =>
-      eq.codigo.toLowerCase().includes(busca) ||
-      (eq.modelo && eq.modelo.toLowerCase().includes(busca)) ||
-      (eq.numero_serie && eq.numero_serie.toLowerCase().includes(busca))
-    )
+    resultado = resultado.filter(eq => {
+      const codigo = (eq.codigo || '').toLowerCase()
+      const modelo = (eq.modelo || '').toLowerCase()
+      const numero_serie = (eq.numero_serie || '').toLowerCase()
+      const fabricante = (eq.fabricante || '').toLowerCase()
+      
+      return codigo.includes(busca) || 
+             modelo.includes(busca) || 
+             numero_serie.includes(busca) ||
+             fabricante.includes(busca)
+    })
   }
 
   // Filtro de tipo
@@ -864,14 +870,43 @@ const carregarEquipamentos = async () => {
   carregando.value = true
   try {
     console.log('🔄 Carregando equipamentos do Supabase...')
-    const resultado = await getEquipamentos()
     
-    if (resultado.success) {
-      equipamentos.value = resultado.data
-      console.log(`✅ ${resultado.data.length} equipamentos carregados`)
+    // Se for operador, carregar apenas equipamentos vinculados
+    if (authStore.isOperador) {
+      const { data: vinculos, error: errorVinc } = await supabase
+        .from('vinculos')
+        .select('equipamento_id')
+        .eq('usuario_id', authStore.usuario.id)
+        .eq('ativo', true)
+      
+      if (errorVinc) throw errorVinc
+      
+      const equipamentosIds = vinculos.map(v => v.equipamento_id)
+      
+      if (equipamentosIds.length === 0) {
+        equipamentos.value = []
+        console.log('✅ Operador sem equipamentos vinculados')
+        return
+      }
+      
+      const { data, error } = await supabase
+        .from('equipamentos')
+        .select('*')
+        .in('id', equipamentosIds)
+        .order('codigo')
+      
+      if (error) throw error
+      equipamentos.value = data
+      console.log(`✅ ${data.length} equipamentos vinculados carregados`)
     } else {
-      console.error('❌ Erro ao carregar equipamentos:', resultado.error)
-      mostrarSnackbar('Erro ao carregar equipamentos', 'error')
+      // Admin/técnico vê todos
+      const resultado = await getEquipamentos()
+      if (resultado.success) {
+        equipamentos.value = resultado.data
+        console.log(`✅ ${resultado.data.length} equipamentos carregados`)
+      } else {
+        throw new Error(resultado.error)
+      }
     }
   } catch (error) {
     console.error('❌ Erro ao carregar equipamentos:', error)
