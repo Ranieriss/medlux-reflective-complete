@@ -1,10 +1,24 @@
 <template>
   <div>
     <!-- Header -->
-    <h1 class="text-h4 font-weight-bold mb-6">
-      <v-icon class="mr-2" color="primary">mdi-history</v-icon>
-      Auditoria
-    </h1>
+    <v-row align="center" class="mb-6">
+      <v-col>
+        <h1 class="text-h4 font-weight-bold">
+          <v-icon class="mr-2" color="primary">mdi-history</v-icon>
+          Auditoria
+        </h1>
+      </v-col>
+      <v-col class="text-right">
+        <v-btn
+          color="success"
+          size="large"
+          prepend-icon="mdi-file-chart"
+          @click="dialogRelatorios = true"
+        >
+          Emissão de Relatórios
+        </v-btn>
+      </v-col>
+    </v-row>
 
     <!-- Filtros -->
     <v-card class="glass mb-6">
@@ -234,6 +248,220 @@
       </v-card-text>
     </v-card>
 
+    <!-- Dialog Emissão de Relatórios -->
+    <v-dialog v-model="dialogRelatorios" max-width="900px" persistent scrollable>
+      <v-card>
+        <v-card-title class="bg-success">
+          <span class="text-h5 text-white">
+            <v-icon color="white" class="mr-2">mdi-file-chart</v-icon>
+            Emissão de Relatórios de Medições
+          </span>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text class="pt-6" style="max-height: 600px;">
+          <v-form ref="formRelatorio" v-model="formRelatorioValido">
+            <!-- Tipo de Relatório -->
+            <v-row>
+              <v-col cols="12">
+                <v-card variant="outlined">
+                  <v-card-subtitle>Tipo de Relatório</v-card-subtitle>
+                  <v-card-text>
+                    <v-radio-group v-model="relatorioConfig.tipo" inline>
+                      <v-radio label="Relatório Global" value="global" color="primary" />
+                      <v-radio label="Sinalização Vertical" value="vertical" color="info" />
+                      <v-radio label="Sinalização Horizontal" value="horizontal" color="warning" />
+                      <v-radio label="Tachas/Tachões" value="tachas" color="success" />
+                      <v-radio label="Equipamento Individual" value="individual" color="secondary" />
+                      <v-radio label="Relatório de Erros" value="erros" color="error" />
+                    </v-radio-group>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
+              <!-- Equipamento Individual (apenas se tipo = individual) -->
+              <v-col cols="12" v-if="relatorioConfig.tipo === 'individual'">
+                <v-autocomplete
+                  v-model="relatorioConfig.equipamento_id"
+                  :items="equipamentosDisponiveis"
+                  item-title="nome_completo"
+                  item-value="id"
+                  label="Selecione o Equipamento *"
+                  prepend-inner-icon="mdi-devices"
+                  variant="outlined"
+                  :rules="relatorioConfig.tipo === 'individual' ? [rules.required] : []"
+                />
+              </v-col>
+
+              <!-- Filtros de Data (exceto relatório de erros) -->
+              <v-col cols="12" md="6" v-if="relatorioConfig.tipo !== 'erros'">
+                <v-text-field
+                  v-model="relatorioConfig.data_inicio"
+                  label="Data Início"
+                  type="date"
+                  prepend-inner-icon="mdi-calendar-start"
+                  variant="outlined"
+                  hint="Deixe vazio para incluir todas as datas"
+                  persistent-hint
+                />
+              </v-col>
+
+              <v-col cols="12" md="6" v-if="relatorioConfig.tipo !== 'erros'">
+                <v-text-field
+                  v-model="relatorioConfig.data_fim"
+                  label="Data Fim"
+                  type="date"
+                  prepend-inner-icon="mdi-calendar-end"
+                  variant="outlined"
+                  hint="Deixe vazio para incluir todas as datas"
+                  persistent-hint
+                />
+              </v-col>
+
+              <!-- Datas para Relatório de Erros -->
+              <v-col cols="12" md="6" v-if="relatorioConfig.tipo === 'erros'">
+                <v-text-field
+                  v-model="relatorioConfig.data_inicio"
+                  label="Data Início *"
+                  type="date"
+                  prepend-inner-icon="mdi-calendar-start"
+                  variant="outlined"
+                  :rules="relatorioConfig.tipo === 'erros' ? [rules.required] : []"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6" v-if="relatorioConfig.tipo === 'erros'">
+                <v-text-field
+                  v-model="relatorioConfig.data_fim"
+                  label="Data Fim *"
+                  type="date"
+                  prepend-inner-icon="mdi-calendar-end"
+                  variant="outlined"
+                  :rules="relatorioConfig.tipo === 'erros' ? [rules.required] : []"
+                />
+              </v-col>
+
+              <!-- Filtros Adicionais (apenas para relatórios normais) -->
+              <v-col cols="12" v-if="relatorioConfig.tipo !== 'erros' && relatorioConfig.tipo !== 'individual'">
+                <v-expansion-panels>
+                  <v-expansion-panel title="Filtros Adicionais (Opcional)">
+                    <v-expansion-panel-text>
+                      <v-row>
+                        <v-col cols="12" md="6">
+                          <v-select
+                            v-model="relatorioConfig.status_validacao"
+                            :items="statusValidacaoOptions"
+                            label="Status de Validação"
+                            prepend-inner-icon="mdi-check-circle"
+                            variant="outlined"
+                            clearable
+                          />
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                          <v-select
+                            v-model="relatorioConfig.status_vencimento"
+                            :items="statusVencimentoOptions"
+                            label="Status de Vencimento"
+                            prepend-inner-icon="mdi-calendar-alert"
+                            variant="outlined"
+                            clearable
+                          />
+                        </v-col>
+
+                        <v-col cols="12">
+                          <v-text-field
+                            v-model="relatorioConfig.tecnico_responsavel"
+                            label="Técnico Responsável"
+                            prepend-inner-icon="mdi-account-hard-hat"
+                            variant="outlined"
+                            clearable
+                            hint="Digite o nome do técnico"
+                          />
+                        </v-col>
+                      </v-row>
+                    </v-expansion-panel-text>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+              </v-col>
+
+              <!-- Formato de Exportação -->
+              <v-col cols="12" v-if="relatorioConfig.tipo !== 'erros'">
+                <v-card variant="outlined">
+                  <v-card-subtitle>Formato de Exportação</v-card-subtitle>
+                  <v-card-text>
+                    <v-radio-group v-model="relatorioConfig.formato" inline>
+                      <v-radio label="PDF" value="pdf" color="error">
+                        <template #label>
+                          <v-icon class="mr-2" color="error">mdi-file-pdf-box</v-icon>
+                          PDF
+                        </template>
+                      </v-radio>
+                      <v-radio label="Excel" value="excel" color="success">
+                        <template #label>
+                          <v-icon class="mr-2" color="success">mdi-file-excel</v-icon>
+                          Excel
+                        </template>
+                      </v-radio>
+                      <v-radio label="JSON (Debug)" value="json" color="info">
+                        <template #label>
+                          <v-icon class="mr-2" color="info">mdi-code-json</v-icon>
+                          JSON
+                        </template>
+                      </v-radio>
+                    </v-radio-group>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
+              <!-- Informações do Relatório de Erros -->
+              <v-col cols="12" v-if="relatorioConfig.tipo === 'erros'">
+                <v-alert type="info" prominent>
+                  <v-row align="center">
+                    <v-col class="grow">
+                      <strong>Relatório de Diagnóstico e Erros</strong><br>
+                      Este relatório contém:
+                      <ul class="mt-2">
+                        <li>Logs de erros do sistema</li>
+                        <li>Medições reprovadas</li>
+                        <li>Equipamentos sem medição</li>
+                        <li>Medições vencidas</li>
+                      </ul>
+                      <small>Ideal para envio ao suporte técnico para correções.</small>
+                    </v-col>
+                  </v-row>
+                </v-alert>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions class="pa-4">
+          <v-spacer />
+          <v-btn
+            color="grey"
+            variant="outlined"
+            @click="fecharDialogRelatorio"
+            :disabled="gerandoRelatorio"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="success"
+            prepend-icon="mdi-download"
+            @click="gerarRelatorio"
+            :loading="gerandoRelatorio"
+            :disabled="!formRelatorioValido"
+          >
+            Gerar e Baixar Relatório
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Dialog Detalhes -->
     <v-dialog v-model="dialogDetalhes" max-width="800" scrollable>
       <v-card v-if="itemSelecionado">
@@ -328,16 +556,34 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
+import relatorioMedicoesService from '@/services/relatorioMedicoesService'
+import equipamentoService from '@/services/equipamentoService'
 
 // State
 const auditoria = ref([])
 const carregando = ref(false)
 const dialogDetalhes = ref(false)
+const dialogRelatorios = ref(false)
 const itemSelecionado = ref(null)
 const paginaAtual = ref(1)
 const itensPorPagina = 50
 const totalRegistros = ref(0)
 const realtimeSubscription = ref(null)
+const gerandoRelatorio = ref(false)
+const formRelatorioValido = ref(false)
+const equipamentosDisponiveis = ref([])
+
+// Configuração do relatório
+const relatorioConfig = ref({
+  tipo: 'global',
+  equipamento_id: null,
+  data_inicio: null,
+  data_fim: null,
+  status_validacao: null,
+  status_vencimento: null,
+  tecnico_responsavel: null,
+  formato: 'pdf',
+})
 
 // Filtros
 const filtros = ref({
@@ -361,6 +607,23 @@ const acoes = [
   { title: 'Atualização', value: 'UPDATE' },
   { title: 'Exclusão', value: 'DELETE' }
 ]
+
+const statusValidacaoOptions = [
+  { title: 'Aprovado', value: 'APROVADO' },
+  { title: 'Reprovado', value: 'REPROVADO' },
+  { title: 'Indeterminado', value: 'INDETERMINADO' },
+]
+
+const statusVencimentoOptions = [
+  { title: 'Em Dia', value: 'EM_DIA' },
+  { title: 'Atenção (30 dias)', value: 'ATENCAO' },
+  { title: 'Vencida', value: 'VENCIDA' },
+  { title: 'Sem Medição', value: 'SEM_CALIBRACAO' },
+]
+
+const rules = {
+  required: value => !!value || 'Campo obrigatório',
+}
 
 // Computed
 const auditoriaFiltrada = computed(() => {
@@ -520,6 +783,109 @@ const formatarDataHora = (data) => {
   }
 }
 
+// Métodos de Relatórios
+const carregarEquipamentos = async () => {
+  try {
+    const response = await equipamentoService.listar()
+    equipamentosDisponiveis.value = response.map(eq => ({
+      ...eq,
+      nome_completo: `${eq.codigo} - ${eq.nome}`
+    }))
+  } catch (error) {
+    console.error('Erro ao carregar equipamentos:', error)
+  }
+}
+
+const fecharDialogRelatorio = () => {
+  dialogRelatorios.value = false
+  relatorioConfig.value = {
+    tipo: 'global',
+    equipamento_id: null,
+    data_inicio: null,
+    data_fim: null,
+    status_validacao: null,
+    status_vencimento: null,
+    tecnico_responsavel: null,
+    formato: 'pdf',
+  }
+}
+
+const gerarRelatorio = async () => {
+  gerandoRelatorio.value = true
+  
+  try {
+    const config = relatorioConfig.value
+    
+    // Montar filtros
+    const filtros = {
+      data_inicio: config.data_inicio,
+      data_fim: config.data_fim,
+      status_validacao: config.status_validacao,
+      status_vencimento: config.status_vencimento,
+      tecnico_responsavel: config.tecnico_responsavel,
+    }
+
+    let resultado
+
+    // Gerar relatório conforme tipo
+    switch (config.tipo) {
+      case 'global':
+        resultado = await relatorioMedicoesService.gerarRelatorioGlobal(filtros, config.formato)
+        break
+
+      case 'vertical':
+        resultado = await relatorioMedicoesService.gerarRelatorioPorTipo('vertical', filtros, config.formato)
+        break
+
+      case 'horizontal':
+        resultado = await relatorioMedicoesService.gerarRelatorioPorTipo('horizontal', filtros, config.formato)
+        break
+
+      case 'tachas':
+        // Incluir tachas e tachões
+        const resultadoTachas = await relatorioMedicoesService.gerarRelatorioPorTipo('tachas', filtros, config.formato)
+        resultado = resultadoTachas
+        break
+
+      case 'individual':
+        if (!config.equipamento_id) {
+          throw new Error('Selecione um equipamento')
+        }
+        resultado = await relatorioMedicoesService.gerarRelatorioIndividual(
+          config.equipamento_id,
+          filtros,
+          config.formato
+        )
+        break
+
+      case 'erros':
+        if (!config.data_inicio || !config.data_fim) {
+          throw new Error('Selecione o período para o relatório de erros')
+        }
+        resultado = await relatorioMedicoesService.gerarRelatorioErros(
+          config.data_inicio,
+          config.data_fim
+        )
+        break
+
+      default:
+        throw new Error('Tipo de relatório não suportado')
+    }
+
+    if (resultado.success) {
+      alert(`✅ Relatório gerado com sucesso!\nArquivo: ${resultado.nomeArquivo}`)
+      fecharDialogRelatorio()
+    } else {
+      throw new Error(resultado.error || 'Erro ao gerar relatório')
+    }
+  } catch (error) {
+    console.error('Erro ao gerar relatório:', error)
+    alert(`❌ Erro ao gerar relatório:\n${error.message}`)
+  } finally {
+    gerandoRelatorio.value = false
+  }
+}
+
 // Realtime subscription
 const setupRealtimeSubscription = () => {
   realtimeSubscription.value = supabase
@@ -542,6 +908,7 @@ const setupRealtimeSubscription = () => {
 // Lifecycle
 onMounted(async () => {
   await carregarAuditoria()
+  await carregarEquipamentos()
   setupRealtimeSubscription()
 })
 
