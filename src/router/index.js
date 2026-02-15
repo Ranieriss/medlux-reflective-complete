@@ -42,6 +42,12 @@ const routes = [
         meta: { title: 'Vínculos' }
       },
       {
+        path: 'calibracoes',
+        name: 'Calibracoes',
+        component: () => import('@/views/CalibracoesLista.vue'),
+        meta: { title: 'Medições' }
+      },
+      {
         path: 'relatorios',
         name: 'Relatorios',
         component: () => import('@/views/RelatoriosLista.vue'),

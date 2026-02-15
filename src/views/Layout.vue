@@ -145,6 +145,11 @@ const menuItems = computed(() => {
       to: '/vinculos'
     },
     {
+      title: 'Medições',
+      icon: 'mdi-chart-line',
+      to: '/calibracoes'
+    },
+    {
       title: 'Relatórios',
       icon: 'mdi-file-chart',
       to: '/relatorios'
