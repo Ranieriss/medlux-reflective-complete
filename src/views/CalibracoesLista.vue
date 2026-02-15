@@ -315,7 +315,29 @@
         <v-divider />
 
         <v-card-text class="pt-6" style="max-height: 600px;">
-          <v-form ref="formMedicao" v-model="formValido">
+          <!-- Alerta quando não há equipamentos -->
+          <v-alert
+            v-if="equipamentos.length === 0"
+            type="warning"
+            variant="tonal"
+            prominent
+            class="mb-4"
+          >
+            <v-row align="center">
+              <v-col cols="12">
+                <div class="text-h6 mb-2">
+                  <v-icon>mdi-alert</v-icon>
+                  Nenhum Equipamento Disponível
+                </div>
+                <p class="mb-0">
+                  Não há equipamentos cadastrados no sistema. 
+                  Por favor, contate o administrador para cadastrar equipamentos antes de criar medições.
+                </p>
+              </v-col>
+            </v-row>
+          </v-alert>
+
+          <v-form ref="formMedicao" v-model="formValido" :disabled="equipamentos.length === 0">
             <v-row>
               <!-- Equipamento -->
               <v-col cols="12">
@@ -810,58 +832,39 @@ export default {
     const carregarEquipamentos = async () => {
       loadingEquipamentos.value = true
       try {
-        // Busca equipamentos conforme perfil do usuário
-        // authStore.usuario já é um ref, então não precisa .value aqui
-        const usuario = authStore.usuario.value
-        
-        console.log('🔍 DEBUG: authStore completo:', {
-          usuario: authStore.usuario.value,
-          isAuthenticated: authStore.isAuthenticated,
-          isAdmin: authStore.isAdmin,
-          nomeUsuario: authStore.nomeUsuario
-        })
+        // Garantir que temos usuário autenticado
+        let usuario = authStore.usuario.value
         
         if (!usuario) {
-          console.error('❌ Usuário não autenticado')
-          console.error('❌ localStorage:', localStorage.getItem('medlux_auth'))
-          
-          // Tentar restaurar sessão
-          console.log('🔄 Tentando restaurar sessão...')
+          console.log('🔄 Usuário não encontrado, restaurando sessão...')
           await authStore.restaurarSessao()
+          usuario = authStore.usuario.value
           
-          // Verificar novamente
-          const usuarioRestaurado = authStore.usuario.value
-          if (!usuarioRestaurado) {
+          if (!usuario) {
+            console.error('❌ Não foi possível restaurar a sessão')
             mostrarNotificacao('Sessão expirada. Por favor, faça login novamente.', 'error')
+            loadingEquipamentos.value = false
             return
           }
-          
-          console.log('✅ Sessão restaurada:', usuarioRestaurado.email)
         }
         
-        const usuarioAtual = authStore.usuario.value
+        console.log('👤 Carregando equipamentos para:', {
+          id: usuario.id,
+          perfil: usuario.perfil,
+          nome: usuario.nome
+        })
         
-        if (IS_DEV) {
-          console.log('👤 Usuário logado:', {
-            id: usuarioAtual.id,
-            perfil: usuarioAtual.perfil
-          })
-        }
-        
-        console.log('⏳ Buscando equipamentos...')
         const response = await buscarEquipamentosDoUsuario(
-          usuarioAtual.id, 
-          usuarioAtual.perfil
+          usuario.id, 
+          usuario.perfil
         )
         
-        if (IS_DEV) {
-          console.log('📦 Resposta buscarEquipamentosDoUsuario:', response)
-        }
+        console.log('📦 Resposta do servidor:', response?.length || 0, 'equipamentos')
         
         if (!response || response.length === 0) {
-          console.warn('⚠️ Nenhum equipamento encontrado')
-          mostrarNotificacao('Nenhum equipamento disponível', 'warning')
+          console.warn('⚠️ Nenhum equipamento encontrado no banco')
           equipamentos.value = []
+          // Não mostrar notificação aqui, pois é normal não ter medições ainda
           return
         }
         
@@ -871,18 +874,19 @@ export default {
           descricao_tipo: eq.tipoDetalhado?.descricao || eq.nome
         }))
         
-        console.log(`✅ ${equipamentos.value.length} equipamentos carregados`)
+        console.log(`✅ ${equipamentos.value.length} equipamentos carregados com sucesso`)
         
         // Se for operador com apenas 1 equipamento, selecionar automaticamente
         if (authStore.isOperador && equipamentos.value.length === 1) {
           formMedicaoData.value.equipamento_id = equipamentos.value[0].id
           await onEquipamentoChange(equipamentos.value[0].id)
-          console.log('✅ Equipamento auto-selecionado')
+          console.log('✅ Equipamento auto-selecionado para operador')
         }
         
       } catch (error) {
         console.error('❌ Erro ao carregar equipamentos:', error)
         mostrarNotificacao('Erro ao carregar equipamentos: ' + error.message, 'error')
+        equipamentos.value = []
       } finally {
         loadingEquipamentos.value = false
       }
@@ -1023,7 +1027,7 @@ export default {
       console.log('⏳ Carregando equipamentos antes de abrir dialog...')
       await carregarEquipamentos()
       
-      console.log(`✅ ${equipamentos.value.length} equipamentos disponíveis`)
+      console.log(`📊 ${equipamentos.value.length} equipamentos disponíveis`)
       
       // Se operador com 1 equipamento, selecionar automaticamente
       if (authStore.isOperador && equipamentos.value.length === 1) {
@@ -1031,13 +1035,10 @@ export default {
         formMedicaoData.value.equipamento_id = equipamentos.value[0].id
         await onEquipamentoChange(equipamentos.value[0].id)
         console.log('✅ Equipamento auto-selecionado:', equipamentos.value[0].codigo)
-      } else if (equipamentos.value.length === 0) {
-        console.error('❌ Nenhum equipamento disponível')
-        mostrarNotificacao('Nenhum equipamento disponível. Contate o administrador.', 'error')
-        return
       }
       
-      // Abrir dialog
+      // Sempre abrir o dialog, mesmo sem equipamentos
+      // O formulário mostrará um aviso apropriado
       dialogMedicao.value = true
       console.log('✅ Dialog aberto com sucesso!')
     }
@@ -1185,10 +1186,20 @@ export default {
     }
     
     // Lifecycle
-    onMounted(() => {
-      carregarMedicoes()
-      carregarStats()
-      carregarEquipamentos()
+    onMounted(async () => {
+      // Garantir que a sessão está restaurada antes de carregar dados
+      if (!authStore.isAuthenticated) {
+        console.log('⏳ Aguardando restauração de sessão...')
+        await authStore.restaurarSessao()
+      }
+      
+      console.log('🔄 Iniciando carregamento de dados...')
+      await Promise.all([
+        carregarMedicoes(),
+        carregarStats(),
+        carregarEquipamentos()
+      ])
+      console.log('✅ Todos os dados carregados!')
     })
     
     return {
