@@ -82,6 +82,44 @@ export const buscarCriterioEspecifico = async (params) => {
 }
 
 /**
+ * Calcular validação de medições
+ * Busca o critério e valida as medições
+ */
+export const calcularValidacao = async (params) => {
+  try {
+    const { tipo_equipamento, tipo_pelicula, tipo_material, cor, geometria, valores_medicoes } = params
+    
+    // Buscar critério específico
+    const criterioResult = await buscarCriterioEspecifico({
+      tipo_equipamento,
+      tipo_pelicula,
+      tipo_material,
+      cor,
+      geometria
+    })
+    
+    if (!criterioResult.success) {
+      throw new Error(criterioResult.error)
+    }
+    
+    const criterio = criterioResult.data
+    const valor_minimo_referencia = parseFloat(criterio.valor_minimo)
+    
+    // Validar medições
+    const resultado = validarMedicoes(tipo_equipamento, valores_medicoes, valor_minimo_referencia)
+    
+    return {
+      ...resultado,
+      criterio_id: criterio.id,
+      norma_referencia: criterio.norma_referencia
+    }
+  } catch (error) {
+    console.error('❌ Erro ao calcular validação:', error)
+    throw error
+  }
+}
+
+/**
  * Validar medições de calibração
  * Retorna status, estatísticas e detalhes
  */

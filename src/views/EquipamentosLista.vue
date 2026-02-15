@@ -105,6 +105,22 @@
           </v-chip>
         </template>
 
+        <!-- Certificado PDF -->
+        <template v-slot:item.certificado_url="{ item }">
+          <v-btn
+            v-if="item.certificado_url"
+            icon
+            size="small"
+            variant="text"
+            color="success"
+            :href="item.certificado_url"
+            target="_blank"
+          >
+            <v-icon size="20">mdi-file-pdf-box</v-icon>
+          </v-btn>
+          <span v-else class="text-caption text-medium-emphasis">-</span>
+        </template>
+
         <!-- Status com chip -->
         <template v-slot:item.status="{ item }">
           <v-chip :color="getCorStatus(item.status)" size="small">
@@ -235,12 +251,13 @@
 
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="equipamentoForm.marca"
-                  label="Marca *"
-                  :rules="[rules.required]"
+                  v-model="equipamentoForm.certificado_url"
+                  label="URL do Certificado de Calibração"
                   variant="outlined"
                   density="comfortable"
-                  prepend-inner-icon="mdi-tag"
+                  prepend-inner-icon="mdi-file-pdf-box"
+                  hint="Link do PDF do certificado (Google Drive, Dropbox, etc)"
+                  persistent-hint
                 />
               </v-col>
 
@@ -669,7 +686,7 @@ const snackbar = ref({
 })
 
 // Opções
-const tiposEquipamento = ['Horizontal', 'Vertical', 'Tachas']
+const tiposEquipamento = ['horizontal', 'vertical', 'tachas']
 const statusEquipamento = [
   { title: 'Ativo', value: 'ativo' },
   { title: 'Manutenção', value: 'manutencao' },
@@ -685,7 +702,7 @@ const filtrosCalibracao = [
 const headers = [
   { title: 'Código', key: 'codigo', sortable: true },
   { title: 'Tipo', key: 'tipo', sortable: true },
-  { title: 'Marca', key: 'marca', sortable: true },
+  { title: 'Certificado', key: 'certificado_url', sortable: false },
   { title: 'Modelo', key: 'modelo', sortable: true },
   { title: 'Número de Série', key: 'numero_serie', sortable: false },
   { title: 'Status', key: 'status', sortable: true },
@@ -697,7 +714,7 @@ const headers = [
 const equipamentoForm = ref({
   codigo: '',
   tipo: null,
-  marca: '',
+  certificado_url: '',
   modelo: '',
   numero_serie: '',
   data_aquisicao: '',
@@ -739,8 +756,8 @@ const equipamentosFiltrados = computed(() => {
     const busca = filtros.value.busca.toLowerCase()
     resultado = resultado.filter(eq =>
       eq.codigo.toLowerCase().includes(busca) ||
-      eq.marca.toLowerCase().includes(busca) ||
-      eq.modelo.toLowerCase().includes(busca)
+      (eq.modelo && eq.modelo.toLowerCase().includes(busca)) ||
+      (eq.numero_serie && eq.numero_serie.toLowerCase().includes(busca))
     )
   }
 
@@ -917,10 +934,10 @@ const salvarEquipamento = async () => {
     // Preparar dados do equipamento
     const equipamentoData = {
       codigo: equipamentoForm.value.codigo,
-      nome: `${equipamentoForm.value.marca || ''} ${equipamentoForm.value.modelo || ''}`.trim() || 'Equipamento',
+      nome: `${equipamentoForm.value.modelo || ''}`.trim() || 'Equipamento',
       tipo: equipamentoForm.value.tipo?.toLowerCase() || 'horizontal',
       status: equipamentoForm.value.status || 'ativo',
-      fabricante: equipamentoForm.value.marca,
+      fabricante: equipamentoForm.value.modelo,
       modelo: equipamentoForm.value.modelo,
       numero_serie: equipamentoForm.value.numero_serie,
       localizacao: equipamentoForm.value.localizacao,
@@ -928,7 +945,8 @@ const salvarEquipamento = async () => {
       data_ultima_calibracao: equipamentoForm.value.ultima_calibracao || null,
       proxima_calibracao: equipamentoForm.value.proxima_calibracao || null,
       observacoes: equipamentoForm.value.observacoes || '',
-      foto_url: equipamentoForm.value.foto || null
+      foto_url: equipamentoForm.value.foto || null,
+      certificado_url: equipamentoForm.value.certificado_url || null
     }
 
     let resultado
