@@ -930,6 +930,7 @@ export default {
     })
     
     const abrirDialogNovo = async () => {
+      console.log('🔵 Abrindo dialog novo...')
       modoEdicao.value = false
       formMedicaoData.value = { ...formMedicaoInicial }
       resultadoValidacao.value = null
@@ -943,15 +944,19 @@ export default {
       formMedicaoData.value.proxima_calibracao = proxima.toISOString().split('T')[0]
       
       // Carregar equipamentos antes de abrir o dialog
+      console.log('⏳ Carregando equipamentos...')
       await carregarEquipamentos()
+      console.log(`✅ Equipamentos carregados: ${equipamentos.value.length}`, equipamentos.value)
       
       // Se operador com 1 equipamento, selecionar automaticamente
       if (authStore.isOperador && equipamentos.value.length === 1) {
         formMedicaoData.value.equipamento_id = equipamentos.value[0].id
         onEquipamentoChange(equipamentos.value[0].id)
+        console.log('✅ Equipamento selecionado automaticamente:', equipamentos.value[0])
       }
       
       dialogMedicao.value = true
+      console.log('✅ Dialog aberto!')
     }
     
     const fecharDialog = () => {
