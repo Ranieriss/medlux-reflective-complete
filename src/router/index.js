@@ -99,12 +99,12 @@ const router = createRouter({
 })
 
 // Guard de navegação
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // Tentar restaurar sessão
+  // Tentar restaurar sessão (AWAIT é crucial!)
   if (!authStore.isAuthenticated) {
-    authStore.restaurarSessao()
+    await authStore.restaurarSessao()
   }
   
   // Verificar se rota requer autenticação
