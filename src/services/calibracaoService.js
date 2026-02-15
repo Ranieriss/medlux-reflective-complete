@@ -501,6 +501,161 @@ export const gerarLaudoPDF = async (calibracaoId) => {
   }
 }
 
+/**
+ * Listar calibrações com filtros
+ * @param {Object} filtros - Filtros opcionais (equipamento_id, status, data_inicio, data_fim)
+ * @returns {Promise<Array>} Lista de calibrações
+ */
+export const listarCalibracoes = async (filtros = {}) => {
+  try {
+    let query = supabase
+      .from('historico_calibracoes')
+      .select(`
+        *,
+        equipamentos (
+          id,
+          codigo,
+          nome,
+          tipo
+        )
+      `)
+      .order('data_calibracao', { ascending: false })
+    
+    // Aplicar filtros
+    if (filtros.equipamento_id) {
+      query = query.eq('equipamento_id', filtros.equipamento_id)
+    }
+    if (filtros.status) {
+      query = query.eq('status_validacao', filtros.status)
+    }
+    if (filtros.data_inicio) {
+      query = query.gte('data_calibracao', filtros.data_inicio)
+    }
+    if (filtros.data_fim) {
+      query = query.lte('data_calibracao', filtros.data_fim)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) throw error
+    
+    console.log(`✅ ${data?.length || 0} calibrações carregadas`)
+    return data || []
+  } catch (error) {
+    console.error('❌ Erro ao listar calibrações:', error)
+    throw error
+  }
+}
+
+/**
+ * Obter calibração específica por ID
+ * @param {string} calibracaoId - ID da calibração
+ * @returns {Promise<Object>} Dados da calibração
+ */
+export const obterCalibracao = async (calibracaoId) => {
+  try {
+    const { data, error } = await supabase
+      .from('historico_calibracoes')
+      .select(`
+        *,
+        equipamentos (
+          id,
+          codigo,
+          nome,
+          tipo,
+          marca,
+          modelo
+        )
+      `)
+      .eq('id', calibracaoId)
+      .single()
+    
+    if (error) throw error
+    
+    return { success: true, data }
+  } catch (error) {
+    console.error('❌ Erro ao obter calibração:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Obter estatísticas de calibrações
+ * @returns {Promise<Object>} Estatísticas (em_dia, atencao, vencidas, etc.)
+ */
+export const obterEstatisticas = async () => {
+  try {
+    // Buscar todas as calibrações
+    const { data: calibracoes, error } = await supabase
+      .from('historico_calibracoes')
+      .select('status_validacao, percentual_aprovacao, proxima_calibracao')
+      .order('data_calibracao', { ascending: false })
+    
+    if (error) throw error
+    
+    const hoje = new Date().toISOString().split('T')[0]
+    const em30Dias = new Date()
+    em30Dias.setDate(em30Dias.getDate() + 30)
+    const em30DiasStr = em30Dias.toISOString().split('T')[0]
+    
+    const stats = {
+      total: calibracoes.length,
+      em_dia: 0,
+      atencao: 0,
+      vencidas: 0,
+      aprovadas: 0,
+      reprovadas: 0,
+      media_aprovacao: 0
+    }
+    
+    let somaAprovacao = 0
+    
+    calibracoes.forEach(cal => {
+      // Status de validação
+      if (cal.status_validacao === 'APROVADO') {
+        stats.aprovadas++
+      } else if (cal.status_validacao === 'REPROVADO') {
+        stats.reprovadas++
+      }
+      
+      // Status de vencimento
+      if (cal.proxima_calibracao) {
+        if (cal.proxima_calibracao < hoje) {
+          stats.vencidas++
+        } else if (cal.proxima_calibracao <= em30DiasStr) {
+          stats.atencao++
+        } else {
+          stats.em_dia++
+        }
+      }
+      
+      // Soma para média
+      if (cal.percentual_aprovacao) {
+        somaAprovacao += parseFloat(cal.percentual_aprovacao)
+      }
+    })
+    
+    // Calcular média
+    stats.media_aprovacao = stats.total > 0 
+      ? Math.round(somaAprovacao / stats.total) 
+      : 0
+    
+    console.log('📊 Estatísticas calculadas:', stats)
+    return stats
+  } catch (error) {
+    console.error('❌ Erro ao obter estatísticas:', error)
+    return {
+      total: 0,
+      em_dia: 0,
+      atencao: 0,
+      vencidas: 0,
+      aprovadas: 0,
+      reprovadas: 0,
+      media_aprovacao: 0
+    }
+  }
+}
+
 // Export default com todos os métodos
 export default {
   buscarCriterios,

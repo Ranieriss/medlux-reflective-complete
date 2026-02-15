@@ -754,17 +754,31 @@ const equipamentosFiltrados = computed(() => {
   // Filtro de busca
   if (filtros.value.busca) {
     const busca = filtros.value.busca.toLowerCase()
+    console.log('🔍 Buscando:', busca)
+    
     resultado = resultado.filter(eq => {
       const codigo = (eq.codigo || '').toLowerCase()
       const modelo = (eq.modelo || '').toLowerCase()
+      const marca = (eq.marca || '').toLowerCase()
       const numero_serie = (eq.numero_serie || '').toLowerCase()
       const fabricante = (eq.fabricante || '').toLowerCase()
+      const nome = (eq.nome || '').toLowerCase()
       
-      return codigo.includes(busca) || 
-             modelo.includes(busca) || 
+      const match = codigo.includes(busca) || 
+             modelo.includes(busca) ||
+             marca.includes(busca) ||
              numero_serie.includes(busca) ||
-             fabricante.includes(busca)
+             fabricante.includes(busca) ||
+             nome.includes(busca)
+      
+      if (match) {
+        console.log('✅ Match encontrado:', eq.codigo, '|', eq.modelo)
+      }
+      
+      return match
     })
+    
+    console.log(`📊 Resultados da busca: ${resultado.length} de ${equipamentos.value.length}`)
   }
 
   // Filtro de tipo
