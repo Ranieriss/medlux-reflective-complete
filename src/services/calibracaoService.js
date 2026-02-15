@@ -503,11 +503,64 @@ export const gerarLaudoPDF = async (calibracaoId) => {
 
 /**
  * Listar calibrações com filtros
- * @param {Object} filtros - Filtros opcionais (equipamento_id, status, data_inicio, data_fim)
+ * @param {Object} filtros - Filtros opcionais (equipamento_id, status, data_inicio, data_fim, usuario_id)
+ * @param {Object} usuario - Dados do usuário logado (opcional, para filtrar por operador)
  * @returns {Promise<Array>} Lista de calibrações
  */
-export const listarCalibracoes = async (filtros = {}) => {
+export const listarCalibracoes = async (filtros = {}, usuario = null) => {
   try {
+    // Se for operador, buscar apenas medições dos equipamentos vinculados
+    if (usuario && usuario.perfil === 'operador') {
+      // Buscar IDs dos equipamentos vinculados
+      const { data: vinculos, error: vincError } = await supabase
+        .from('vinculos')
+        .select('equipamento_id')
+        .eq('usuario_id', usuario.id)
+        .eq('ativo', true)
+      
+      if (vincError) throw vincError
+      
+      const equipamentosIds = vinculos.map(v => v.equipamento_id)
+      
+      if (equipamentosIds.length === 0) {
+        console.log('⚠️ Operador sem equipamentos vinculados')
+        return []
+      }
+      
+      // Buscar calibrações apenas desses equipamentos
+      let query = supabase
+        .from('historico_calibracoes')
+        .select(`
+          *,
+          equipamentos (
+            id,
+            codigo,
+            nome,
+            tipo
+          )
+        `)
+        .in('equipamento_id', equipamentosIds)
+        .order('data_calibracao', { ascending: false })
+      
+      // Aplicar outros filtros
+      if (filtros.status) {
+        query = query.eq('status_validacao', filtros.status)
+      }
+      if (filtros.data_inicio) {
+        query = query.gte('data_calibracao', filtros.data_inicio)
+      }
+      if (filtros.data_fim) {
+        query = query.lte('data_calibracao', filtros.data_fim)
+      }
+      
+      const { data, error } = await query
+      if (error) throw error
+      
+      console.log(`✅ ${data?.length || 0} calibrações carregadas (operador)`)
+      return data || []
+    }
+    
+    // Admin/Técnico vê todas as calibrações
     let query = supabase
       .from('historico_calibracoes')
       .select(`
@@ -583,13 +636,41 @@ export const obterCalibracao = async (calibracaoId) => {
  * Obter estatísticas de calibrações
  * @returns {Promise<Object>} Estatísticas (em_dia, atencao, vencidas, etc.)
  */
-export const obterEstatisticas = async () => {
+export const obterEstatisticas = async (usuario = null) => {
   try {
-    // Buscar todas as calibrações
-    const { data: calibracoes, error } = await supabase
+    let query = supabase
       .from('historico_calibracoes')
-      .select('status_validacao, percentual_aprovacao, proxima_calibracao')
+      .select('equipamento_id, status_validacao, percentual_aprovacao, proxima_calibracao')
       .order('data_calibracao', { ascending: false })
+    
+    // Se for operador, filtrar apenas medições dos equipamentos vinculados
+    if (usuario && usuario.perfil === 'operador') {
+      const { data: vinculos, error: vincError } = await supabase
+        .from('vinculos')
+        .select('equipamento_id')
+        .eq('usuario_id', usuario.id)
+        .eq('ativo', true)
+      
+      if (vincError) throw vincError
+      
+      const equipamentosIds = vinculos.map(v => v.equipamento_id)
+      
+      if (equipamentosIds.length === 0) {
+        return {
+          total: 0,
+          em_dia: 0,
+          atencao: 0,
+          vencidas: 0,
+          aprovadas: 0,
+          reprovadas: 0,
+          media_aprovacao: 0
+        }
+      }
+      
+      query = query.in('equipamento_id', equipamentosIds)
+    }
+    
+    const { data: calibracoes, error } = await query
     
     if (error) throw error
     

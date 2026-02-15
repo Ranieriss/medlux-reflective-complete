@@ -758,8 +758,11 @@ export default {
     const carregarMedicoes = async () => {
       loading.value = true
       try {
-        const response = await calibracaoService.listarCalibracoes(filtros.value)
+        // Passar dados do usuário para filtrar medições por operador
+        const usuario = authStore.usuario
+        const response = await calibracaoService.listarCalibracoes(filtros.value, usuario)
         medicoes.value = response
+        console.log(`✅ ${medicoes.value.length} medições carregadas para ${usuario.perfil}`)
       } catch (error) {
         mostrarNotificacao('Erro ao carregar medições: ' + error.message, 'error')
       } finally {
@@ -769,8 +772,10 @@ export default {
     
     const carregarStats = async () => {
       try {
-        const response = await calibracaoService.obterEstatisticas()
+        const usuario = authStore.usuario
+        const response = await calibracaoService.obterEstatisticas(usuario)
         stats.value = response
+        console.log('✅ Estatísticas carregadas:', response)
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error)
       }

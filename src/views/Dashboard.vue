@@ -113,7 +113,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { db } from '@/services/db'
+import { useAuthStore } from '@/stores/auth'
+import { buscarEquipamentosDoUsuario } from '@/services/equipamentoService'
+import { obterEstatisticas } from '@/services/calibracaoService'
+
+const authStore = useAuthStore()
 
 // State
 const stats = ref({
@@ -127,15 +131,19 @@ const stats = ref({
 // Carregar estatísticas
 const carregarEstatisticas = async () => {
   try {
+    const usuario = authStore.usuario
+    
+    // Buscar equipamentos do usuário (filtrado para operador)
+    const equipamentos = await buscarEquipamentosDoUsuario(usuario.id, usuario.perfil)
+    
     // Total de equipamentos
-    stats.value.totalEquipamentos = await db.equipamentos.count()
+    stats.value.totalEquipamentos = equipamentos.length
 
     // Calibrações vencidas
     const hoje = new Date().toISOString().split('T')[0]
-    const equipamentos = await db.equipamentos.toArray()
     
     stats.value.calibracoesVencidas = equipamentos.filter(
-      eq => eq.proxima_calibracao < hoje
+      eq => eq.proxima_calibracao && eq.proxima_calibracao < hoje
     ).length
 
     // Calibrações próximas (próximos 30 dias)
@@ -144,7 +152,7 @@ const carregarEstatisticas = async () => {
     const em30DiasStr = em30Dias.toISOString().split('T')[0]
     
     stats.value.calibracoesProximas = equipamentos.filter(
-      eq => eq.proxima_calibracao >= hoje && eq.proxima_calibracao <= em30DiasStr
+      eq => eq.proxima_calibracao && eq.proxima_calibracao >= hoje && eq.proxima_calibracao <= em30DiasStr
     ).length
 
     // Equipamentos em manutenção
@@ -152,8 +160,14 @@ const carregarEstatisticas = async () => {
       eq => eq.status === 'manutencao'
     ).length
 
-    // Vínculos ativos (simulado)
-    stats.value.vinculosAtivos = 0
+    // Vínculos ativos (apenas para operadores)
+    if (usuario.perfil === 'operador') {
+      stats.value.vinculosAtivos = equipamentos.length
+    } else {
+      stats.value.vinculosAtivos = 0
+    }
+    
+    console.log(`✅ Dashboard carregado - ${stats.value.totalEquipamentos} equipamentos para ${usuario.perfil}`)
 
   } catch (error) {
     console.error('Erro ao carregar estatísticas:', error)
