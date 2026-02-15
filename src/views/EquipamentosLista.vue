@@ -629,8 +629,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
-import { db, registrarAuditoria } from '@/services/db'
+import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
+import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, registrarAuditoria } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import QRCode from 'qrcode'
@@ -714,8 +714,19 @@ const rules = {
   required: v => !!v || 'Campo obrigatório',
   codigoUnico: async v => {
     if (modoEdicao.value) return true
-    const existe = await db.equipamentos.where('codigo').equals(v).first()
-    return !existe || 'Código já cadastrado'
+    
+    try {
+      const { data, error } = await supabase
+        .from('equipamentos')
+        .select('id')
+        .eq('codigo', v)
+        .single()
+      
+      return !data || 'Código já cadastrado'
+    } catch (error) {
+      // Se não encontrar (erro 406), o código está disponível
+      return true
+    }
   }
 }
 
@@ -835,9 +846,18 @@ const getTextoStatus = (status) => {
 const carregarEquipamentos = async () => {
   carregando.value = true
   try {
-    equipamentos.value = await db.equipamentos.toArray()
+    console.log('🔄 Carregando equipamentos do Supabase...')
+    const resultado = await getEquipamentos()
+    
+    if (resultado.success) {
+      equipamentos.value = resultado.data
+      console.log(`✅ ${resultado.data.length} equipamentos carregados`)
+    } else {
+      console.error('❌ Erro ao carregar equipamentos:', resultado.error)
+      mostrarSnackbar('Erro ao carregar equipamentos', 'error')
+    }
   } catch (error) {
-    console.error('Erro ao carregar equipamentos:', error)
+    console.error('❌ Erro ao carregar equipamentos:', error)
     mostrarSnackbar('Erro ao carregar equipamentos', 'error')
   } finally {
     carregando.value = false
@@ -894,45 +914,52 @@ const salvarEquipamento = async () => {
   salvando.value = true
 
   try {
+    // Preparar dados do equipamento
+    const equipamentoData = {
+      codigo: equipamentoForm.value.codigo,
+      nome: `${equipamentoForm.value.marca || ''} ${equipamentoForm.value.modelo || ''}`.trim() || 'Equipamento',
+      tipo: equipamentoForm.value.tipo?.toLowerCase() || 'horizontal',
+      status: equipamentoForm.value.status || 'ativo',
+      fabricante: equipamentoForm.value.marca,
+      modelo: equipamentoForm.value.modelo,
+      numero_serie: equipamentoForm.value.numero_serie,
+      localizacao: equipamentoForm.value.localizacao,
+      data_aquisicao: equipamentoForm.value.data_aquisicao || null,
+      data_ultima_calibracao: equipamentoForm.value.ultima_calibracao || null,
+      proxima_calibracao: equipamentoForm.value.proxima_calibracao || null,
+      observacoes: equipamentoForm.value.observacoes || '',
+      foto_url: equipamentoForm.value.foto || null
+    }
+
+    let resultado
+
     if (modoEdicao.value) {
       // Atualizar equipamento existente
-      await db.equipamentos.update(equipamentoForm.value.id, {
-        ...equipamentoForm.value
-      })
+      console.log('🔄 Atualizando equipamento:', equipamentoData.codigo)
+      resultado = await updateEquipamento(equipamentoForm.value.id, equipamentoData)
 
-      // Registrar auditoria
-      await registrarAuditoria(
-        authStore.usuario.id,
-        'update',
-        'equipamentos',
-        equipamentoForm.value.id,
-        { equipamento: equipamentoForm.value }
-      )
-
-      mostrarSnackbar('Equipamento atualizado com sucesso!', 'success')
+      if (resultado.success) {
+        mostrarSnackbar('Equipamento atualizado com sucesso!', 'success')
+      } else {
+        throw new Error(resultado.error)
+      }
     } else {
       // Criar novo equipamento
-      const id = await db.equipamentos.add({
-        ...equipamentoForm.value
-      })
+      console.log('➕ Criando novo equipamento:', equipamentoData.codigo)
+      resultado = await createEquipamento(equipamentoData)
 
-      // Registrar auditoria
-      await registrarAuditoria(
-        authStore.usuario.id,
-        'create',
-        'equipamentos',
-        id,
-        { equipamento: equipamentoForm.value }
-      )
-
-      mostrarSnackbar('Equipamento cadastrado com sucesso!', 'success')
+      if (resultado.success) {
+        mostrarSnackbar('Equipamento cadastrado com sucesso!', 'success')
+      } else {
+        throw new Error(resultado.error)
+      }
     }
 
     await carregarEquipamentos()
     fecharDialog()
   } catch (error) {
-    console.error('Erro ao salvar equipamento:', error)
-    mostrarSnackbar('Erro ao salvar equipamento', 'error')
+    console.error('❌ Erro ao salvar equipamento:', error)
+    mostrarSnackbar(`Erro ao salvar equipamento: ${error.message}`, 'error')
   } finally {
     salvando.value = false
   }
@@ -949,23 +976,24 @@ const excluirEquipamento = async () => {
   excluindo.value = true
 
   try {
-    await db.equipamentos.delete(equipamentoParaExcluir.value.id)
+    console.log('🗑️ Excluindo equipamento:', equipamentoParaExcluir.value.codigo)
+    const resultado = await deleteEquipamento(equipamentoParaExcluir.value.id)
 
-    // Registrar auditoria
-    await registrarAuditoria(
-      authStore.usuario.id,
-      'delete',
-      'equipamentos',
-      equipamentoParaExcluir.value.id,
-      { equipamento: equipamentoParaExcluir.value }
-    )
-
-    mostrarSnackbar('Equipamento excluído com sucesso!', 'success')
-    await carregarEquipamentos()
-    dialogExclusao.value = false
-    equipamentoParaExcluir.value = null
+    if (resultado.success) {
+      mostrarSnackbar('Equipamento excluído com sucesso!', 'success')
+      await carregarEquipamentos()
+      dialogExclusao.value = false
+      equipamentoParaExcluir.value = null
+    } else {
+      throw new Error(resultado.error)
+    }
   } catch (error) {
-    console.error('Erro ao excluir equipamento:', error)
+    console.error('❌ Erro ao excluir equipamento:', error)
+    mostrarSnackbar(`Erro ao excluir equipamento: ${error.message}`, 'error')
+  } finally {
+    excluindo.value = false
+  }
+}
     mostrarSnackbar('Erro ao excluir equipamento', 'error')
   } finally {
     excluindo.value = false
@@ -1014,8 +1042,36 @@ const mostrarSnackbar = (message, color = 'success') => {
 }
 
 // Lifecycle
-onMounted(() => {
-  carregarEquipamentos()
+let unsubscribe = null
+
+onMounted(async () => {
+  await carregarEquipamentos()
+  
+  // Inscrever-se para mudanças em tempo real
+  console.log('🔔 Ativando sincronização em tempo real...')
+  unsubscribe = subscribeToEquipamentos((payload) => {
+    console.log('🔔 Mudança detectada:', payload.eventType)
+    
+    // Recarregar equipamentos quando houver mudanças
+    if (payload.eventType === 'INSERT') {
+      console.log('➕ Novo equipamento adicionado')
+      carregarEquipamentos()
+    } else if (payload.eventType === 'UPDATE') {
+      console.log('🔄 Equipamento atualizado')
+      carregarEquipamentos()
+    } else if (payload.eventType === 'DELETE') {
+      console.log('🗑️ Equipamento excluído')
+      carregarEquipamentos()
+    }
+  })
+})
+
+onUnmounted(() => {
+  // Cancelar inscrição ao sair da página
+  if (unsubscribe) {
+    console.log('🔕 Desativando sincronização em tempo real')
+    unsubscribe()
+  }
 })
 </script>
 
