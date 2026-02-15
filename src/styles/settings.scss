@@ -1,0 +1,70 @@
+// MEDLUX Reflective - Vuetify Settings SCSS
+// Arquivo de configuração de tema e variáveis Vuetify
+
+@use 'vuetify' with (
+  // Cores do tema Dark (conforme design system do projeto)
+  $color-pack: (
+    'primary': #00ffff,      // Ciano neon
+    'secondary': #9d00ff,    // Roxo neon
+    'accent': #ff00ff,       // Magenta
+    'error': #ff0040,        // Vermelho neon
+    'warning': #ffaa00,      // Laranja
+    'info': #00d4ff,         // Azul claro
+    'success': #00ff88,      // Verde neon
+    'background': #0a0e27,   // Azul escuro profundo
+    'surface': #151933       // Azul escuro surface
+  ),
+  
+  // Typography
+  $body-font-family: 'Inter, Roboto, sans-serif',
+  $heading-font-family: 'Inter, Roboto, sans-serif',
+  
+  // Border radius
+  $border-radius-root: 12px,
+  
+  // Elevations
+  $elevation-levels: 24
+);
+
+// Variáveis customizadas do MEDLUX
+$medlux-neon-cyan: #00ffff;
+$medlux-neon-purple: #9d00ff;
+$medlux-neon-magenta: #ff00ff;
+$medlux-neon-red: #ff0040;
+$medlux-neon-green: #00ff88;
+$medlux-background-dark: #0a0e27;
+$medlux-surface-dark: #151933;
+$medlux-glassmorphism-bg: rgba(21, 25, 51, 0.7);
+$medlux-glassmorphism-border: rgba(0, 255, 255, 0.2);
+
+// Mixins para glassmorphism
+@mixin glassmorphism {
+  background: $medlux-glassmorphism-bg;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid $medlux-glassmorphism-border;
+  box-shadow: 0 8px 32px 0 rgba(0, 255, 255, 0.1);
+}
+
+@mixin neon-glow($color: $medlux-neon-cyan, $intensity: 0.6) {
+  box-shadow: 0 0 10px rgba($color, $intensity),
+              0 0 20px rgba($color, $intensity * 0.7),
+              0 0 30px rgba($color, $intensity * 0.5);
+}
+
+@mixin neon-text($color: $medlux-neon-cyan) {
+  text-shadow: 0 0 10px rgba($color, 0.8),
+               0 0 20px rgba($color, 0.6),
+               0 0 30px rgba($color, 0.4);
+}
+
+// Exportar variáveis para uso no Vue
+:export {
+  neonCyan: $medlux-neon-cyan;
+  neonPurple: $medlux-neon-purple;
+  neonMagenta: $medlux-neon-magenta;
+  neonRed: $medlux-neon-red;
+  neonGreen: $medlux-neon-green;
+  backgroundDark: $medlux-background-dark;
+  surfaceDark: $medlux-surface-dark;
+}

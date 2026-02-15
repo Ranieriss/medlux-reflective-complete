@@ -8,21 +8,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.21",
-    "vuetify": "^3.5.10",
-    "vue-router": "^4.2.5",
-    "pinia": "^2.1.7",
-    "dexie": "^3.2.7",
-    "date-fns": "^3.3.1",
+    "@mdi/font": "^7.4.47",
     "chart.js": "^4.4.1",
-    "vue-chartjs": "^5.3.0",
+    "date-fns": "^3.3.1",
+    "dexie": "^3.2.7",
+    "pinia": "^2.1.7",
     "qrcode": "^1.5.3",
-    "@mdi/font": "^7.4.47"
+    "vue": "^3.4.21",
+    "vue-chartjs": "^5.3.0",
+    "vue-router": "^4.2.5",
+    "vuetify": "^3.5.10"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
+    "sass": "^1.97.3",
     "vite": "^5.4.21",
-    "vite-plugin-vuetify": "^2.0.1",
-    "sass": "^1.70.0"
+    "vite-plugin-vuetify": "^2.0.1"
   }
 }
