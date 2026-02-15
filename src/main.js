@@ -26,14 +26,15 @@ const vuetify = createVuetify({
       dark: {
         dark: true,
         colors: {
-          primary: '#0074D9',
+          primary: '#60A5FA',      // Azul claro para melhor contraste
           secondary: '#001F3F',
-          accent: '#39CCCC',
-          success: '#2ECC40',
-          warning: '#FFDC00',
-          error: '#FF4136',
+          accent: '#7DD3FC',       // Cyan mais claro
+          success: '#4ADE80',      // Verde mais claro
+          warning: '#FCD34D',      // Amarelo mais claro
+          error: '#F87171',        // Vermelho mais claro
           background: '#0a0e27',
           surface: '#111827',
+          info: '#38BDF8',         // Azul info claro
         }
       }
     }

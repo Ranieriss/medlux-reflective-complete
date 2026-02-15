@@ -122,3 +122,58 @@ body {
     font-size: 12px;
   }
 }
+
+/* ========================================
+   MELHORIAS DE CONTRASTE
+   ======================================== */
+
+/* Textos primários em fundos escuros */
+.text-primary,
+.v-icon.text-primary {
+  color: #60A5FA !important; /* Azul claro */
+}
+
+/* Títulos e headers */
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  color: #F3F4F6 !important; /* Branco suave */
+}
+
+/* Textos secundários */
+.text-secondary,
+.text-medium-emphasis {
+  color: #9CA3AF !important; /* Cinza médio */
+}
+
+/* Links e textos interativos */
+a, .v-btn--variant-text {
+  color: #7DD3FC !important;
+}
+
+a:hover, .v-btn--variant-text:hover {
+  color: #38BDF8 !important;
+}
+
+/* Ícones em cards e listas */
+.v-list-item__prepend .v-icon,
+.v-card .v-icon {
+  opacity: 0.9;
+}
+
+/* Badges e chips */
+.v-chip {
+  font-weight: 500;
+}
+
+/* Melhorar legibilidade de labels */
+.v-label,
+.v-field-label {
+  color: #D1D5DB !important;
+}
+
+/* Placeholder de inputs */
+.v-field--variant-outlined input::placeholder,
+.v-field--variant-outlined textarea::placeholder {
+  color: #6B7280 !important;
+  opacity: 1;
+}
