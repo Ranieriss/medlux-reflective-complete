@@ -9,6 +9,12 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/redefinir-senha',
+    name: 'RedefinirSenha',
+    component: () => import('@/views/RedefinirSenha.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/',
     component: () => import('@/views/Layout.vue'),
     meta: { requiresAuth: true },

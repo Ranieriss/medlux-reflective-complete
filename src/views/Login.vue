@@ -172,6 +172,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { resetPassword } from '@/services/supabase'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -244,21 +245,21 @@ const enviarRecuperacao = async () => {
   mensagemRecuperacao.value = ''
 
   try {
-    // Simular envio de email de recuperação
-    // Em produção, você deve chamar uma API real do Supabase ou seu backend
-    // Ex: await authStore.resetPassword(emailRecuperacao.value)
+    // Chamar função real do Supabase
+    const resultado = await resetPassword(emailRecuperacao.value)
     
-    // Simulação de delay (remover em produção)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Sucesso
-    mensagemRecuperacao.value = `Um link de recuperação foi enviado para ${emailRecuperacao.value}. Verifique sua caixa de entrada e spam.`
-    tipoMensagemRecuperacao.value = 'success'
-    
-    // Fechar dialog após 3 segundos
-    setTimeout(() => {
-      dialogRecuperacao.value = false
-    }, 3000)
+    if (resultado.success) {
+      mensagemRecuperacao.value = `Um link de recuperação foi enviado para ${emailRecuperacao.value}. Verifique sua caixa de entrada e spam.`
+      tipoMensagemRecuperacao.value = 'success'
+      
+      // Fechar dialog após 4 segundos
+      setTimeout(() => {
+        dialogRecuperacao.value = false
+      }, 4000)
+    } else {
+      mensagemRecuperacao.value = resultado.error || 'Erro ao enviar e-mail de recuperação. Verifique se o e-mail está cadastrado.'
+      tipoMensagemRecuperacao.value = 'error'
+    }
     
   } catch (error) {
     console.error('Erro ao enviar recuperação:', error)

@@ -116,6 +116,44 @@ export async function signUp(email, password, nome, perfil = 'tecnico') {
   }
 }
 
+/**
+ * Enviar email de recuperação de senha
+ */
+export async function resetPassword(email) {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`
+    })
+
+    if (error) throw error
+
+    console.log('✅ Email de recuperação enviado para:', email)
+    return { success: true, message: 'Email de recuperação enviado com sucesso!' }
+  } catch (error) {
+    console.error('❌ Erro ao enviar email de recuperação:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Atualizar senha do usuário
+ */
+export async function updatePassword(newPassword) {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+
+    if (error) throw error
+
+    console.log('✅ Senha atualizada com sucesso')
+    return { success: true, message: 'Senha atualizada com sucesso!' }
+  } catch (error) {
+    console.error('❌ Erro ao atualizar senha:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
 // ============================================
 // EQUIPAMENTOS
 // ============================================
