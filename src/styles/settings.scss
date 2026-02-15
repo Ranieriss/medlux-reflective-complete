@@ -1,30 +1,6 @@
-// MEDLUX Reflective - Vuetify Settings SCSS
-// Arquivo de configuração de tema e variáveis Vuetify
-
-@use 'vuetify' with (
-  // Cores do tema Dark (conforme design system do projeto)
-  $color-pack: (
-    'primary': #00ffff,      // Ciano neon
-    'secondary': #9d00ff,    // Roxo neon
-    'accent': #ff00ff,       // Magenta
-    'error': #ff0040,        // Vermelho neon
-    'warning': #ffaa00,      // Laranja
-    'info': #00d4ff,         // Azul claro
-    'success': #00ff88,      // Verde neon
-    'background': #0a0e27,   // Azul escuro profundo
-    'surface': #151933       // Azul escuro surface
-  ),
-  
-  // Typography
-  $body-font-family: 'Inter, Roboto, sans-serif',
-  $heading-font-family: 'Inter, Roboto, sans-serif',
-  
-  // Border radius
-  $border-radius-root: 12px,
-  
-  // Elevations
-  $elevation-levels: 24
-);
+// MEDLUX Reflective - SCSS Settings
+// Arquivo de variáveis customizadas para o projeto
+// As cores do tema Vuetify são definidas em src/plugins/vuetify.js
 
 // Variáveis customizadas do MEDLUX
 $medlux-neon-cyan: #00ffff;
