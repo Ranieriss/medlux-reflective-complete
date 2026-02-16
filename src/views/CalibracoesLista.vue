@@ -662,7 +662,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import calibracaoService from '@/services/calibracaoService'
 import { buscarEquipamentosDoUsuario, detectarTipoEquipamento } from '@/services/equipamentoService'
@@ -837,12 +837,21 @@ export default {
         
         if (!usuario) {
           console.log('🔄 Usuário não encontrado, restaurando sessão...')
-          await authStore.restaurarSessao()
+          const restaurado = await authStore.restaurarSessao()
+          
+          if (!restaurado) {
+            console.error('❌ Não foi possível restaurar a sessão')
+            mostrarNotificacao('Sessão expirada. Por favor, faça login novamente.', 'error')
+            loadingEquipamentos.value = false
+            return
+          }
+          
+          // Aguardar próximo tick para garantir que o ref foi atualizado
+          await nextTick()
           usuario = authStore.usuario.value
           
           if (!usuario) {
-            console.error('❌ Não foi possível restaurar a sessão')
-            mostrarNotificacao('Sessão expirada. Por favor, faça login novamente.', 'error')
+            console.error('❌ Usuario ainda undefined após restaurarSessao')
             loadingEquipamentos.value = false
             return
           }
