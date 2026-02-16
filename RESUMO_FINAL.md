@@ -149,7 +149,7 @@ Adicione estas variáveis no painel da plataforma de deploy escolhida:
 
 ```bash
 VITE_SUPABASE_URL=https://earrnuuvdzawclxsyoxk.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcnJudXV2ZHphd2NseHN5b3hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExMDk3MTQsImV4cCI6MjA4NjY4NTcxNH0.tKLBk3b4CZyT8nhMi610mmwpgMGBJlJAgC9vej_VuQg
+VITE_SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY>
 ```
 
 ⚠️ **IMPORTANTE**: Nunca compartilhe essas credenciais publicamente.

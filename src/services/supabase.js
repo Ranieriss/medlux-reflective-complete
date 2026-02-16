@@ -2,29 +2,46 @@
 // Serviço central para comunicação com o Supabase (PostgreSQL + Realtime)
 
 import { createClient } from '@supabase/supabase-js'
+import {
+  hasSupabaseEnv,
+  missingSupabaseEnvVars,
+  supabaseAnonKey,
+  supabaseEnvErrorMessage,
+  supabaseUrl
+} from '@/config/env'
 
-// Configuração do cliente Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!hasSupabaseEnv) {
   console.error('⚠️ ERRO: Variáveis de ambiente do Supabase não configuradas!')
-  console.error('Verifique se o arquivo .env.local existe e está correto.')
+  console.error(supabaseEnvErrorMessage)
+}
+
+const buildMissingEnvProxy = () => {
+  const error = new Error(supabaseEnvErrorMessage)
+
+  return new Proxy({}, {
+    get() {
+      throw error
+    }
+  })
 }
 
 // Criar cliente Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  }
-})
+export const supabase = hasSupabaseEnv
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10
+        }
+      }
+    })
+  : buildMissingEnvProxy()
+
+export { hasSupabaseEnv, missingSupabaseEnvVars, supabaseEnvErrorMessage }
 
 // ============================================
 // AUTENTICAÇÃO

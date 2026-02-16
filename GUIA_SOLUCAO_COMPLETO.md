@@ -225,7 +225,7 @@ USING (true);
 const { createClient } = supabase
 const sb = createClient(
   'https://earrnuuvdzawclxsyoxk.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcnJudXV2ZHphd2NseHN5b3hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExMDk3MTQsImV4cCI6MjA4NjY4NTcxNH0.tKLBk3b4CZyT8nhMi610mmwpgMGBJlJAgC9vej_VuQg'
+  '<SUPABASE_ANON_KEY>'
 )
 
 // 2. Contar equipamentos

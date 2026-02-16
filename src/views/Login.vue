@@ -18,6 +18,15 @@
             </p>
           </div>
 
+          <v-alert
+            v-if="!hasSupabaseEnv"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ supabaseEnvErrorMessage }}
+          </v-alert>
+
           <!-- Formulário de Login -->
           <v-form ref="formRef" @submit.prevent="handleLogin">
             <v-text-field
@@ -53,7 +62,7 @@
               color="primary"
               size="large"
               :loading="carregando"
-              :disabled="carregando"
+              :disabled="carregando || !hasSupabaseEnv"
               block
               class="mb-4 glow-primary"
             >
@@ -172,7 +181,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { resetPassword } from '@/services/supabase'
+import { hasSupabaseEnv, resetPassword, supabaseEnvErrorMessage } from '@/services/supabase'
 
 const router = useRouter()
 const authStore = useAuthStore()

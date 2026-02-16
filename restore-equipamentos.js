@@ -3,7 +3,7 @@ import fs from 'fs'
 
 // Configuração Supabase
 const supabaseUrl = 'https://peyupuoxgjzivqvadqgs.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBleXVwdW94Z2p6aXZxdmFkcWdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk2NTE0NTQsImV4cCI6MjA1NTIyNzQ1NH0.y_lWz2MiJXk0YjZ_FFVrjJA61Aq1C1bTXJJQIe7HBj8'
+const supabaseKey = '<SUPABASE_ANON_KEY>'
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
