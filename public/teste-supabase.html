@@ -5,249 +5,374 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teste Supabase - MEDLUX</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
         h1 {
             color: #4CAF50;
+            margin-bottom: 10px;
+            font-size: 24px;
         }
         .section {
-            background: #2a2a2a;
+            background: rgba(42, 42, 42, 0.8);
             padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
+            margin: 15px 0;
+            border-radius: 12px;
             border-left: 4px solid #4CAF50;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        h2 {
+            color: #4CAF50;
+            font-size: 18px;
+            margin-bottom: 15px;
         }
         button {
-            background: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 4px;
+            padding: 14px 20px;
+            font-size: 15px;
+            border-radius: 8px;
             cursor: pointer;
             margin: 5px;
+            transition: all 0.3s;
+            width: 100%;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
         }
         button:hover {
-            background: #45a049;
+            background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
         }
         button:disabled {
             background: #666;
             cursor: not-allowed;
+            transform: none;
         }
         #result {
             white-space: pre-wrap;
             background: #1a1a1a;
             padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
             border: 1px solid #444;
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
         }
-        .success { color: #4CAF50; }
-        .error { color: #f44336; }
-        .warning { color: #ff9800; }
+        .success { color: #4CAF50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        .warning { color: #ff9800; font-weight: bold; }
         .info { color: #2196F3; }
+        .highlight {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        .status.pending {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+        }
+        p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        strong {
+            color: #4CAF50;
+        }
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        @media (min-width: 600px) {
+            .btn-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .loader {
+            border: 3px solid #444;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <h1>🔍 Teste de Conexão Supabase - MEDLUX Reflective</h1>
-    
-    <div class="section">
-        <h2>Informações do Projeto</h2>
-        <p><strong>Projeto correto:</strong> earrnuuvdzawclxsyoxk</p>
-        <p><strong>Status:</strong> <span id="status">Aguardando teste...</span></p>
-    </div>
-
-    <div class="section">
-        <h2>Testes Disponíveis</h2>
-        <button onclick="testarConexao()">1. Testar Conexão</button>
-        <button onclick="contarEquipamentos()">2. Contar Equipamentos</button>
-        <button onclick="listarEquipamentos()">3. Listar Todos os Equipamentos</button>
-        <button onclick="testarQueryAdmin()">4. Testar Query Admin (como no app)</button>
-        <button onclick="limparResultado()">Limpar</button>
-    </div>
-
-    <div class="section">
-        <h2>Resultado:</h2>
-        <div id="result">Clique em um botão acima para executar o teste...</div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Configuração Supabase (projeto CORRETO)
-        const SUPABASE_URL = 'https://earrnuuvdzawclxsyoxk.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcnJudXV2ZHphd2NseHN5b3hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExMDk3MTQsImV4cCI6MjA4NjY4NTcxNH0.tKLBk3b4CZyT8nhMi610mmwpgMGBJlJAgC9vej_VuQg'
+    <div class="container">
+        <h1>🔍 Teste de Conexão Supabase</h1>
+        <p style="color: #999; margin-bottom: 20px;">MEDLUX Reflective - Diagnóstico de Equipamentos</p>
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        <div class="section">
+            <h2>📊 Informações do Projeto</h2>
+            <p><strong>Projeto ID:</strong> <span class="highlight">earrnuuvdzawclxsyoxk</span></p>
+            <p><strong>Status:</strong> <span id="status" class="status pending">Aguardando teste...</span></p>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Testes Disponíveis</h2>
+            <div class="btn-group">
+                <button onclick="testarConexao()">🔌 Testar Conexão</button>
+                <button onclick="contarEquipamentos()">📊 Contar Equipamentos</button>
+                <button onclick="listarEquipamentos()">📋 Listar Todos</button>
+                <button onclick="testarQueryAdmin()">👤 Query Admin</button>
+            </div>
+            <button onclick="limparResultado()" style="background: #666; margin-top: 10px;">🗑️ Limpar</button>
+        </div>
+
+        <div class="section">
+            <h2>📝 Resultado:</h2>
+            <div id="result">Clique em um botão acima para executar o teste...</div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://earrnuuvdzawclxsyoxk.supabase.co'
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcnJudXV2ZHphd2NseHN5b3hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExMDk3MTQsImV4cCI6MjA4NjY4NTcxNH0.tKLBk3b4CZyT8nhMi610mmwpgMGBJlJAgC9vej_VuQg'
         
         const resultDiv = document.getElementById('result')
         const statusSpan = document.getElementById('status')
         
         function log(message, type = 'info') {
-            const className = type
             const timestamp = new Date().toLocaleTimeString('pt-BR')
-            resultDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`
+            const icon = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            }[type] || 'ℹ️'
+            
+            resultDiv.innerHTML += `<span class="${type}">${icon} [${timestamp}] ${message}</span>\n`
             resultDiv.scrollTop = resultDiv.scrollHeight
         }
         
         function limparResultado() {
-            resultDiv.innerHTML = 'Resultado limpo. Pronto para novos testes...\n'
+            resultDiv.innerHTML = '🧹 Resultado limpo. Pronto para novos testes...\n'
+        }
+        
+        function updateStatus(text, type) {
+            statusSpan.textContent = text
+            statusSpan.className = `status ${type}`
         }
         
         async function testarConexao() {
             limparResultado()
-            log('🔄 Testando conexão com Supabase...', 'info')
+            log('Testando conexão com Supabase...', 'info')
+            updateStatus('Testando...', 'pending')
             
             try {
-                const { data, error } = await supabase
-                    .from('equipamentos')
-                    .select('count')
-                    .limit(1)
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/equipamentos?select=count&limit=1`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    }
+                )
                 
-                if (error) {
-                    log('❌ Erro de conexão: ' + error.message, 'error')
-                    statusSpan.textContent = '❌ Falha na conexão'
-                    statusSpan.className = 'error'
-                    return
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
                 }
                 
-                log('✅ Conexão estabelecida com sucesso!', 'success')
-                statusSpan.textContent = '✅ Conectado'
-                statusSpan.className = 'success'
+                log('Conexão estabelecida com sucesso!', 'success')
+                log(`URL: ${SUPABASE_URL}`, 'info')
+                log(`Status HTTP: ${response.status} OK`, 'success')
+                updateStatus('✅ Conectado', 'success')
+                
             } catch (error) {
-                log('❌ Erro fatal: ' + error.message, 'error')
-                statusSpan.textContent = '❌ Erro fatal'
-                statusSpan.className = 'error'
+                log(`Erro de conexão: ${error.message}`, 'error')
+                updateStatus('❌ Erro', 'error')
             }
         }
         
         async function contarEquipamentos() {
-            log('\n🔢 Contando equipamentos na tabela...', 'info')
+            log('\n📊 Contando equipamentos...', 'info')
+            updateStatus('Contando...', 'pending')
             
             try {
-                const { count, error } = await supabase
-                    .from('equipamentos')
-                    .select('*', { count: 'exact', head: true })
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/equipamentos?select=*`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Prefer': 'count=exact'
+                        }
+                    }
+                )
                 
-                if (error) {
-                    log('❌ Erro ao contar: ' + error.message, 'error')
-                    return
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`)
                 }
                 
-                log(`📊 Total de equipamentos: ${count}`, count > 0 ? 'success' : 'warning')
+                const data = await response.json()
+                const count = data.length
+                
+                log(`Total de equipamentos: ${count}`, count > 0 ? 'success' : 'warning')
                 
                 if (count === 0) {
-                    log('⚠️ ATENÇÃO: Tabela equipamentos está VAZIA!', 'warning')
-                    log('   Execute o SQL de inserção dos 22 equipamentos.', 'warning')
+                    log('ATENÇÃO: Tabela está VAZIA!', 'warning')
+                    log('Você precisa executar o SQL de inserção.', 'warning')
+                    updateStatus('⚠️ Vazio', 'error')
                 } else if (count === 22) {
-                    log('✅ PERFEITO! Todos os 22 equipamentos estão no banco!', 'success')
+                    log('PERFEITO! Todos os 22 equipamentos estão no banco!', 'success')
+                    updateStatus('✅ 22 equipamentos', 'success')
                 } else {
-                    log(`⚠️ ATENÇÃO: Esperado 22, mas há ${count} equipamentos!`, 'warning')
+                    log(`Esperado 22, encontrado ${count}`, 'warning')
+                    updateStatus(`⚠️ ${count} equipamentos`, 'pending')
                 }
+                
             } catch (error) {
-                log('❌ Erro: ' + error.message, 'error')
+                log(`Erro: ${error.message}`, 'error')
+                updateStatus('❌ Erro', 'error')
             }
         }
         
         async function listarEquipamentos() {
-            log('\n📋 Listando todos os equipamentos...', 'info')
+            log('\n📋 Listando equipamentos...', 'info')
             
             try {
-                const { data, error } = await supabase
-                    .from('equipamentos')
-                    .select('*')
-                    .order('codigo', { ascending: true })
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/equipamentos?select=*&order=codigo.asc`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    }
+                )
                 
-                if (error) {
-                    log('❌ Erro na query: ' + error.message, 'error')
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`)
+                }
+                
+                const data = await response.json()
+                
+                if (data.length === 0) {
+                    log('Nenhum equipamento encontrado!', 'warning')
+                    log('Execute o SQL de inserção dos 22 equipamentos.', 'warning')
                     return
                 }
                 
-                if (!data || data.length === 0) {
-                    log('⚠️ Nenhum equipamento encontrado!', 'warning')
-                    log('   A tabela está vazia. Execute o SQL de inserção.', 'warning')
-                    return
-                }
-                
-                log(`✅ ${data.length} equipamentos encontrados:\n`, 'success')
+                log(`${data.length} equipamentos encontrados:\n`, 'success')
                 
                 // Agrupar por tipo
-                const porTipo = data.reduce((acc, eq) => {
-                    acc[eq.tipo] = (acc[eq.tipo] || 0) + 1
-                    return acc
-                }, {})
+                const porTipo = {}
+                data.forEach(eq => {
+                    porTipo[eq.tipo] = (porTipo[eq.tipo] || 0) + 1
+                })
                 
                 log('📊 Distribuição por tipo:', 'info')
                 Object.entries(porTipo).forEach(([tipo, count]) => {
-                    log(`   - ${tipo}: ${count}`, 'info')
+                    log(`   • ${tipo}: ${count}`, 'info')
                 })
                 
-                log('\n📋 Lista completa:', 'info')
+                log('\n📝 Lista completa:', 'info')
                 data.forEach(eq => {
-                    log(`   ${eq.codigo} - ${eq.nome} (${eq.tipo}) - Status: ${eq.status}`, 'info')
+                    const statusIcon = eq.status === 'ativo' ? '🟢' : '🔴'
+                    log(`   ${statusIcon} ${eq.codigo} - ${eq.nome} (${eq.tipo})`, 'info')
                 })
                 
             } catch (error) {
-                log('❌ Erro: ' + error.message, 'error')
+                log(`Erro: ${error.message}`, 'error')
             }
         }
         
         async function testarQueryAdmin() {
-            log('\n🔍 Testando query EXATA do componente (Admin)...', 'info')
+            log('\n🔍 Testando query ADMIN (idêntica ao app)...', 'info')
             
             try {
-                // Query exata do equipamentoService.js linha 95-98
-                const { data, error } = await supabase
-                    .from('equipamentos')
-                    .select('*')
-                    .order('codigo', { ascending: true })
+                // Query EXATA do equipamentoService.js
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/equipamentos?select=*&order=codigo.asc`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    }
+                )
                 
-                if (error) {
-                    log('❌ Erro na query: ' + error.message, 'error')
-                    log('   Possível problema de RLS (Row Level Security)', 'warning')
-                    return
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
                 }
                 
-                log(`📦 Query retornou: ${data?.length || 0} equipamentos`, data?.length > 0 ? 'success' : 'error')
+                const data = await response.json()
+                const count = data.length
                 
-                if (data && data.length > 0) {
-                    log('✅ SUCESSO! A query funciona corretamente!', 'success')
-                    log('\n⚠️ SE O APP AINDA MOSTRA ERRO, O PROBLEMA É:', 'warning')
-                    log('   1. Cache do navegador (Ctrl+F5 para limpar)', 'warning')
-                    log('   2. Deploy do Vercel não sincronizado (aguardar 2-3 min)', 'warning')
-                    log('   3. Código antigo ainda em cache', 'warning')
-                    log('\n💡 SOLUÇÃO:', 'info')
-                    log('   - Abra o app em modo anônimo (Ctrl+Shift+N)', 'info')
-                    log('   - Ou limpe todo o cache do navegador', 'info')
-                    log('   - Ou aguarde alguns minutos para o Vercel atualizar', 'info')
+                log(`Query retornou: ${count} equipamentos`, count > 0 ? 'success' : 'error')
+                
+                if (count > 0) {
+                    log('SUCESSO! A query funciona!', 'success')
+                    log('\n⚠️ SE O APP AINDA MOSTRA ERRO:', 'warning')
+                    log('   1. Limpe o cache (Ctrl+Shift+Delete)', 'warning')
+                    log('   2. Abra em modo anônimo (Ctrl+Shift+N)', 'warning')
+                    log('   3. Aguarde 2-3 min para Vercel atualizar', 'warning')
                     
-                    log('\n📋 Primeiros 5 equipamentos retornados:', 'info')
+                    log('\n📋 Primeiros 5 equipamentos:', 'info')
                     data.slice(0, 5).forEach(eq => {
-                        log(`   ${eq.codigo} - ${eq.nome}`, 'info')
+                        log(`   • ${eq.codigo} - ${eq.nome}`, 'info')
                     })
                 } else {
-                    log('❌ Query retornou VAZIA mesmo com dados no banco!', 'error')
-                    log('   Isso indica problema de RLS (Row Level Security)', 'error')
-                    log('\n💡 SOLUÇÃO:', 'info')
-                    log('   No Supabase Dashboard → Authentication → Policies', 'info')
-                    log('   Adicionar política para permitir SELECT público na tabela equipamentos', 'info')
+                    log('Query retornou VAZIA!', 'error')
+                    log('Execute o SQL de inserção:', 'error')
+                    log('https://supabase.com/dashboard/project/earrnuuvdzawclxsyoxk/sql/new', 'info')
                 }
                 
             } catch (error) {
-                log('❌ Erro: ' + error.message, 'error')
+                log(`Erro: ${error.message}`, 'error')
+                log('Possível problema de RLS (Row Level Security)', 'warning')
             }
         }
         
-        // Testar conexão automaticamente ao carregar
+        // Auto-testar ao carregar
         window.addEventListener('load', () => {
-            setTimeout(testarConexao, 500)
+            log('🚀 Página carregada. Clique em um botão para testar.', 'info')
+            setTimeout(testarConexao, 1000)
         })
     </script>
 </body>
