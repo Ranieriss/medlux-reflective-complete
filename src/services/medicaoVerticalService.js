@@ -6,7 +6,7 @@
  * em placas de sinalização viária
  */
 
-import supabase from './supabase'
+import { supabase } from './supabase'
 
 /**
  * Criar nova placa vertical

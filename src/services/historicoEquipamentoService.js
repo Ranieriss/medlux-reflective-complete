@@ -1,4 +1,4 @@
-import supabase from './supabase'
+import { supabase } from './supabase'
 
 /**
  * Service para gerenciar histórico de equipamentos

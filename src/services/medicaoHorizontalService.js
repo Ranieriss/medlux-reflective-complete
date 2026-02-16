@@ -6,7 +6,7 @@
  * em marcações viárias (sinalizações de piso)
  */
 
-import supabase from './supabase'
+import { supabase } from './supabase'
 
 /**
  * Criar novo trecho de medição
