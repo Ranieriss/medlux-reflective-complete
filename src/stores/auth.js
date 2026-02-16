@@ -15,6 +15,14 @@ function mapLoginError(error) {
     return supabaseEnvErrorMessage
   }
 
+  if (error?.status === 401 || error?.status === 403) {
+    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
+  }
+
+  if (error?.code === 'PGRST116' || message.includes('cannot coerce the result to a single json object')) {
+    return 'Configuração de usuário inconsistente (mais de um registro ou nenhum).'
+  }
+
   if (
     message.includes('invalid api key') ||
     message.includes('api key') ||
@@ -22,15 +30,14 @@ function mapLoginError(error) {
     message.includes('invalid jwt') ||
     message.includes('jwt malformed')
   ) {
-    return 'Projeto/chave do Supabase inválidos. Confira VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel.'
+    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
   }
 
   if (
     message.includes('invalid login credentials') ||
     message.includes('invalid_credentials') ||
     message.includes('email not confirmed') ||
-    error?.status === 400 ||
-    error?.status === 401
+    error?.status === 400
   ) {
     return 'Credenciais inválidas. Verifique e-mail e senha.'
   }
@@ -100,17 +107,35 @@ export const useAuthStore = defineStore('auth', () => {
       throw new Error('Identificador de usuário ausente para carregar perfil.')
     }
 
-    const { data, error } = await query.single()
+    const { data, error } = await query.limit(2)
 
     if (error) {
+      console.error('[auth] erro ao carregar perfil do usuário:', error)
       throw new Error(getErrorMessage(error, 'Não foi possível carregar perfil do usuário.'))
     }
 
-    if (!data?.ativo) {
+    if (!Array.isArray(data) || data.length === 0) {
+      console.error('[auth] perfil não encontrado para usuário', { userId, email })
+      throw new Error('Configuração de usuário inconsistente (mais de um registro ou nenhum).')
+    }
+
+    if (data.length > 1) {
+      console.error('[auth][audit] múltiplos perfis encontrados para o mesmo usuário', {
+        userId,
+        email,
+        totalEncontrado: data.length,
+        ids: data.map((item) => item.id)
+      })
+      throw new Error('Configuração de usuário inconsistente (mais de um registro ou nenhum).')
+    }
+
+    const perfil = data[0]
+
+    if (!perfil?.ativo) {
       throw new Error('Usuário inativo. Entre em contato com o administrador.')
     }
 
-    return data
+    return perfil
   }
 
   // Actions

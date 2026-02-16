@@ -323,7 +323,12 @@ Sistema desenvolvido para gestão profissional de equipamentos refletivos de sin
 
 Para evitar erros de login/reset de senha em produção:
 
-- Configure na Vercel as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+- No Supabase, acesse **Settings → API** e copie:
+  - **Project URL** (`https://<project-ref>.supabase.co`) para `VITE_SUPABASE_URL`.
+  - **Publishable/anon key** (normalmente inicia com `eyJ...`) para `VITE_SUPABASE_ANON_KEY`.
+- ⚠️ `prj_...` é apenas o project ref/identificador e **não** é uma anon key válida.
+- Configure na Vercel as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (Production/Preview/Development).
+- Após alterar variáveis na Vercel, faça **Redeploy** para o frontend ler os novos valores.
 - Em **Supabase > Auth > URL Configuration**, defina:
   - Site URL: `https://medlux-reflective-complete.vercel.app`
   - Redirect URL: `https://medlux-reflective-complete.vercel.app/redefinir-senha`
