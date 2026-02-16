@@ -111,93 +111,75 @@ const mensagem = ref('')
 const tipoMensagem = ref('success')
 const recoverySessionReady = ref(false)
 
-const normalizeHash = (hash) => hash?.replace(/^#\/?/, '') || ''
-
-const applyHashSession = async () => {
-  const normalizedHash = normalizeHash(window.location.hash)
-
-  if (!normalizedHash.includes('access_token')) {
-    return false
-  }
-
-  const params = new URLSearchParams(normalizedHash)
-  const accessToken = params.get('access_token')
-  const refreshToken = params.get('refresh_token')
-
-  if (!accessToken || !refreshToken) {
-    console.warn('[auth][recovery] hash sem refresh_token, aguardando detectSessionInUrl')
-    return false
-  }
-
-  const { error } = await supabase.auth.setSession({
-    access_token: accessToken,
-    refresh_token: refreshToken
-  })
-
-  if (error) {
-    throw error
-  }
-
+const clearRecoveryParamsFromUrl = () => {
   if (window.history?.replaceState) {
     window.history.replaceState({}, document.title, window.location.pathname)
   }
-
-  console.warn('[auth][recovery] sessão restaurada via hash da URL')
-  return true
 }
 
-const waitForRecoverySession = async () => {
-  const { data, error } = await supabase.auth.getSession()
+const bootstrapRecoverySession = async () => {
+  const hashPayload = window.location.hash?.replace(/^#/, '') || ''
+  const hashParams = new URLSearchParams(hashPayload)
+  const queryParams = new URLSearchParams(window.location.search)
+  const accessToken = hashParams.get('access_token')
+  const refreshToken = hashParams.get('refresh_token')
+  const code = queryParams.get('code')
 
-  if (error) {
-    throw error
-  }
+  try {
+    if (accessToken || refreshToken) {
+      const hasBothTokens = Boolean(accessToken && refreshToken)
+      console.warn(`[auth][recovery] tokens no hash: access_token ${accessToken ? 'presente' : 'ausente'}, refresh_token ${refreshToken ? 'presente' : 'ausente'}`)
 
-  if (data?.session) {
-    return true
-  }
-
-  return await new Promise((resolve) => {
-    let resolved = false
-    const timeoutId = window.setTimeout(() => {
-      if (resolved) return
-      resolved = true
-      subscription?.unsubscribe()
-      resolve(false)
-    }, 8000)
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (resolved) return
-      if (!session) return
-
-      if (['SIGNED_IN', 'TOKEN_REFRESHED', 'PASSWORD_RECOVERY', 'INITIAL_SESSION'].includes(event)) {
-        resolved = true
-        window.clearTimeout(timeoutId)
-        subscription.unsubscribe()
-        console.warn(`[auth][recovery] sessão obtida via onAuthStateChange (${event})`)
-        resolve(true)
+      if (!hasBothTokens) {
+        mensagem.value = 'Link de recuperação inválido ou incompleto. Solicite um novo e-mail.'
+        tipoMensagem.value = 'error'
+        return false
       }
-    })
-  })
+
+      const { error: setSessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      })
+
+      if (setSessionError) {
+        console.error('[auth][recovery] falha no setSession (token presente):', setSessionError.message)
+        mensagem.value = 'Link de recuperação inválido ou expirado. Solicite um novo e-mail.'
+        tipoMensagem.value = 'error'
+        return false
+      }
+
+      console.warn('[auth][recovery] sessão estabelecida via hash')
+      return true
+    }
+
+    if (code) {
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+      if (exchangeError) {
+        console.error('[auth][recovery] falha no exchangeCodeForSession (code presente):', exchangeError.message)
+        mensagem.value = 'Código de recuperação inválido ou expirado. Solicite um novo e-mail.'
+        tipoMensagem.value = 'error'
+        return false
+      }
+
+      console.warn('[auth][recovery] sessão estabelecida via code query param')
+      return true
+    }
+
+    console.warn('[auth][recovery] token ausente no hash e query string')
+    mensagem.value = 'Link de recuperação ausente ou inválido. Solicite um novo e-mail.'
+    tipoMensagem.value = 'error'
+    return false
+  } catch (error) {
+    console.error('[auth][recovery] erro inesperado ao iniciar sessão de recuperação:', error?.message || error)
+    mensagem.value = 'Não foi possível validar o link de recuperação. Solicite um novo e-mail.'
+    tipoMensagem.value = 'error'
+    return false
+  }
 }
 
 const prepararSessaoRecuperacao = async () => {
-  try {
-    await applyHashSession()
-    recoverySessionReady.value = await waitForRecoverySession()
-
-    if (!recoverySessionReady.value) {
-      mensagem.value = 'Link de recuperação inválido ou expirado. Solicite um novo e-mail.'
-      tipoMensagem.value = 'error'
-      return
-    }
-
-    console.warn('[auth][recovery] sessão pronta para redefinição de senha')
-  } catch (error) {
-    console.warn('[auth][recovery] falha ao restaurar sessão de recuperação:', error?.message)
-    mensagem.value = 'Não foi possível validar o link de recuperação. Solicite um novo e-mail.'
-    tipoMensagem.value = 'error'
-  }
+  recoverySessionReady.value = await bootstrapRecoverySession()
 }
 
 // Validações
@@ -216,7 +198,7 @@ const confirmarSenhaRules = [
 // Métodos
 const redefinirSenha = async () => {
   const { valid } = await formRef.value.validate()
-  
+
   if (!valid) return
 
   carregando.value = true
@@ -224,26 +206,25 @@ const redefinirSenha = async () => {
 
   try {
     if (!recoverySessionReady.value) {
-      mensagem.value = 'Aguardando validação do link de recuperação. Tente novamente em alguns segundos.'
+      mensagem.value = 'Sessão de recuperação ausente. Solicite um novo e-mail de redefinição.'
       tipoMensagem.value = 'warning'
       return
     }
 
     const resultado = await updatePassword(novaSenha.value)
-    
+
     if (resultado.success) {
-      mensagem.value = 'Senha redefinida com sucesso! Redirecionando...'
+      clearRecoveryParamsFromUrl()
+      mensagem.value = 'Senha atualizada com sucesso! Redirecionando para o login...'
       tipoMensagem.value = 'success'
-      
-      // Redirecionar para login após 2 segundos
+
       setTimeout(() => {
-        router.push('/')
-      }, 2000)
+        router.push({ path: '/login', query: { status: 'senha-atualizada' } })
+      }, 1500)
     } else {
-      mensagem.value = resultado.error || 'Erro ao redefinir senha. Tente novamente.'
+      mensagem.value = resultado.error || 'Erro ao redefinir senha. Solicite um novo e-mail.'
       tipoMensagem.value = 'error'
     }
-    
   } catch (error) {
     console.error('Erro ao redefinir senha:', error)
     mensagem.value = 'Erro ao redefinir senha. Tente novamente.'
@@ -254,10 +235,9 @@ const redefinirSenha = async () => {
 }
 
 const voltarParaLogin = () => {
-  router.push('/')
+  router.push('/login')
 }
 
-// Verificar se há um token de redefinição na URL
 onMounted(() => {
   prepararSessaoRecuperacao()
 })

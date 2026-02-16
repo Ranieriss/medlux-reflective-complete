@@ -27,6 +27,16 @@
             {{ supabaseEnvErrorMessage }}
           </v-alert>
 
+
+          <v-alert
+            v-if="mensagemStatus"
+            :type="tipoMensagemStatus"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ mensagemStatus }}
+          </v-alert>
+
           <!-- Formulário de Login -->
           <v-form ref="formRef" @submit.prevent="handleLogin">
             <v-text-field
@@ -178,12 +188,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { hasSupabaseEnv, resetPassword, supabaseEnvErrorMessage } from '@/services/supabase'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 // State
@@ -194,6 +205,8 @@ const senha = ref('')
 const mostrarSenha = ref(false)
 const carregando = ref(false)
 const erro = ref('')
+const mensagemStatus = ref('')
+const tipoMensagemStatus = ref('success')
 
 // Recuperação de senha
 const dialogRecuperacao = ref(false)
@@ -244,6 +257,15 @@ const abrirRecuperacaoSenha = () => {
   emailRecuperacao.value = ''
   mensagemRecuperacao.value = ''
 }
+
+
+onMounted(() => {
+  if (route.query.status === 'senha-atualizada') {
+    mensagemStatus.value = 'Senha atualizada com sucesso. Faça login com sua nova senha.'
+    tipoMensagemStatus.value = 'success'
+    router.replace({ path: '/login' })
+  }
+})
 
 const enviarRecuperacao = async () => {
   const { valid } = await formRecuperacaoRef.value.validate()

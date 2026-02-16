@@ -1,5 +1,36 @@
 # 🚀 MEDLUX Reflective - Guia de Integração com Supabase
 
+## 🔐 Configuração obrigatória de Auth (produção Vercel)
+
+Para o fluxo de login e redefinição de senha funcionar em produção, configure **Auth > URL Configuration** no painel do Supabase com os valores abaixo:
+
+- **Site URL**: `https://medlux-reflective-complete.vercel.app`
+- **Redirect URLs** (adicionar todos):
+  - `https://medlux-reflective-complete.vercel.app/redefinir-senha`
+  - `https://medlux-reflective-complete.vercel.app/login`
+  - `http://localhost:3000/redefinir-senha` (apenas desenvolvimento local)
+  - `http://localhost:3000/login` (apenas desenvolvimento local)
+
+### Variáveis de ambiente na Vercel
+
+Defina no projeto Vercel:
+
+- `VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co`
+- `VITE_SUPABASE_ANON_KEY=<chave anon/public>`
+
+> Não use `service_role` no frontend. Apenas `anon/public key`.
+
+### Redirect de recuperação de senha usado pelo app
+
+O frontend envia recuperação de senha com:
+
+`redirectTo: https://medlux-reflective-complete.vercel.app/redefinir-senha`
+
+Se a URL acima não estiver cadastrada nas Redirect URLs do Supabase, o link de e-mail pode cair em localhost ou falhar.
+
+---
+
+
 ## 📋 Checklist de Implementação
 
 ### ✅ Fase 1: Configuração do Supabase (15 minutos)
