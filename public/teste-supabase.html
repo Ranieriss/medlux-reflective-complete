@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Supabase - MEDLUX</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #result {
+            white-space: pre-wrap;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border: 1px solid #444;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Teste de Conexão Supabase - MEDLUX Reflective</h1>
+    
+    <div class="section">
+        <h2>Informações do Projeto</h2>
+        <p><strong>Projeto correto:</strong> earrnuuvdzawclxsyoxk</p>
+        <p><strong>Status:</strong> <span id="status">Aguardando teste...</span></p>
+    </div>
+
+    <div class="section">
+        <h2>Testes Disponíveis</h2>
+        <button onclick="testarConexao()">1. Testar Conexão</button>
+        <button onclick="contarEquipamentos()">2. Contar Equipamentos</button>
+        <button onclick="listarEquipamentos()">3. Listar Todos os Equipamentos</button>
+        <button onclick="testarQueryAdmin()">4. Testar Query Admin (como no app)</button>
+        <button onclick="limparResultado()">Limpar</button>
+    </div>
+
+    <div class="section">
+        <h2>Resultado:</h2>
+        <div id="result">Clique em um botão acima para executar o teste...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuração Supabase (projeto CORRETO)
+        const SUPABASE_URL = 'https://earrnuuvdzawclxsyoxk.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhcnJudXV2ZHphd2NseHN5b3hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExMDk3MTQsImV4cCI6MjA4NjY4NTcxNH0.tKLBk3b4CZyT8nhMi610mmwpgMGBJlJAgC9vej_VuQg'
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        
+        const resultDiv = document.getElementById('result')
+        const statusSpan = document.getElementById('status')
+        
+        function log(message, type = 'info') {
+            const className = type
+            const timestamp = new Date().toLocaleTimeString('pt-BR')
+            resultDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`
+            resultDiv.scrollTop = resultDiv.scrollHeight
+        }
+        
+        function limparResultado() {
+            resultDiv.innerHTML = 'Resultado limpo. Pronto para novos testes...\n'
+        }
+        
+        async function testarConexao() {
+            limparResultado()
+            log('🔄 Testando conexão com Supabase...', 'info')
+            
+            try {
+                const { data, error } = await supabase
+                    .from('equipamentos')
+                    .select('count')
+                    .limit(1)
+                
+                if (error) {
+                    log('❌ Erro de conexão: ' + error.message, 'error')
+                    statusSpan.textContent = '❌ Falha na conexão'
+                    statusSpan.className = 'error'
+                    return
+                }
+                
+                log('✅ Conexão estabelecida com sucesso!', 'success')
+                statusSpan.textContent = '✅ Conectado'
+                statusSpan.className = 'success'
+            } catch (error) {
+                log('❌ Erro fatal: ' + error.message, 'error')
+                statusSpan.textContent = '❌ Erro fatal'
+                statusSpan.className = 'error'
+            }
+        }
+        
+        async function contarEquipamentos() {
+            log('\n🔢 Contando equipamentos na tabela...', 'info')
+            
+            try {
+                const { count, error } = await supabase
+                    .from('equipamentos')
+                    .select('*', { count: 'exact', head: true })
+                
+                if (error) {
+                    log('❌ Erro ao contar: ' + error.message, 'error')
+                    return
+                }
+                
+                log(`📊 Total de equipamentos: ${count}`, count > 0 ? 'success' : 'warning')
+                
+                if (count === 0) {
+                    log('⚠️ ATENÇÃO: Tabela equipamentos está VAZIA!', 'warning')
+                    log('   Execute o SQL de inserção dos 22 equipamentos.', 'warning')
+                } else if (count === 22) {
+                    log('✅ PERFEITO! Todos os 22 equipamentos estão no banco!', 'success')
+                } else {
+                    log(`⚠️ ATENÇÃO: Esperado 22, mas há ${count} equipamentos!`, 'warning')
+                }
+            } catch (error) {
+                log('❌ Erro: ' + error.message, 'error')
+            }
+        }
+        
+        async function listarEquipamentos() {
+            log('\n📋 Listando todos os equipamentos...', 'info')
+            
+            try {
+                const { data, error } = await supabase
+                    .from('equipamentos')
+                    .select('*')
+                    .order('codigo', { ascending: true })
+                
+                if (error) {
+                    log('❌ Erro na query: ' + error.message, 'error')
+                    return
+                }
+                
+                if (!data || data.length === 0) {
+                    log('⚠️ Nenhum equipamento encontrado!', 'warning')
+                    log('   A tabela está vazia. Execute o SQL de inserção.', 'warning')
+                    return
+                }
+                
+                log(`✅ ${data.length} equipamentos encontrados:\n`, 'success')
+                
+                // Agrupar por tipo
+                const porTipo = data.reduce((acc, eq) => {
+                    acc[eq.tipo] = (acc[eq.tipo] || 0) + 1
+                    return acc
+                }, {})
+                
+                log('📊 Distribuição por tipo:', 'info')
+                Object.entries(porTipo).forEach(([tipo, count]) => {
+                    log(`   - ${tipo}: ${count}`, 'info')
+                })
+                
+                log('\n📋 Lista completa:', 'info')
+                data.forEach(eq => {
+                    log(`   ${eq.codigo} - ${eq.nome} (${eq.tipo}) - Status: ${eq.status}`, 'info')
+                })
+                
+            } catch (error) {
+                log('❌ Erro: ' + error.message, 'error')
+            }
+        }
+        
+        async function testarQueryAdmin() {
+            log('\n🔍 Testando query EXATA do componente (Admin)...', 'info')
+            
+            try {
+                // Query exata do equipamentoService.js linha 95-98
+                const { data, error } = await supabase
+                    .from('equipamentos')
+                    .select('*')
+                    .order('codigo', { ascending: true })
+                
+                if (error) {
+                    log('❌ Erro na query: ' + error.message, 'error')
+                    log('   Possível problema de RLS (Row Level Security)', 'warning')
+                    return
+                }
+                
+                log(`📦 Query retornou: ${data?.length || 0} equipamentos`, data?.length > 0 ? 'success' : 'error')
+                
+                if (data && data.length > 0) {
+                    log('✅ SUCESSO! A query funciona corretamente!', 'success')
+                    log('\n⚠️ SE O APP AINDA MOSTRA ERRO, O PROBLEMA É:', 'warning')
+                    log('   1. Cache do navegador (Ctrl+F5 para limpar)', 'warning')
+                    log('   2. Deploy do Vercel não sincronizado (aguardar 2-3 min)', 'warning')
+                    log('   3. Código antigo ainda em cache', 'warning')
+                    log('\n💡 SOLUÇÃO:', 'info')
+                    log('   - Abra o app em modo anônimo (Ctrl+Shift+N)', 'info')
+                    log('   - Ou limpe todo o cache do navegador', 'info')
+                    log('   - Ou aguarde alguns minutos para o Vercel atualizar', 'info')
+                    
+                    log('\n📋 Primeiros 5 equipamentos retornados:', 'info')
+                    data.slice(0, 5).forEach(eq => {
+                        log(`   ${eq.codigo} - ${eq.nome}`, 'info')
+                    })
+                } else {
+                    log('❌ Query retornou VAZIA mesmo com dados no banco!', 'error')
+                    log('   Isso indica problema de RLS (Row Level Security)', 'error')
+                    log('\n💡 SOLUÇÃO:', 'info')
+                    log('   No Supabase Dashboard → Authentication → Policies', 'info')
+                    log('   Adicionar política para permitir SELECT público na tabela equipamentos', 'info')
+                }
+                
+            } catch (error) {
+                log('❌ Erro: ' + error.message, 'error')
+            }
+        }
+        
+        // Testar conexão automaticamente ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(testarConexao, 500)
+        })
+    </script>
+</body>
+</html>
