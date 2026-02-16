@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import supabase from '@/services/supabase'
+import { supabase } from '@/services/supabase'
+
+const STORAGE_KEY = 'medlux_auth'
+
+function getErrorMessage(error, fallback) {
+  return error?.message || fallback
+}
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -16,123 +22,158 @@ export const useAuthStore = defineStore('auth', () => {
   const emailUsuario = computed(() => usuario.value?.email || '')
   const perfilUsuario = computed(() => usuario.value?.perfil || 'operador')
 
+  const salvarSessaoLocal = (dadosUsuario) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      id: dadosUsuario.id,
+      email: dadosUsuario.email,
+      nome: dadosUsuario.nome,
+      perfil: dadosUsuario.perfil,
+      ativo: dadosUsuario.ativo
+    }))
+  }
+
+  const limparSessaoLocal = () => {
+    localStorage.removeItem(STORAGE_KEY)
+  }
+
+  const carregarPerfilUsuario = async ({ userId, email }) => {
+    let query = supabase
+      .from('usuarios')
+      .select('id, email, nome, perfil, ativo')
+
+    if (userId) {
+      query = query.eq('id', userId)
+    } else if (email) {
+      query = query.eq('email', email)
+    } else {
+      throw new Error('Identificador de usuário ausente para carregar perfil.')
+    }
+
+    const { data, error } = await query.single()
+
+    if (error) {
+      throw new Error(getErrorMessage(error, 'Não foi possível carregar perfil do usuário.'))
+    }
+
+    if (!data?.ativo) {
+      throw new Error('Usuário inativo. Entre em contato com o administrador.')
+    }
+
+    return data
+  }
+
   // Actions
   const login = async (email, senha) => {
     try {
-      // Buscar usuário no Supabase
-      const { data: usuarios, error: errorBusca } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', email)
-        .single()
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha
+      })
 
-      if (errorBusca) {
-        console.error('Erro ao buscar usuário:', errorBusca)
-        return { sucesso: false, mensagem: 'Usuário não encontrado ou inativo' }
+      if (authError) {
+        return { sucesso: false, mensagem: getErrorMessage(authError, 'Credenciais inválidas.') }
       }
 
-      // Verificar senha (temporariamente comparação simples)
-      if (usuarios.senha_hash !== senha) {
-        return { sucesso: false, mensagem: 'Senha incorreta' }
-      }
+      const usuarioPerfil = await carregarPerfilUsuario({
+        userId: authData?.user?.id,
+        email: authData?.user?.email || email
+      })
 
-      // Atualizar último acesso
-      await supabase
+      const { error: updateError } = await supabase
         .from('usuarios')
         .update({ ultimo_acesso: new Date().toISOString() })
-        .eq('id', usuarios.id)
+        .eq('id', usuarioPerfil.id)
 
-      // Definir usuário e autenticação
-      usuario.value = usuarios
+      if (updateError) {
+        console.warn('⚠️ Não foi possível atualizar último acesso:', updateError.message)
+      }
+
+      usuario.value = usuarioPerfil
+      session.value = authData.session
       isAuthenticated.value = true
+      salvarSessaoLocal(usuarioPerfil)
 
-      // Salvar no localStorage
-      localStorage.setItem('medlux_auth', JSON.stringify(usuarios))
-      
-      console.log('✅ Login realizado com sucesso:', usuarios.email)
       return { sucesso: true }
-
     } catch (error) {
       console.error('❌ Erro no login:', error)
-      return { sucesso: false, mensagem: 'Erro ao realizar login' }
+      return { sucesso: false, mensagem: getErrorMessage(error, 'Erro ao realizar login.') }
     }
   }
 
   const logout = async () => {
     try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('❌ Erro ao encerrar sessão no Supabase:', error.message)
+      }
+    } catch (error) {
+      console.error('❌ Erro no logout:', error)
+    } finally {
       usuario.value = null
       isAuthenticated.value = false
       session.value = null
-      localStorage.removeItem('medlux_auth')
-      
-      console.log('✅ Logout realizado com sucesso')
-    } catch (error) {
-      console.error('❌ Erro no logout:', error)
+      limparSessaoLocal()
     }
   }
 
   const restaurarSessao = async () => {
-    const authData = localStorage.getItem('medlux_auth')
-    if (authData) {
-      try {
-        const usuarioSalvo = JSON.parse(authData)
-        
-        // Verificar se usuário ainda existe e está ativo
-        const { data: usuarioAtual, error } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', usuarioSalvo.id)
-          .single()
+    try {
+      const { data, error } = await supabase.auth.getSession()
 
-        if (error || !usuarioAtual) {
-          console.warn('⚠️ Sessão expirada ou usuário inativo')
-          logout()
-          return false
-        }
+      if (error) {
+        throw new Error(getErrorMessage(error, 'Não foi possível verificar a sessão.'))
+      }
 
-        usuario.value = usuarioAtual
-        isAuthenticated.value = true
-        
-        console.log('✅ Sessão restaurada:', usuarioAtual.email)
-        return true
-      } catch (error) {
-        console.error('❌ Erro ao restaurar sessão:', error)
-        logout()
+      const currentSession = data?.session
+      if (!currentSession?.user) {
+        await logout()
         return false
       }
+
+      session.value = currentSession
+
+      const usuarioPerfil = await carregarPerfilUsuario({
+        userId: currentSession.user.id,
+        email: currentSession.user.email
+      })
+
+      usuario.value = usuarioPerfil
+      isAuthenticated.value = true
+      salvarSessaoLocal(usuarioPerfil)
+      return true
+    } catch (error) {
+      console.error('❌ Erro ao restaurar sessão:', error)
+      await logout()
+      return false
     }
-    return false
   }
 
   const temPermissao = (permissao) => {
     if (!usuario.value) return false
-    
-    // Admin/Administrador tem todas as permissões
+
     if (usuario.value.perfil === 'admin' || usuario.value.perfil === 'administrador') return true
-    
-    // Técnicos têm permissões limitadas
+
     const permissoesTecnico = [
       'ver_equipamentos',
       'ver_vinculos',
       'ver_calibracoes',
       'criar_medicoes'
     ]
-    
-    // Operadores têm permissões básicas
+
     const permissoesOperador = [
       'ver_equipamentos_vinculados',
       'criar_medicoes',
       'ver_medicoes'
     ]
-    
+
     if (usuario.value.perfil === 'tecnico') {
       return permissoesTecnico.includes(permissao)
     }
-    
+
     if (usuario.value.perfil === 'operador') {
       return permissoesOperador.includes(permissao)
     }
-    
+
     return false
   }
 
@@ -140,7 +181,7 @@ export const useAuthStore = defineStore('auth', () => {
     // State
     usuario,
     isAuthenticated,
-    
+
     // Getters
     isAdmin,
     isTecnico,
@@ -148,7 +189,7 @@ export const useAuthStore = defineStore('auth', () => {
     nomeUsuario,
     emailUsuario,
     perfilUsuario,
-    
+
     // Actions
     login,
     logout,

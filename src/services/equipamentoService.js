@@ -1,4 +1,4 @@
-import supabase from './supabase'
+import { supabase } from './supabase'
 
 /**
  * Detecta o tipo de equipamento baseado no código

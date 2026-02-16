@@ -5,7 +5,7 @@
  * Funções para gerenciar medições de dispositivos de pavimento
  */
 
-import supabase from './supabase'
+import { supabase } from './supabase'
 
 /**
  * Criar novo dispositivo (tacha ou tachão)

@@ -1,4 +1,4 @@
-import supabase from './supabase'
+import { supabase } from './supabase'
 
 /**
  * Service para upload de arquivos (fotos, PDFs, etc.)
