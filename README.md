@@ -316,3 +316,4 @@ Sistema desenvolvido para gestão profissional de equipamentos refletivos de sin
 **Status do Projeto**: ✅ CRUD de Equipamentos 100% funcional
 
 **Próxima Feature**: 🚧 Gestão de Vínculos/Custódia
+<!-- trigger new checks -->
