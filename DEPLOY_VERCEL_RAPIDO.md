@@ -56,6 +56,11 @@ npm install
 
 **MUITO IMPORTANTE!** Clique em **"Environment Variables"** e adicione:
 
+Antes de preencher no Vercel, pegue os valores corretos no **Supabase → Settings → API**.
+- Use **Project URL** para `VITE_SUPABASE_URL`.
+- Use **Publishable/anon key** (geralmente começa com `eyJ...`) para `VITE_SUPABASE_ANON_KEY`.
+- `prj_...` **não** é anon key (não funciona no frontend).
+
 #### **Variável 1:**
 **Name:**
 ```
@@ -83,6 +88,8 @@ VITE_SUPABASE_ANON_KEY
 1. Clique em **"Deploy"**
 2. Aguarde 2-3 minutos
 3. ✅ **Pronto!** Sua aplicação estará online
+
+> Se você alterar qualquer Environment Variable depois do primeiro deploy, faça **Redeploy** para aplicar os novos valores no build.
 
 ---
 
@@ -126,3 +133,14 @@ Tire screenshots de:
 Me envie screenshot de qualquer etapa que tiver dúvida!
 
 **Boa sorte! 🚀**
+
+---
+
+## ✅ Checklist pós-configuração
+
+- [ ] `VITE_SUPABASE_URL` preenchida com `https://<project-ref>.supabase.co`.
+- [ ] `VITE_SUPABASE_ANON_KEY` preenchida com chave `eyJ...`.
+- [ ] Nenhum valor `prj_...` foi usado como anon key.
+- [ ] Variáveis definidas em Production/Preview/Development.
+- [ ] **Redeploy** executado após mudança de variáveis.
+- [ ] Login testado e sem erro 401 em `/auth/v1/token`.

@@ -4,6 +4,7 @@
 import { createClient } from '@supabase/supabase-js'
 import {
   hasSupabaseEnv,
+  invalidSupabaseEnvVars,
   missingSupabaseEnvVars,
   supabaseAnonKey,
   supabaseEnvErrorMessage,
@@ -12,7 +13,12 @@ import {
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
 
 if (!hasSupabaseEnv) {
-  console.error('⚠️ [supabase] variáveis de ambiente ausentes:', missingSupabaseEnvVars.join(', '))
+  if (missingSupabaseEnvVars.length > 0) {
+    console.error('⚠️ [supabase] variáveis de ambiente ausentes:', missingSupabaseEnvVars.join(', '))
+  }
+  if (invalidSupabaseEnvVars.length > 0) {
+    console.error('⚠️ [supabase] variáveis de ambiente inválidas:', invalidSupabaseEnvVars.join(', '))
+  }
   console.error('ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel e gere novo deploy.')
   console.error(supabaseEnvErrorMessage)
 }
