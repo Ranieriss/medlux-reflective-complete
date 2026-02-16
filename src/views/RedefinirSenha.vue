@@ -95,7 +95,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { updatePassword } from '@/services/supabase'
+import { supabase, updatePassword } from '@/services/supabase'
 
 const router = useRouter()
 
@@ -109,6 +109,96 @@ const mostrarConfirmarSenha = ref(false)
 const carregando = ref(false)
 const mensagem = ref('')
 const tipoMensagem = ref('success')
+const recoverySessionReady = ref(false)
+
+const normalizeHash = (hash) => hash?.replace(/^#\/?/, '') || ''
+
+const applyHashSession = async () => {
+  const normalizedHash = normalizeHash(window.location.hash)
+
+  if (!normalizedHash.includes('access_token')) {
+    return false
+  }
+
+  const params = new URLSearchParams(normalizedHash)
+  const accessToken = params.get('access_token')
+  const refreshToken = params.get('refresh_token')
+
+  if (!accessToken || !refreshToken) {
+    console.warn('[auth][recovery] hash sem refresh_token, aguardando detectSessionInUrl')
+    return false
+  }
+
+  const { error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken
+  })
+
+  if (error) {
+    throw error
+  }
+
+  if (window.history?.replaceState) {
+    window.history.replaceState({}, document.title, window.location.pathname)
+  }
+
+  console.warn('[auth][recovery] sessão restaurada via hash da URL')
+  return true
+}
+
+const waitForRecoverySession = async () => {
+  const { data, error } = await supabase.auth.getSession()
+
+  if (error) {
+    throw error
+  }
+
+  if (data?.session) {
+    return true
+  }
+
+  return await new Promise((resolve) => {
+    let resolved = false
+    const timeoutId = window.setTimeout(() => {
+      if (resolved) return
+      resolved = true
+      subscription?.unsubscribe()
+      resolve(false)
+    }, 8000)
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (resolved) return
+      if (!session) return
+
+      if (['SIGNED_IN', 'TOKEN_REFRESHED', 'PASSWORD_RECOVERY', 'INITIAL_SESSION'].includes(event)) {
+        resolved = true
+        window.clearTimeout(timeoutId)
+        subscription.unsubscribe()
+        console.warn(`[auth][recovery] sessão obtida via onAuthStateChange (${event})`)
+        resolve(true)
+      }
+    })
+  })
+}
+
+const prepararSessaoRecuperacao = async () => {
+  try {
+    await applyHashSession()
+    recoverySessionReady.value = await waitForRecoverySession()
+
+    if (!recoverySessionReady.value) {
+      mensagem.value = 'Link de recuperação inválido ou expirado. Solicite um novo e-mail.'
+      tipoMensagem.value = 'error'
+      return
+    }
+
+    console.warn('[auth][recovery] sessão pronta para redefinição de senha')
+  } catch (error) {
+    console.warn('[auth][recovery] falha ao restaurar sessão de recuperação:', error?.message)
+    mensagem.value = 'Não foi possível validar o link de recuperação. Solicite um novo e-mail.'
+    tipoMensagem.value = 'error'
+  }
+}
 
 // Validações
 const senhaRules = [
@@ -133,6 +223,12 @@ const redefinirSenha = async () => {
   mensagem.value = ''
 
   try {
+    if (!recoverySessionReady.value) {
+      mensagem.value = 'Aguardando validação do link de recuperação. Tente novamente em alguns segundos.'
+      tipoMensagem.value = 'warning'
+      return
+    }
+
     const resultado = await updatePassword(novaSenha.value)
     
     if (resultado.success) {
@@ -163,11 +259,7 @@ const voltarParaLogin = () => {
 
 // Verificar se há um token de redefinição na URL
 onMounted(() => {
-  const hash = window.location.hash
-  if (!hash || !hash.includes('access_token')) {
-    mensagem.value = 'Link de recuperação inválido ou expirado.'
-    tipoMensagem.value = 'error'
-  }
+  prepararSessaoRecuperacao()
 })
 </script>
 

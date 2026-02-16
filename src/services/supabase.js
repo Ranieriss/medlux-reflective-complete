@@ -9,6 +9,7 @@ import {
   supabaseEnvErrorMessage,
   supabaseUrl
 } from '@/config/env'
+import { getResetRedirectUrl } from '@/config/urls'
 
 if (!hasSupabaseEnv) {
   console.error('⚠️ ERRO: Variáveis de ambiente do Supabase não configuradas!')
@@ -138,13 +139,16 @@ export async function signUp(email, password, nome, perfil = 'tecnico') {
  */
 export async function resetPassword(email) {
   try {
+    const redirectTo = getResetRedirectUrl()
+
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/redefinir-senha`
+      redirectTo
     })
 
     if (error) throw error
 
     console.log('✅ Email de recuperação enviado para:', email)
+    console.warn('[auth][reset-password] redirectTo aplicado:', redirectTo)
     return { success: true, message: 'Email de recuperação enviado com sucesso!' }
   } catch (error) {
     console.error('❌ Erro ao enviar email de recuperação:', error.message)
@@ -157,6 +161,18 @@ export async function resetPassword(email) {
  */
 export async function updatePassword(newPassword) {
   try {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError) throw sessionError
+
+    if (!sessionData?.session) {
+      console.warn('[auth][update-password] tentativa sem sessão ativa')
+      return {
+        success: false,
+        error: 'Sessão de recuperação ausente. Abra novamente o link enviado por e-mail.'
+      }
+    }
+
     const { data, error } = await supabase.auth.updateUser({
       password: newPassword
     })
