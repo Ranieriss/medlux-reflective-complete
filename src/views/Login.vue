@@ -37,6 +37,21 @@
             {{ mensagemStatus }}
           </v-alert>
 
+          <v-alert
+            v-if="erro"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            <div class="font-weight-medium mb-1">{{ erro }}</div>
+            <div class="text-caption">status: {{ erroDetalhes.status ?? 'n/a' }}</div>
+            <div class="text-caption">message: {{ erroDetalhes.message || 'n/a' }}</div>
+            <div class="text-caption">code: {{ erroDetalhes.code || 'n/a' }}</div>
+            <div v-if="precisaConfirmarEmail" class="text-caption mt-2">
+              Dica: usuário precisa confirmar e-mail no Supabase.
+            </div>
+          </v-alert>
+
           <!-- Formulário de Login -->
           <v-form ref="formRef" @submit.prevent="handleLogin">
             <v-text-field
@@ -205,6 +220,8 @@ const senha = ref('')
 const mostrarSenha = ref(false)
 const carregando = ref(false)
 const erro = ref('')
+const erroDetalhes = ref({ status: null, message: '', code: null })
+const precisaConfirmarEmail = ref(false)
 const mensagemStatus = ref('')
 const tipoMensagemStatus = ref('success')
 
@@ -234,6 +251,8 @@ const handleLogin = async () => {
 
   carregando.value = true
   erro.value = ''
+  erroDetalhes.value = { status: null, message: '', code: null }
+  precisaConfirmarEmail.value = false
 
   try {
     const resultado = await authStore.login(email.value, senha.value)
@@ -242,10 +261,18 @@ const handleLogin = async () => {
       router.push('/dashboard')
     } else {
       erro.value = resultado.mensagem
+      erroDetalhes.value = resultado.detalhes || { status: null, message: '', code: null }
+      precisaConfirmarEmail.value = !!resultado.precisaConfirmarEmail
     }
   } catch (error) {
     console.error('Erro no login:', error)
     erro.value = 'Erro ao realizar login. Tente novamente.'
+    erroDetalhes.value = {
+      status: error?.status ?? null,
+      message: error?.message || 'Erro inesperado no login.',
+      code: error?.code ?? null
+    }
+    precisaConfirmarEmail.value = false
   } finally {
     carregando.value = false
   }

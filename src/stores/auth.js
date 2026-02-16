@@ -46,6 +46,19 @@ function mapLoginError(error) {
   return getErrorMessage(error, 'Erro ao realizar login.')
 }
 
+function isEmailConfirmationRequired(error) {
+  const message = getErrorMessage(error, '').toLowerCase()
+  return message.includes('email not confirmed') || message.includes('email_not_confirmed')
+}
+
+function formatErrorDetails(error) {
+  return {
+    status: error?.status ?? null,
+    message: getErrorMessage(error, 'Erro ao realizar login.'),
+    code: error?.code ?? null
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // State
   const usuario = ref(null)
@@ -104,21 +117,64 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email, senha) => {
     try {
       if (!hasSupabaseEnv) {
-        return { sucesso: false, mensagem: supabaseEnvErrorMessage }
+        return {
+          sucesso: false,
+          mensagem: supabaseEnvErrorMessage,
+          detalhes: {
+            status: null,
+            message: supabaseEnvErrorMessage,
+            code: 'missing_supabase_env'
+          }
+        }
       }
 
+      const emailLimpo = (email || '').trim()
+      const senhaLimpa = senha || ''
+
+      if (!emailLimpo || !emailLimpo.includes('@')) {
+        return {
+          sucesso: false,
+          mensagem: 'Informe um e-mail válido para continuar.',
+          detalhes: {
+            status: 400,
+            message: 'E-mail ausente ou inválido.',
+            code: 'invalid_email'
+          }
+        }
+      }
+
+      if (!senhaLimpa) {
+        return {
+          sucesso: false,
+          mensagem: 'Informe a senha para continuar.',
+          detalhes: {
+            status: 400,
+            message: 'Senha ausente.',
+            code: 'missing_password'
+          }
+        }
+      }
+
+      console.info('[auth] supabase url present?', !!import.meta.env.VITE_SUPABASE_URL)
+      console.info('[auth] anon key present?', !!import.meta.env.VITE_SUPABASE_ANON_KEY)
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password: senha
+        email: emailLimpo,
+        password: senhaLimpa
       })
 
       if (authError) {
-        return { sucesso: false, mensagem: mapLoginError(authError) }
+        return {
+          sucesso: false,
+          mensagem: mapLoginError(authError),
+          detalhes: formatErrorDetails(authError),
+          precisaConfirmarEmail: isEmailConfirmationRequired(authError)
+        }
       }
 
       const usuarioPerfil = await carregarPerfilUsuario({
         userId: authData?.user?.id,
-        email: authData?.user?.email || email
+        email: authData?.user?.email || emailLimpo
       })
 
       const { error: updateError } = await supabase
@@ -138,7 +194,12 @@ export const useAuthStore = defineStore('auth', () => {
       return { sucesso: true }
     } catch (error) {
       console.error('❌ Erro no login:', error)
-      return { sucesso: false, mensagem: mapLoginError(error) }
+      return {
+        sucesso: false,
+        mensagem: mapLoginError(error),
+        detalhes: formatErrorDetails(error),
+        precisaConfirmarEmail: isEmailConfirmationRequired(error)
+      }
     }
   }
 
