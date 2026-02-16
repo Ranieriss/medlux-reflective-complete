@@ -1,11 +1,49 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '@/services/supabase'
+import { hasSupabaseEnv, supabase, supabaseEnvErrorMessage } from '@/services/supabase'
 
 const STORAGE_KEY = 'medlux_auth'
 
 function getErrorMessage(error, fallback) {
   return error?.message || fallback
+}
+
+function mapLoginError(error) {
+  const message = getErrorMessage(error, '').toLowerCase()
+
+  if (!hasSupabaseEnv) {
+    return supabaseEnvErrorMessage
+  }
+
+  if (
+    message.includes('invalid api key') ||
+    message.includes('api key') ||
+    message.includes('project not found') ||
+    message.includes('invalid jwt') ||
+    message.includes('jwt malformed')
+  ) {
+    return 'Projeto/chave do Supabase inválidos. Confira VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel.'
+  }
+
+  if (
+    message.includes('invalid login credentials') ||
+    message.includes('invalid_credentials') ||
+    message.includes('email not confirmed') ||
+    error?.status === 400 ||
+    error?.status === 401
+  ) {
+    return 'Credenciais inválidas. Verifique e-mail e senha.'
+  }
+
+  if (
+    message.includes('failed to fetch') ||
+    message.includes('network') ||
+    message.includes('cors')
+  ) {
+    return 'Falha de rede/CORS ao conectar ao Supabase. Verifique sua conexão e as configurações de domínio permitido.'
+  }
+
+  return getErrorMessage(error, 'Erro ao realizar login.')
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -65,13 +103,17 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   const login = async (email, senha) => {
     try {
+      if (!hasSupabaseEnv) {
+        return { sucesso: false, mensagem: supabaseEnvErrorMessage }
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password: senha
       })
 
       if (authError) {
-        return { sucesso: false, mensagem: getErrorMessage(authError, 'Credenciais inválidas.') }
+        return { sucesso: false, mensagem: mapLoginError(authError) }
       }
 
       const usuarioPerfil = await carregarPerfilUsuario({
@@ -96,7 +138,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { sucesso: true }
     } catch (error) {
       console.error('❌ Erro no login:', error)
-      return { sucesso: false, mensagem: getErrorMessage(error, 'Erro ao realizar login.') }
+      return { sucesso: false, mensagem: mapLoginError(error) }
     }
   }
 
@@ -118,6 +160,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const restaurarSessao = async () => {
     try {
+      if (!hasSupabaseEnv) {
+        await logout()
+        return false
+      }
+
       const { data, error } = await supabase.auth.getSession()
 
       if (error) {
