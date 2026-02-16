@@ -108,17 +108,23 @@
         <!-- Certificado PDF -->
         <template v-slot:item.certificado_url="{ item }">
           <v-btn
-            v-if="item.certificado_url"
+            v-if="getCertificadoUrl(item)"
             icon
             size="small"
             variant="text"
             color="success"
-            :href="item.certificado_url"
-            target="_blank"
+            @click="abrirCertificado(item)"
           >
             <v-icon size="20">mdi-file-pdf-box</v-icon>
           </v-btn>
-          <span v-else class="text-caption text-medium-emphasis">-</span>
+
+          <v-tooltip v-else text="Sem certificado" location="top">
+            <template #activator="{ props }">
+              <span v-bind="props" class="d-inline-flex align-center">
+                <v-icon size="20" color="medium-emphasis">mdi-file-pdf-box</v-icon>
+              </span>
+            </template>
+          </v-tooltip>
         </template>
 
         <!-- Status com chip -->
@@ -322,6 +328,7 @@
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-calendar-alert"
+                  readonly
                 />
               </v-col>
 
@@ -646,7 +653,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
+import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
 import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, registrarAuditoria } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { format, parseISO, differenceInDays } from 'date-fns'
@@ -745,6 +752,23 @@ const rules = {
       return true
     }
   }
+}
+
+const calcularProximaCalibracao = (ultimaCalibracao) => {
+  if (!ultimaCalibracao) return null
+
+  const dataUltimaCalibracao = new Date(`${ultimaCalibracao}T00:00:00`)
+
+  if (Number.isNaN(dataUltimaCalibracao.getTime())) {
+    return null
+  }
+
+  dataUltimaCalibracao.setFullYear(dataUltimaCalibracao.getFullYear() + 1)
+  return dataUltimaCalibracao.toISOString().split('T')[0]
+}
+
+const getCertificadoUrl = (equipamento = {}) => {
+  return equipamento.certificado_url || equipamento.url_certificado || equipamento.certificadoCalibracaoUrl || null
 }
 
 // Computed
@@ -879,6 +903,13 @@ const getTextoStatus = (status) => {
   return textos[status] || status
 }
 
+const abrirCertificado = (equipamento) => {
+  const certificadoUrl = getCertificadoUrl(equipamento)
+  if (!certificadoUrl) return
+
+  window.open(certificadoUrl, '_blank', 'noopener,noreferrer')
+}
+
 // Métodos CRUD
 const carregarEquipamentos = async () => {
   carregando.value = true
@@ -944,7 +975,8 @@ const abrirDialogNovo = () => {
     status: 'ativo',
     localizacao: '',
     observacoes: '',
-    foto: null
+    foto: null,
+    certificado_url: ''
   }
   fotoFile.value = null
   dialogForm.value = true
@@ -980,6 +1012,8 @@ const salvarEquipamento = async () => {
   salvando.value = true
 
   try {
+    const proximaCalibracaoCalculada = calcularProximaCalibracao(equipamentoForm.value.ultima_calibracao)
+
     // Preparar dados do equipamento
     const equipamentoData = {
       codigo: equipamentoForm.value.codigo,
@@ -992,7 +1026,7 @@ const salvarEquipamento = async () => {
       localizacao: equipamentoForm.value.localizacao,
       data_aquisicao: equipamentoForm.value.data_aquisicao || null,
       ultima_calibracao: equipamentoForm.value.ultima_calibracao || null,
-      proxima_calibracao: equipamentoForm.value.proxima_calibracao || null,
+      proxima_calibracao: proximaCalibracaoCalculada,
       observacoes: equipamentoForm.value.observacoes || '',
       foto_url: equipamentoForm.value.foto || null,
       certificado_url: equipamentoForm.value.certificado_url || null
@@ -1135,6 +1169,13 @@ onUnmounted(() => {
     unsubscribe()
   }
 })
+
+watch(
+  () => equipamentoForm.value.ultima_calibracao,
+  (novaData) => {
+    equipamentoForm.value.proxima_calibracao = calcularProximaCalibracao(novaData)
+  }
+)
 </script>
 
 <style scoped>
