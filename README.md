@@ -317,3 +317,17 @@ Sistema desenvolvido para gestão profissional de equipamentos refletivos de sin
 
 **Próxima Feature**: 🚧 Gestão de Vínculos/Custódia
 <!-- trigger new checks -->
+
+
+## Configuração Supabase Auth (produção)
+
+Para evitar erros de login/reset de senha em produção:
+
+- Configure na Vercel as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+- Em **Supabase > Auth > URL Configuration**, defina:
+  - Site URL: `https://medlux-reflective-complete.vercel.app`
+  - Redirect URL: `https://medlux-reflective-complete.vercel.app/redefinir-senha`
+- O app usa `redirectTo` fixo para `https://medlux-reflective-complete.vercel.app/redefinir-senha` no fluxo de recuperação.
+- Nunca use `service_role` no frontend.
+
+Consulte detalhes no arquivo `SUPABASE_SETUP.md`.

@@ -101,30 +101,29 @@ const router = createRouter({
 // Guard de navegação
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
-  // Tentar restaurar sessão (AWAIT é crucial!)
-  if (!authStore.isAuthenticated) {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+
+  // Restaurar sessão apenas quando rota protegida exigir autenticação
+  if ((requiresAuth || requiresAdmin) && !authStore.isAuthenticated) {
     await authStore.restaurarSessao()
   }
-  
-  // Verificar se rota requer autenticação
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+
+  if (requiresAuth && !authStore.isAuthenticated) {
     next('/login')
     return
   }
-  
-  // Verificar se rota requer admin
-  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+
+  if (requiresAdmin && !authStore.isAdmin) {
     next('/dashboard')
     return
   }
-  
-  // Se está autenticado e tenta acessar login, redirecionar para dashboard
+
   if (to.path === '/login' && authStore.isAuthenticated) {
     next('/dashboard')
     return
   }
-  
+
   next()
 })
 

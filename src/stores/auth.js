@@ -161,19 +161,30 @@ export const useAuthStore = defineStore('auth', () => {
   const restaurarSessao = async () => {
     try {
       if (!hasSupabaseEnv) {
-        await logout()
+        usuario.value = null
+        session.value = null
+        isAuthenticated.value = false
+        limparSessaoLocal()
         return false
       }
 
       const { data, error } = await supabase.auth.getSession()
 
       if (error) {
-        throw new Error(getErrorMessage(error, 'Não foi possível verificar a sessão.'))
+        console.warn('⚠️ Sessão indisponível ao restaurar autenticação:', getErrorMessage(error, 'erro desconhecido'))
+        usuario.value = null
+        session.value = null
+        isAuthenticated.value = false
+        limparSessaoLocal()
+        return false
       }
 
       const currentSession = data?.session
       if (!currentSession?.user) {
-        await logout()
+        usuario.value = null
+        session.value = null
+        isAuthenticated.value = false
+        limparSessaoLocal()
         return false
       }
 
@@ -190,7 +201,10 @@ export const useAuthStore = defineStore('auth', () => {
       return true
     } catch (error) {
       console.error('❌ Erro ao restaurar sessão:', error)
-      await logout()
+      usuario.value = null
+      session.value = null
+      isAuthenticated.value = false
+      limparSessaoLocal()
       return false
     }
   }

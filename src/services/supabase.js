@@ -9,10 +9,11 @@ import {
   supabaseEnvErrorMessage,
   supabaseUrl
 } from '@/config/env'
-import { getResetRedirectUrl } from '@/config/urls'
+import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
 
 if (!hasSupabaseEnv) {
-  console.error('⚠️ ERRO: Variáveis de ambiente do Supabase não configuradas!')
+  console.error('⚠️ [supabase] variáveis de ambiente ausentes:', missingSupabaseEnvVars.join(', '))
+  console.error('ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel e gere novo deploy.')
   console.error(supabaseEnvErrorMessage)
 }
 
@@ -139,16 +140,14 @@ export async function signUp(email, password, nome, perfil = 'tecnico') {
  */
 export async function resetPassword(email) {
   try {
-    const redirectTo = getResetRedirectUrl()
-
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo
+      redirectTo: RESET_PASSWORD_REDIRECT_URL
     })
 
     if (error) throw error
 
     console.log('✅ Email de recuperação enviado para:', email)
-    console.warn('[auth][reset-password] redirectTo aplicado:', redirectTo)
+    console.warn('[auth][reset-password] redirectTo aplicado:', RESET_PASSWORD_REDIRECT_URL)
     return { success: true, message: 'Email de recuperação enviado com sucesso!' }
   } catch (error) {
     console.error('❌ Erro ao enviar email de recuperação:', error.message)
@@ -166,7 +165,7 @@ export async function updatePassword(newPassword) {
     if (sessionError) throw sessionError
 
     if (!sessionData?.session) {
-      console.warn('[auth][update-password] tentativa sem sessão ativa')
+      console.error('[auth][update-password] updateUser bloqueado por falta de sessão ativa')
       return {
         success: false,
         error: 'Sessão de recuperação ausente. Abra novamente o link enviado por e-mail.'
