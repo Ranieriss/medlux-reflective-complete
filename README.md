@@ -383,24 +383,20 @@ Sistema desenvolvido para gestão profissional de equipamentos refletivos de sin
 Para evitar erros de login e build no Vercel, configure **sempre** estas variáveis de ambiente:
 
 - `VITE_SUPABASE_URL=https://<project-ref>.supabase.co`
-- `VITE_SUPABASE_ANON_KEY=sb_publishable_...` (**recomendado**)
-- `VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...` (fallback compatível, caso você prefira manter esse nome)
+- `VITE_SUPABASE_ANON_KEY=eyJ...` (**obrigatório: anon/public JWT**)
 
 Regras importantes:
 
-- O frontend usa `VITE_SUPABASE_ANON_KEY` como prioridade e `VITE_SUPABASE_PUBLISHABLE_KEY` como fallback.
-- Use a **Publishable key** do Supabase (prefixo `sb_publishable_...`).
-- ⚠️ `prj_...` é apenas o identificador do projeto e **não** funciona como chave de API.
-- Nunca use `service_role` no frontend.
+- O frontend usa **somente** `VITE_SUPABASE_ANON_KEY`.
+- A chave deve ser JWT anon/public (formato `header.payload.signature`, normalmente iniciando com `eyJ...`).
+- ⚠️ `sb_publishable_...`, `prj_...` e `service_role` **não** devem ser usados no frontend.
 - Configure as variáveis na Vercel em **Production / Preview / Development** e faça **Redeploy** após qualquer alteração.
 
 Exemplo para Vercel:
 
 ```bash
 VITE_SUPABASE_URL=https://abcd1234.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_xxxxxxxxxxxxxxxxx
-# opcional (fallback)
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxxxxxxxxxxx
+VITE_SUPABASE_ANON_KEY=eyJhbGciOi...<anon-jwt>
 ```
 
 Configuração de Auth para recuperação de senha:

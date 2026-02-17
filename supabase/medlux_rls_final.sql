@@ -91,18 +91,20 @@ BEGIN
 
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
 
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_select_authenticated', t);
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_admin_all', t);
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_read_auth', t);
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_admin_write', t);
 
     EXECUTE format(
       'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (true)',
-      t || '_read_auth',
+      t || '_select_authenticated',
       t
     );
 
     EXECUTE format(
       'CREATE POLICY %I ON public.%I FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin())',
-      t || '_admin_write',
+      t || '_admin_all',
       t
     );
   END LOOP;
@@ -190,25 +192,28 @@ BEGIN
 
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
 
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', 'leituras_' || replace(t, 'leituras_', '') || '_admin_all', t);
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', 'leituras_' || replace(t, 'leituras_', '') || '_user_select', t);
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', 'leituras_' || replace(t, 'leituras_', '') || '_user_insert', t);
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_admin_all', t);
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_user_select', t);
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_user_insert', t);
 
     EXECUTE format(
       'CREATE POLICY %I ON public.%I FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin())',
-      t || '_admin_all',
+      'leituras_' || replace(t, 'leituras_', '') || '_admin_all',
       t
     );
 
     EXECUTE format(
       'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (usuario_id = public.current_usuario_id())',
-      t || '_user_select',
+      'leituras_' || replace(t, 'leituras_', '') || '_user_select',
       t
     );
 
     EXECUTE format(
       'CREATE POLICY %I ON public.%I FOR INSERT TO authenticated WITH CHECK (usuario_id = public.current_usuario_id())',
-      t || '_user_insert',
+      'leituras_' || replace(t, 'leituras_', '') || '_user_insert',
       t
     );
   END LOOP;
