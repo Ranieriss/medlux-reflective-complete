@@ -671,11 +671,19 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
 import supabase, {
   getEquipamentos,
   createEquipamento,
   updateEquipamento,
   deleteEquipamento,
+  subscribeToEquipamentos
+} from '@/services/supabase'
+import { useAuthStore } from '@/stores/auth'
+import { requireAdmin } from '@/services/authGuard'
+import { format, parseISO, differenceInDays } from 'date-fns'
+import QRCode from 'qrcode'
+
   subscribeToEquipamentos
 } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
