@@ -125,8 +125,6 @@ export async function usuarioAtualEhAdmin() {
   }
 }
 
-}
-
 // ============================================
 // AUTENTICAÇÃO
 // ============================================
@@ -347,27 +345,24 @@ export async function createEquipamento(equipamento) {
       .select()
       .maybeSingle()
 
-    if (error) throw error
-    if (!data) {
+   const { data, error } = await supabase
+  .from('equipamentos')
+  .insert([equipamento])
+  .select()
+  .maybeSingle()
+
 if (error) throw error
+
 if (!data) {
-  return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
+  return { success: false, error: 'Equipamento não retornou dados após criação.' }
 }
 
-    }
+// Registrar na auditoria
+await registrarAuditoria('equipamentos', data.id, 'CREATE', null, data)
 
-    // Registrar na auditoria
-    await registrarAuditoria('equipamentos', data.id, 'CREATE', null, data)
+console.log('✅ Equipamento criado:', data.codigo)
+return { success: true, data }
 
-    console.log('✅ Equipamento criado:', data.codigo)
-    return { success: true, data }
-  } catch (error) {
-    const friendly = getMensagemPermissao(error)
-    const info = formatarErroSupabase(error, 'Erro ao criar equipamento')
-    console.error('❌ Erro ao criar equipamento:', info)
-    return { success: false, error: friendly || info.message, details: info }
-  }
-}
 
 /**
  * Atualizar equipamento
