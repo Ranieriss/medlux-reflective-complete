@@ -684,13 +684,6 @@ import { format, parseISO, differenceInDays } from 'date-fns'
 import QRCode from 'qrcode'
 
 
-  subscribeToEquipamentos
-} from '@/services/supabase'
-import { useAuthStore } from '@/stores/auth'
-import { requireAdmin } from '@/services/authGuard'
-import { format, parseISO, differenceInDays } from 'date-fns'
-import QRCode from 'qrcode'
-
 
 const authStore = useAuthStore()
 
