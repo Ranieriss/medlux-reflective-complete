@@ -1,5 +1,11 @@
 import { supabase } from './supabase'
 
+function normalizarPerfil(perfil) {
+  const valor = (perfil || '').toString().trim().toUpperCase()
+  if (valor === 'ADMIN' || valor === 'ADMINISTRADOR' || valor === 'ADMINISTRADOR(A)') return 'ADMIN'
+  return 'USER'
+}
+
 /**
  * Detecta o tipo de equipamento baseado no código
  * RHxx-H15 = Horizontal 15m
@@ -90,8 +96,9 @@ export function detectarTipoEquipamento(codigo) {
  */
 export async function buscarEquipamentosDoUsuario(usuarioId, perfil) {
   try {
+    const perfilNormalizado = normalizarPerfil(perfil)
     // Admin vê todos
-    if (perfil === 'administrador' || perfil === 'admin') {
+    if (perfilNormalizado === 'ADMIN') {
       const { data, error } = await supabase
         .from('equipamentos')
         .select('*')
@@ -189,7 +196,7 @@ export async function buscarVinculosAtivos(usuarioId) {
  */
 export async function validarAcessoEquipamento(usuarioId, equipamentoId, perfil) {
   // Admin sempre tem acesso
-  if (perfil === 'administrador' || perfil === 'admin') {
+  if (normalizarPerfil(perfil) === 'ADMIN') {
     return true
   }
   
