@@ -72,12 +72,6 @@ export const buscarCriterioEspecifico = async (params) => {
       return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
     }
 
-    }
-
-    if (!data) {
-      return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
-    }
-
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao buscar critério específico:', error)
