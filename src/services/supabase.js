@@ -74,19 +74,57 @@ function formatarErroSupabase(error, fallback = 'Erro inesperado no Supabase.') 
 
 function getMensagemPermissao(error) {
   const status = error?.status
-  if (status === 403) {
-    return 'Sem permissão para executar esta ação.'
-  }
+  if (error?.code === 'SESSION_EXPIRED') return 'Sessão expirada, faça login novamente'
+  if (error?.code === 'FORBIDDEN_ADMIN_ONLY') return 'Somente ADMIN'
+  if (status === 403) return 'Sem permissão para executar esta ação.'
   return null
 }
 
-async function usuarioAtualEhAdmin() {
+export async function requireSession() {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) throw error
+
+  const session = data?.session || null
+  if (!session) {
+    const sessionError = new Error('Sessão expirada, faça login novamente')
+    sessionError.code = 'SESSION_EXPIRED'
+    throw sessionError
+  }
+
+  return { session }
+}
+
+export async function requireAdmin() {
+  const { session } = await requireSession()
+
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('id, perfil')
+    .eq('auth_user_id', session.user.id)
+    .maybeSingle()
+
+  if (error) throw error
+
+  const perfil = (data?.perfil || '').toString().trim().toUpperCase()
+  if (perfil !== 'ADMIN') {
+    const forbiddenError = new Error('Somente ADMIN')
+    forbiddenError.code = 'FORBIDDEN_ADMIN_ONLY'
+    throw forbiddenError
+  }
+
+  return { session, usuario: data }
+}
+
+// Mantém compatibilidade com código antigo que chamava usuarioAtualEhAdmin()
+export async function usuarioAtualEhAdmin() {
   try {
-    const profile = await getCurrentProfile()
-    return profile.perfilNormalizado === 'ADMIN' || profile.perfilNormalizado === 'ADMINISTRADOR'
+    await requireAdmin()
+    return true
   } catch {
     return false
   }
+}
+
 }
 
 // ============================================
@@ -311,7 +349,11 @@ export async function createEquipamento(equipamento) {
 
     if (error) throw error
     if (!data) {
-      return { success: false, error: 'Falha ao criar equipamento.' }
+if (error) throw error
+if (!data) {
+  return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
+}
+
     }
 
     // Registrar na auditoria

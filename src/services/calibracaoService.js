@@ -67,8 +67,11 @@ export const buscarCriterioEspecifico = async (params) => {
 
     const { data, error } = await query.limit(1).maybeSingle()
 
-    if (error) {
-      throw error
+    if (error) throw error
+    if (!data) {
+      return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
+    }
+
     }
 
     if (!data) {

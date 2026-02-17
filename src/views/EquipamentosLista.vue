@@ -671,7 +671,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
-import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, registrarAuditoria } from '@/services/supabase'
+import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, requireAdmin } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { requireAdmin } from '@/services/authGuard'
 import { format, parseISO, differenceInDays } from 'date-fns'
@@ -763,11 +763,30 @@ const rules = {
 }
 
 
+
+const garantirAdmin = async () => {
+  try {
+    await requireAdmin()
+    return true
+  } catch (error) {
+    if (error?.code === 'SESSION_EXPIRED') {
+      mostrarSnackbar('Sessão expirada, faça login novamente', 'warning')
+      return false
+    }
+
+    mostrarSnackbar('Somente ADMIN', 'warning')
+    return false
+  }
+}
+
 const mapearErroSupabase = (error) => {
   const status = error?.status || null
   const code = error?.code || null
   const hint = error?.hint || null
   const message = error?.message || 'Erro inesperado.'
+
+  if (code === 'SESSION_EXPIRED') return 'Sessão expirada, faça login novamente'
+  if (code === 'FORBIDDEN_ADMIN_ONLY') return 'Somente ADMIN'
 
   if (status === 403) {
     return `Sem permissão para esta ação. (status=${status}, code=${code || 'n/a'})`
@@ -1020,10 +1039,11 @@ const carregarEquipamentos = async () => {
 }
 
 const abrirDialogNovo = async () => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+if (!await garantirAdmin()) {
+  mostrarSnackbar('Somente ADMIN', 'warning')
+  return
+}
+
 
   try {
     await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
@@ -1052,10 +1072,11 @@ const abrirDialogNovo = async () => {
 }
 
 const editarEquipamento = async (equipamento) => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+if (!await requireAdmin()) {
+  mostrarSnackbar('Somente ADMIN', 'warning')
+  return
+}
+
 
   try {
     await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
@@ -1086,10 +1107,7 @@ const processarFoto = async (event) => {
 }
 
 const salvarEquipamento = async () => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+  if (!await garantirAdmin()) return
 
   try {
     await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
@@ -1161,10 +1179,11 @@ const salvarEquipamento = async () => {
 }
 
 const confirmarExclusao = async (equipamento) => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+if (!await garantirAdmin()) {
+  mostrarSnackbar('Somente ADMIN', 'warning')
+  return
+}
+
 
   try {
     await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
@@ -1178,6 +1197,7 @@ const confirmarExclusao = async (equipamento) => {
 
 const excluirEquipamento = async () => {
   if (!equipamentoParaExcluir.value) return
+  if (!await garantirAdmin()) return
 
   try {
     await requireAdmin((message) => mostrarSnackbar(message, 'warning'))

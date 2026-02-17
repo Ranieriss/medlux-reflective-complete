@@ -557,7 +557,8 @@ import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
 import relatorioMedicoesService from '@/services/relatorioMedicoesService'
-import equipamentoService, { listar as listarEquipamentos } from '@/services/equipamentoService'
+import * as equipamentoService from '@/services/equipamentoService'
+
 
 // State
 const auditoria = ref([])
@@ -786,21 +787,23 @@ const formatarDataHora = (data) => {
 // Métodos de Relatórios
 const carregarEquipamentos = async () => {
   try {
-    const listarFn = typeof listarEquipamentos === 'function'
-      ? listarEquipamentos
-      : equipamentoService?.listar
+const listarFn = equipamentoService.listar || equipamentoService.default?.listar
 
-    if (typeof listarFn !== 'function') {
-      throw new Error('Função listar indisponível no serviço de equipamentos')
-    }
+if (typeof listarFn !== 'function') {
+  console.warn('Serviço de equipamentos sem função listar()')
+  equipamentosDisponiveis.value = []
+  return
+}
 
-    const response = await listarFn()
-    equipamentosDisponiveis.value = response.map(eq => ({
+const response = await listarFn()
+equipamentosDisponiveis.value = (response || []).map(eq => ({
+
       ...eq,
-      nome_completo: `${eq.codigo} - ${eq.nome}`
+      nome_completo: `${eq.codigo} - ${eq.nome || eq.modelo || 'Sem nome'}`
     }))
   } catch (error) {
     console.error('Erro ao carregar equipamentos:', error)
+    equipamentosDisponiveis.value = []
   }
 }
 
