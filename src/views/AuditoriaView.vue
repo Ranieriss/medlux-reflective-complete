@@ -557,7 +557,7 @@ import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
 import relatorioMedicoesService from '@/services/relatorioMedicoesService'
-import equipamentoService from '@/services/equipamentoService'
+import { listar as listarEquipamentos } from '@/services/equipamentoService'
 
 // State
 const auditoria = ref([])
@@ -786,7 +786,7 @@ const formatarDataHora = (data) => {
 // Métodos de Relatórios
 const carregarEquipamentos = async () => {
   try {
-    const response = await equipamentoService.listar()
+    const response = await listarEquipamentos()
     equipamentosDisponiveis.value = response.map(eq => ({
       ...eq,
       nome_completo: `${eq.codigo} - ${eq.nome}`
@@ -880,7 +880,12 @@ const gerarRelatorio = async () => {
     }
   } catch (error) {
     console.error('Erro ao gerar relatório:', error)
-    alert(`❌ Erro ao gerar relatório:\n${error.message}`)
+    const mensagem = (error?.message || '').toLowerCase()
+    if (mensagem.includes('nenhuma medição')) {
+      alert('⚠️ Nenhuma medição encontrada para os filtros selecionados.')
+    } else {
+      alert(`❌ Erro ao gerar relatório:\n${error.message}`)
+    }
   } finally {
     gerandoRelatorio.value = false
   }

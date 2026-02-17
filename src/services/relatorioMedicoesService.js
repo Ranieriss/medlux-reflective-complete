@@ -210,9 +210,12 @@ class RelatorioMedicoesService {
         .from('equipamentos')
         .select('*')
         .eq('id', equipamentoId)
-        .single()
+        .maybeSingle()
 
       if (errorEquip) throw errorEquip
+      if (!equipamento) {
+        throw new Error('Equipamento não encontrado para gerar relatório')
+      }
 
       const dadosRelatorio = {
         titulo: `RELATÓRIO INDIVIDUAL DE MEDIÇÕES`,

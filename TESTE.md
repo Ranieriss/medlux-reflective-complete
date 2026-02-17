@@ -283,3 +283,18 @@ Se encontrar algum bug ou tiver sugestões, documente:
 
 **Desenvolvido por**: AI Developer
 **Data**: 2024
+
+---
+
+## ✅ CHECKLIST SUPABASE + RLS (CAMINHO B)
+
+- [ ] ADMIN cria equipamento `RH01` sem erro 403.
+- [ ] USER não vê botão **Novo Equipamento**.
+- [ ] USER não consegue criar/editar/excluir equipamento (mensagem: "Somente ADMIN").
+- [ ] USER vê apenas equipamentos vinculados.
+- [ ] Importar backup JSON mostra preview antes de importar.
+- [ ] Importar backup JSON ignora tabelas desconhecidas sem quebrar.
+- [ ] Importar backup JSON mapeia campos legados (ex.: `marca -> fabricante`).
+- [ ] Erro `23505` em usuários mostra "E-mail já cadastrado".
+- [ ] Evitar `406` em consultas que podem retornar 0 linhas (`maybeSingle` + tratamento de `null`).
+- [ ] Erro `403` mostra mensagem útil de permissão.

@@ -997,7 +997,7 @@ const carregarEquipamentos = async () => {
       }))
       console.log(`✅ ${data.length} equipamentos vinculados carregados`)
     } else {
-      // Admin/técnico vê todos
+      // ADMIN vê todos
       const resultado = await getEquipamentos()
       if (resultado.success) {
         equipamentos.value = (resultado.data || []).map(eq => ({
@@ -1019,7 +1019,7 @@ const carregarEquipamentos = async () => {
 
 const abrirDialogNovo = () => {
   if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Sem permissão para cadastrar equipamentos', 'warning')
+    mostrarSnackbar('Somente ADMIN', 'warning')
     return
   }
 
@@ -1045,7 +1045,7 @@ const abrirDialogNovo = () => {
 
 const editarEquipamento = (equipamento) => {
   if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Sem permissão para editar equipamentos', 'warning')
+    mostrarSnackbar('Somente ADMIN', 'warning')
     return
   }
 
@@ -1073,7 +1073,7 @@ const processarFoto = async (event) => {
 
 const salvarEquipamento = async () => {
   if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Sem permissão para salvar equipamentos', 'warning')
+    mostrarSnackbar('Somente ADMIN', 'warning')
     return
   }
 
@@ -1142,7 +1142,7 @@ const salvarEquipamento = async () => {
 
 const confirmarExclusao = (equipamento) => {
   if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Sem permissão para excluir equipamentos', 'warning')
+    mostrarSnackbar('Somente ADMIN', 'warning')
     return
   }
 

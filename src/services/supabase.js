@@ -466,9 +466,12 @@ export async function getDashboardStats() {
     const { data, error } = await supabase
       .from('vw_dashboard_stats')
       .select('*')
-      .single()
+      .maybeSingle()
 
     if (error) throw error
+    if (!data) {
+      return { success: true, data: {} }
+    }
 
     return { success: true, data }
   } catch (error) {

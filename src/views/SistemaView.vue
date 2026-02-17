@@ -157,11 +157,9 @@
                       density="compact"
                       class="mb-3"
                     >
-                      Preview:
-                      equipamentos={{ previewImportacao.equipamentos }},
-                      usuarios={{ previewImportacao.usuarios }},
-                      vinculos={{ previewImportacao.vinculos }},
-                      auditoria={{ previewImportacao.auditoria }}
+                      Preview: equipamentos={{ previewImportacao.equipamentos }}, usuarios={{ previewImportacao.usuarios }},
+                      vinculos={{ previewImportacao.vinculos }}, auditoria={{ previewImportacao.auditoria }},
+                      ignoradas={{ previewImportacao.ignoradas || 0 }}
                     </v-alert>
                     <v-btn
                       color="warning"
@@ -506,19 +504,43 @@ const exportarBackup = async () => {
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''))
 const gerarUuid = () => crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`
 
-const mapearRegistro = (registro = {}, tabela) => {
+const tabelasSuportadas = ['equipamentos', 'usuarios', 'vinculos', 'auditoria']
+const conflitosPorTabela = {
+  equipamentos: 'codigo',
+  usuarios: 'email',
+  vinculos: 'id',
+  auditoria: 'id'
+}
+
+const normalizarDataISO = (valor) => {
+  if (!valor) return null
+  const data = new Date(valor)
+  return Number.isNaN(data.getTime()) ? null : data.toISOString()
+}
+
+const mapearRegistro = (registro = {}, tabela, idMap = new Map()) => {
   const base = { ...registro }
 
-  if (tabela === 'equipamentos' && !base.fabricante && base.marca) {
-    base.fabricante = base.marca
+  if (tabela === 'equipamentos') {
+    if (!base.fabricante && base.marca) {
+      base.fabricante = base.marca
+    }
+    if (!base.nome && (base.modelo || base.codigo)) {
+      base.nome = String(base.modelo || base.codigo)
+    }
   }
 
   if (tabela === 'usuarios' && base.email) {
     base.email = String(base.email).trim().toLowerCase()
   }
 
+  if (base.created_at) base.created_at = normalizarDataISO(base.created_at)
+  if (base.updated_at) base.updated_at = normalizarDataISO(base.updated_at)
+
   if (base.id && !isUuid(base.id)) {
+    const idOriginal = base.id
     base.id = gerarUuid()
+    idMap.set(String(idOriginal), base.id)
   }
 
   return base
@@ -529,15 +551,34 @@ const normalizarBackup = (backup) => {
     throw new Error('Arquivo de backup inválido')
   }
 
-  const tabelas = ['equipamentos', 'usuarios', 'vinculos', 'auditoria']
   const data = {}
+  const logs = []
+  const idMap = new Map()
+  const tabelasEncontradas = Object.keys(backup.data || {})
+  const tabelasIgnoradas = tabelasEncontradas.filter((tabela) => !tabelasSuportadas.includes(tabela))
 
-  for (const tabela of tabelas) {
-    const registros = Array.isArray(backup.data[tabela]) ? backup.data[tabela] : []
-    data[tabela] = registros.map((registro) => mapearRegistro(registro, tabela))
+  for (const tabela of tabelasIgnoradas) {
+    logs.push(`Tabela ignorada: ${tabela}`)
   }
 
-  return data
+  for (const tabela of tabelasSuportadas) {
+    const registros = Array.isArray(backup.data[tabela]) ? backup.data[tabela] : []
+    data[tabela] = registros.map((registro) => mapearRegistro(registro, tabela, idMap))
+  }
+
+  // Ajustar relações com UUID regenerado
+  data.vinculos = data.vinculos.map((item) => {
+    const vinculo = { ...item }
+    if (vinculo.usuario_id && idMap.has(String(vinculo.usuario_id))) {
+      vinculo.usuario_id = idMap.get(String(vinculo.usuario_id))
+    }
+    if (vinculo.equipamento_id && idMap.has(String(vinculo.equipamento_id))) {
+      vinculo.equipamento_id = idMap.get(String(vinculo.equipamento_id))
+    }
+    return vinculo
+  })
+
+  return { data, logs, tabelasIgnoradas }
 }
 
 const analisarBackupSelecionado = async () => {
@@ -550,13 +591,15 @@ const analisarBackupSelecionado = async () => {
     const file = arquivoBackup.value[0] || arquivoBackup.value
     const text = await file.text()
     const backup = JSON.parse(text)
-    const data = normalizarBackup(backup)
+    const normalizado = normalizarBackup(backup)
 
     previewImportacao.value = {
-      equipamentos: data.equipamentos.length,
-      usuarios: data.usuarios.length,
-      vinculos: data.vinculos.length,
-      auditoria: data.auditoria.length
+      equipamentos: normalizado.data.equipamentos.length,
+      usuarios: normalizado.data.usuarios.length,
+      vinculos: normalizado.data.vinculos.length,
+      auditoria: normalizado.data.auditoria.length,
+      ignoradas: normalizado.tabelasIgnoradas.length,
+      logs: normalizado.logs
     }
   } catch (error) {
     previewImportacao.value = null
@@ -574,28 +617,31 @@ const importarBackup = async () => {
     const file = arquivoBackup.value[0] || arquivoBackup.value
     const text = await file.text()
     const backup = JSON.parse(text)
-    const data = normalizarBackup(backup)
+    const normalizado = normalizarBackup(backup)
+    const data = normalizado.data
 
     const resultados = { equipamentos: 0, usuarios: 0, vinculos: 0, auditoria: 0 }
+    const logsImportacao = [...normalizado.logs]
 
-    const operacoes = [
-      { tabela: 'equipamentos', conflito: 'codigo' },
-      { tabela: 'usuarios', conflito: 'email' },
-      { tabela: 'vinculos', conflito: 'id' },
-      { tabela: 'auditoria', conflito: 'id' }
-    ]
+    for (const tabela of tabelasSuportadas) {
+      const registros = data[tabela] || []
+      if (!registros.length) continue
 
-    for (const op of operacoes) {
-      if (!data[op.tabela]?.length) continue
+      const conflito = conflitosPorTabela[tabela]
+      const { error } = await supabase
+        .from(tabela)
+        .upsert(registros, { onConflict: conflito, ignoreDuplicates: false })
 
-      for (const registro of data[op.tabela]) {
-        const { error } = await supabase.from(op.tabela).upsert(registro, { onConflict: op.conflito, ignoreDuplicates: false })
-        if (!error) {
-          resultados[op.tabela]++
-        } else if (!String(error.message || '').toLowerCase().includes('does not exist')) {
-          console.warn(`⚠️ Falha ao importar ${op.tabela}:`, error.message)
-        }
+      if (error) {
+        logsImportacao.push(`Falha em ${tabela}: ${error.message}`)
+        continue
       }
+
+      resultados[tabela] += registros.length
+    }
+
+    if (logsImportacao.length) {
+      console.warn('⚠️ Importação com observações:', logsImportacao)
     }
 
     mostrarSnackbar(`Importação concluída. Equipamentos: ${resultados.equipamentos}, Usuários: ${resultados.usuarios}, Vínculos: ${resultados.vinculos}, Auditoria: ${resultados.auditoria}.`, 'success')
