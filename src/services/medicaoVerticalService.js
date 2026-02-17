@@ -8,6 +8,24 @@
 
 import { supabase } from './supabase'
 
+function formatSupabaseError(error, fallback) {
+  return {
+    code: error?.code || null,
+    message: error?.message || fallback,
+    details: error?.details || null,
+    hint: error?.hint || null
+  }
+}
+
+async function ensureAuthenticatedSession() {
+  const { data, error } = await supabase.auth.getSession()
+  if (error || !data?.session?.user?.id) {
+    throw Object.assign(new Error('Sessão inválida ou ausente. Faça login novamente para salvar leituras.'), {
+      diagnostic: formatSupabaseError(error, 'Sessão não encontrada para a operação de escrita.')
+    })
+  }
+}
+
 /**
  * Criar nova placa vertical
  */
@@ -110,10 +128,14 @@ export async function adicionarGeometria(dados) {
  */
 export async function adicionarLeituras(geometriaId, valores) {
   try {
+    await ensureAuthenticatedSession()
+
     const leituras = valores.map((valor, index) => ({
-      geometria_medicao_id: geometriaId,
+      geometria_id: geometriaId,
       numero_leitura: index + 1,
-      valor_cd_lx_m2: parseFloat(valor)
+      valor_cd_lx_m2: parseFloat(valor),
+      observacoes: null,
+      usuario_id: null
     }))
 
     const { data, error } = await supabase
@@ -121,12 +143,20 @@ export async function adicionarLeituras(geometriaId, valores) {
       .insert(leituras)
       .select()
 
-    if (error) throw error
+    if (error) {
+      throw Object.assign(new Error('Falha ao inserir leituras verticais.'), {
+        diagnostic: formatSupabaseError(error, 'Erro inesperado ao inserir em leituras_vertical.')
+      })
+    }
 
     return { success: true, data, count: data.length }
   } catch (error) {
     console.error('❌ Erro ao adicionar leituras:', error)
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: error.message,
+      diagnostic: error?.diagnostic || formatSupabaseError(error, 'Erro ao inserir leituras verticais.')
+    }
   }
 }
 

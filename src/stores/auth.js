@@ -93,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const limparSessaoLocal = () => {
     localStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(STORAGE_KEY)
   }
 
   const carregarPerfilUsuario = async () => {
