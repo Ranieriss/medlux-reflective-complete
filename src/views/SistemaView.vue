@@ -702,9 +702,9 @@ const normalizarBackup = (backup) => {
   const origem = extrairDadosBackup(backup)
 
 
-    vistos.add(valor)
-    return true
-  })
+vistos.add(valor)
+return true
+})
 }
 
 const normalizarBackup = (backup) => {
