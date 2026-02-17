@@ -5,9 +5,11 @@ import { createClient } from '@supabase/supabase-js'
 import {
   hasSupabaseEnv,
   invalidSupabaseEnvVars,
+  maskSupabaseKey,
   missingSupabaseEnvVars,
   supabaseAnonKey,
   supabaseEnvErrorMessage,
+  supabaseKeySource,
   supabaseUrl
 } from '@/config/env'
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
@@ -19,7 +21,7 @@ if (!hasSupabaseEnv) {
   if (invalidSupabaseEnvVars.length > 0) {
     console.error('⚠️ [supabase] variáveis de ambiente inválidas:', invalidSupabaseEnvVars.join(', '))
   }
-  console.error('ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel e gere novo deploy.')
+  console.error('ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou VITE_SUPABASE_PUBLISHABLE_KEY) no ambiente da Vercel e gere novo deploy.')
   console.error(supabaseEnvErrorMessage)
 }
 
@@ -49,7 +51,15 @@ export const supabase = hasSupabaseEnv
     })
   : buildMissingEnvProxy()
 
-export { hasSupabaseEnv, missingSupabaseEnvVars, supabaseEnvErrorMessage }
+export {
+  hasSupabaseEnv,
+  maskSupabaseKey,
+  missingSupabaseEnvVars,
+  supabaseAnonKey,
+  supabaseEnvErrorMessage,
+  supabaseKeySource,
+  supabaseUrl
+}
 
 // ============================================
 // AUTENTICAÇÃO

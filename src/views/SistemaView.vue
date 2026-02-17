@@ -382,10 +382,11 @@ import { ref, onMounted } from 'vue'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
+import { supabaseUrl } from '@/config/env'
 
 // State
 const versaoSistema = '2.0.0'
-const apiUrl = import.meta.env.VITE_SUPABASE_URL || 'N/A'
+const apiUrl = supabaseUrl || 'N/A'
 const dataAtual = format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
 const conexaoOk = ref(true)
 const carregandoStats = ref(false)
