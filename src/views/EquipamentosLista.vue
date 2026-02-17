@@ -30,7 +30,7 @@
               variant="outlined"
               density="compact"
               clearable
-              hint="Código, marca ou modelo"
+              hint="Código, marca/fabricante ou modelo"
             />
           </v-col>
 
@@ -269,6 +269,17 @@
 
               <v-col cols="12" md="6">
                 <v-text-field
+                  v-model="equipamentoForm.fabricante"
+                  label="Marca/Fabricante *"
+                  :rules="[rules.required]"
+                  variant="outlined"
+                  density="comfortable"
+                  prepend-inner-icon="mdi-factory"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
                   v-model="equipamentoForm.modelo"
                   label="Modelo *"
                   :rules="[rules.required]"
@@ -488,8 +499,8 @@
 
             <v-col cols="12" md="6">
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Marca</p>
-                <p class="text-body-1">{{ equipamentoSelecionado.marca }}</p>
+                <p class="text-caption text-secondary mb-1">Marca/Fabricante</p>
+                <p class="text-body-1">{{ equipamentoSelecionado.fabricante || equipamentoSelecionado.marca || '-' }}</p>
               </div>
             </v-col>
 
@@ -710,6 +721,7 @@ const headers = [
   { title: 'Código', key: 'codigo', sortable: true },
   { title: 'Tipo', key: 'tipo', sortable: true },
   { title: 'Certificado', key: 'certificado_url', sortable: false },
+  { title: 'Marca/Fabricante', key: 'fabricante', sortable: true },
   { title: 'Modelo', key: 'modelo', sortable: true },
   { title: 'Número de Série', key: 'numero_serie', sortable: false },
   { title: 'Status', key: 'status', sortable: true },
@@ -722,6 +734,7 @@ const equipamentoForm = ref({
   codigo: '',
   tipo: null,
   certificado_url: '',
+  fabricante: '',
   modelo: '',
   numero_serie: '',
   data_aquisicao: '',
@@ -783,14 +796,12 @@ const equipamentosFiltrados = computed(() => {
     resultado = resultado.filter(eq => {
       const codigo = (eq.codigo || '').toLowerCase()
       const modelo = (eq.modelo || '').toLowerCase()
-      const marca = (eq.marca || '').toLowerCase()
       const numero_serie = (eq.numero_serie || '').toLowerCase()
       const fabricante = (eq.fabricante || '').toLowerCase()
       const nome = (eq.nome || '').toLowerCase()
       
       const match = codigo.includes(busca) || 
              modelo.includes(busca) ||
-             marca.includes(busca) ||
              numero_serie.includes(busca) ||
              fabricante.includes(busca) ||
              nome.includes(busca)
@@ -941,13 +952,19 @@ const carregarEquipamentos = async () => {
         .order('codigo')
       
       if (error) throw error
-      equipamentos.value = data
+      equipamentos.value = (data || []).map(eq => ({
+        ...eq,
+        fabricante: eq.fabricante || eq.marca || ''
+      }))
       console.log(`✅ ${data.length} equipamentos vinculados carregados`)
     } else {
       // Admin/técnico vê todos
       const resultado = await getEquipamentos()
       if (resultado.success) {
-        equipamentos.value = resultado.data
+        equipamentos.value = (resultado.data || []).map(eq => ({
+          ...eq,
+          fabricante: eq.fabricante || eq.marca || ''
+        }))
         console.log(`✅ ${resultado.data.length} equipamentos carregados`)
       } else {
         throw new Error(resultado.error)
@@ -966,7 +983,7 @@ const abrirDialogNovo = () => {
   equipamentoForm.value = {
     codigo: '',
     tipo: null,
-    marca: '',
+    fabricante: '',
     modelo: '',
     numero_serie: '',
     data_aquisicao: '',
@@ -984,7 +1001,7 @@ const abrirDialogNovo = () => {
 
 const editarEquipamento = (equipamento) => {
   modoEdicao.value = true
-  equipamentoForm.value = { ...equipamento }
+  equipamentoForm.value = { ...equipamento, fabricante: equipamento.fabricante || equipamento.marca || '' }
   dialogVisualizacao.value = false
   dialogForm.value = true
 }
@@ -1020,7 +1037,7 @@ const salvarEquipamento = async () => {
       nome: `${equipamentoForm.value.modelo || ''}`.trim() || 'Equipamento',
       tipo: equipamentoForm.value.tipo?.toLowerCase() || 'horizontal',
       status: equipamentoForm.value.status || 'ativo',
-      fabricante: equipamentoForm.value.modelo,
+      fabricante: equipamentoForm.value.fabricante,
       modelo: equipamentoForm.value.modelo,
       numero_serie: equipamentoForm.value.numero_serie,
       localizacao: equipamentoForm.value.localizacao,

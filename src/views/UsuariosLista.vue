@@ -706,7 +706,7 @@ const carregarUsuarios = async () => {
     carregando.value = true
     const { data, error } = await supabase
       .from('usuarios')
-      .select('*')
+      .select('id, nome, email, cpf, telefone, senha_hash, perfil, ativo, foto_url, cautela_url, ultimo_acesso, created_at, updated_at')
       .order('nome')
 
     if (error) throw error
