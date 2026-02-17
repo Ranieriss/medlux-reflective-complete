@@ -160,6 +160,12 @@
                       Preview: equipamentos={{ previewImportacao.equipamentos }}, usuarios={{ previewImportacao.usuarios }},
                       vinculos={{ previewImportacao.vinculos }}, auditoria={{ previewImportacao.auditoria }},
                       ignoradas={{ previewImportacao.ignoradas || 0 }}
+                      <div v-if="previewImportacao.warnings?.length" class="mt-2">
+                        <strong>Warnings:</strong>
+                        <ul class="pl-4">
+                          <li v-for="(warning, index) in previewImportacao.warnings.slice(0, 5)" :key="index">{{ warning }}</li>
+                        </ul>
+                      </div>
                     </v-alert>
                     <v-btn
                       color="warning"
@@ -512,22 +518,62 @@ const conflitosPorTabela = {
   auditoria: 'id'
 }
 
-const normalizarDataISO = (valor) => {
+const normalizarDataISO = (valor, somenteData = false) => {
   if (!valor) return null
   const data = new Date(valor)
-  return Number.isNaN(data.getTime()) ? null : data.toISOString()
+  if (Number.isNaN(data.getTime())) return null
+  if (somenteData) return data.toISOString().slice(0, 10)
+  return data.toISOString()
 }
 
-const mapearRegistro = (registro = {}, tabela, idMap = new Map()) => {
+const extrairDadosBackup = (backup) => {
+  if (!backup || typeof backup !== 'object') {
+    throw new Error('Arquivo de backup inválido')
+  }
+
+  if (backup.data && typeof backup.data === 'object') {
+    return backup.data
+  }
+
+  // Compatibilidade com medlux-control (tabelas na raiz)
+  const root = {}
+  for (const tabela of tabelasSuportadas) {
+    if (Array.isArray(backup[tabela])) {
+      root[tabela] = backup[tabela]
+    }
+  }
+
+  if (Object.keys(root).length > 0) {
+    return root
+  }
+
+  throw new Error('Backup sem estrutura compatível')
+}
+
+const mapearRegistro = (registro = {}, tabela, idMap = new Map(), warnings = []) => {
   const base = { ...registro }
 
   if (tabela === 'equipamentos') {
     if (!base.fabricante && base.marca) {
-      base.fabricante = base.marca
+      base.fabricante = String(base.marca)
+      warnings.push(`equipamentos: marca mapeada para fabricante (${base.codigo || 'sem-codigo'})`)
     }
+
+    if (!base.certificado_url) {
+      base.certificado_url = base.certificado_calibracao || base.certificadoCalibracaoUrl || null
+    }
+
+    if (!base.foto_url) {
+      base.foto_url = base.termo_pdf_url || base.cautela_url || null
+    }
+
     if (!base.nome && (base.modelo || base.codigo)) {
       base.nome = String(base.modelo || base.codigo)
     }
+
+    if (base.data_aquisicao) base.data_aquisicao = normalizarDataISO(base.data_aquisicao, true)
+    if (base.ultima_calibracao) base.ultima_calibracao = normalizarDataISO(base.ultima_calibracao, true)
+    if (base.proxima_calibracao) base.proxima_calibracao = normalizarDataISO(base.proxima_calibracao, true)
   }
 
   if (tabela === 'usuarios' && base.email) {
@@ -546,15 +592,24 @@ const mapearRegistro = (registro = {}, tabela, idMap = new Map()) => {
   return base
 }
 
-const normalizarBackup = (backup) => {
-  if (!backup?.data || typeof backup.data !== 'object') {
-    throw new Error('Arquivo de backup inválido')
+const deduplicarPor = (lista, keyFn) => {
+  const seen = new Map()
+  for (const item of lista) {
+    const key = keyFn(item)
+    if (!key) continue
+    seen.set(String(key), item)
   }
+  return Array.from(seen.values())
+}
+
+const normalizarBackup = (backup) => {
+  const origem = extrairDadosBackup(backup)
 
   const data = {}
   const logs = []
+  const warnings = []
   const idMap = new Map()
-  const tabelasEncontradas = Object.keys(backup.data || {})
+  const tabelasEncontradas = Object.keys(origem || {})
   const tabelasIgnoradas = tabelasEncontradas.filter((tabela) => !tabelasSuportadas.includes(tabela))
 
   for (const tabela of tabelasIgnoradas) {
@@ -562,9 +617,12 @@ const normalizarBackup = (backup) => {
   }
 
   for (const tabela of tabelasSuportadas) {
-    const registros = Array.isArray(backup.data[tabela]) ? backup.data[tabela] : []
-    data[tabela] = registros.map((registro) => mapearRegistro(registro, tabela, idMap))
+    const registros = Array.isArray(origem[tabela]) ? origem[tabela] : []
+    data[tabela] = registros.map((registro) => mapearRegistro(registro, tabela, idMap, warnings))
   }
+
+  data.equipamentos = deduplicarPor(data.equipamentos, item => item.codigo?.toString().trim().toUpperCase())
+  data.usuarios = deduplicarPor(data.usuarios, item => item.email?.toString().trim().toLowerCase())
 
   // Ajustar relações com UUID regenerado
   data.vinculos = data.vinculos.map((item) => {
@@ -578,7 +636,7 @@ const normalizarBackup = (backup) => {
     return vinculo
   })
 
-  return { data, logs, tabelasIgnoradas }
+  return { data, logs, warnings, tabelasIgnoradas }
 }
 
 const analisarBackupSelecionado = async () => {
@@ -599,7 +657,8 @@ const analisarBackupSelecionado = async () => {
       vinculos: normalizado.data.vinculos.length,
       auditoria: normalizado.data.auditoria.length,
       ignoradas: normalizado.tabelasIgnoradas.length,
-      logs: normalizado.logs
+      logs: normalizado.logs,
+      warnings: normalizado.warnings
     }
   } catch (error) {
     previewImportacao.value = null
@@ -621,28 +680,35 @@ const importarBackup = async () => {
     const data = normalizado.data
 
     const resultados = { equipamentos: 0, usuarios: 0, vinculos: 0, auditoria: 0 }
-    const logsImportacao = [...normalizado.logs]
+    const logsImportacao = [...normalizado.logs, ...normalizado.warnings]
 
     for (const tabela of tabelasSuportadas) {
       const registros = data[tabela] || []
-      if (!registros.length) continue
+      if (!registros.length) {
+        logsImportacao.push(`Tabela sem registros para importar: ${tabela}`)
+        continue
+      }
 
       const conflito = conflitosPorTabela[tabela]
+      const payload = tabela === 'auditoria' ? registros.slice(0, 5000) : registros
+
       const { error } = await supabase
         .from(tabela)
-        .upsert(registros, { onConflict: conflito, ignoreDuplicates: false })
+        .upsert(payload, { onConflict: conflito, ignoreDuplicates: false })
 
       if (error) {
         logsImportacao.push(`Falha em ${tabela}: ${error.message}`)
         continue
       }
 
-      resultados[tabela] += registros.length
+      resultados[tabela] += payload.length
+      logsImportacao.push(`Importados ${payload.length} registro(s) em ${tabela}`)
     }
 
     if (logsImportacao.length) {
       console.warn('⚠️ Importação com observações:', logsImportacao)
     }
+    console.info('📦 Log detalhado da importação:', logsImportacao)
 
     mostrarSnackbar(`Importação concluída. Equipamentos: ${resultados.equipamentos}, Usuários: ${resultados.usuarios}, Vínculos: ${resultados.vinculos}, Auditoria: ${resultados.auditoria}.`, 'success')
     await carregarEstatisticas()
