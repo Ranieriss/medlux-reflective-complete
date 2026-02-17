@@ -48,9 +48,15 @@
                   <div><strong>Key definida:</strong> {{ diagnosticoSupabase.keyDefinida ? 'sim' : 'não' }}</div>
                   <div><strong>Fonte da key:</strong> {{ diagnosticoSupabase.fonteKey || 'não definida' }}</div>
                   <div><strong>Key mascarada:</strong> {{ diagnosticoSupabase.keyMascarada }}</div>
-                  <div class="mt-2"><strong>Auth:</strong> {{ diagnosticoSupabase.authStatus }}</div>
-                  <div><strong>Perfil:</strong> {{ diagnosticoSupabase.perfilStatus }}</div>
-                  <div><strong>RLS:</strong> {{ diagnosticoSupabase.rlsStatus }}</div>
+                  <div><strong>Env OK:</strong> {{ diagnosticoSupabase.envOk ? 'sim' : 'não' }}</div>
+                  <div><strong>Supabase client:</strong> {{ diagnosticoSupabase.clientOk ? 'ok' : 'indisponível' }}</div>
+                  <div><strong>Sessão:</strong> {{ diagnosticoSupabase.sessionStatus }}</div>
+                  <div><strong>Perfil carregado:</strong> {{ diagnosticoSupabase.perfilStatus }}</div>
+                  <div><strong>Teste trechos_medicao:</strong> {{ diagnosticoSupabase.trechosStatus }}</div>
+                  <div><strong>Teste leituras_medicao:</strong> {{ diagnosticoSupabase.leiturasStatus }}</div>
+                  <v-btn size="small" variant="text" class="mt-2" @click="executarDiagnostico">
+                    Reexecutar diagnóstico
+                  </v-btn>
                 </div>
               </v-expansion-panel-text>
             </v-expansion-panel>
@@ -240,6 +246,7 @@ import {
   hasSupabaseEnv,
   maskSupabaseKey,
   resetPassword,
+  supabase,
   supabaseAnonKey,
   supabaseEnvErrorMessage,
   supabaseKeySource,
@@ -254,13 +261,16 @@ const diagnosticoForcado = route.query.debugSupabase === '1'
 const diagnosticoDisponivel = computed(() => isDev || diagnosticoForcado)
 const diagnosticoSupabase = computed(() => ({
   hostname: typeof window !== 'undefined' ? window.location.hostname : 'n/a',
+  envOk: hasSupabaseEnv,
+  clientOk: hasSupabaseEnv && !!supabase,
   urlDefinida: !!supabaseUrl,
   keyDefinida: !!supabaseAnonKey,
   fonteKey: supabaseKeySource,
   keyMascarada: maskSupabaseKey(supabaseAnonKey),
-  authStatus: diagnosticoRuntime.value.auth,
+  sessionStatus: diagnosticoRuntime.value.session,
   perfilStatus: diagnosticoRuntime.value.perfil,
-  rlsStatus: diagnosticoRuntime.value.rls
+  trechosStatus: diagnosticoRuntime.value.trechos,
+  leiturasStatus: diagnosticoRuntime.value.leituras
 }))
 
 
@@ -277,7 +287,7 @@ const erroDetalhes = ref({ status: null, message: '', code: null })
 const precisaConfirmarEmail = ref(false)
 const mensagemStatus = ref('')
 const tipoMensagemStatus = ref('success')
-const diagnosticoRuntime = ref({ auth: 'Pendente', perfil: 'Pendente', rls: 'Pendente' })
+const diagnosticoRuntime = ref({ session: 'Pendente', perfil: 'Pendente', trechos: 'Pendente', leituras: 'Pendente' })
 
 // Recuperação de senha
 const dialogRecuperacao = ref(false)
@@ -308,24 +318,20 @@ const handleLogin = async () => {
   etapaErro.value = ''
   erroDetalhes.value = { status: null, message: '', code: null }
   precisaConfirmarEmail.value = false
-  diagnosticoRuntime.value = { auth: 'Executando...', perfil: 'Aguardando', rls: 'Aguardando' }
+  diagnosticoRuntime.value = { session: 'Executando...', perfil: 'Aguardando', trechos: 'Aguardando', leituras: 'Aguardando' }
 
   try {
     const resultado = await authStore.login(email.value, senha.value)
     
     if (resultado.sucesso) {
-      diagnosticoRuntime.value = { auth: 'Auth OK', perfil: 'Perfil OK', rls: 'RLS OK (consulta de perfil executada)' }
+      await executarDiagnostico()
       router.push('/dashboard')
     } else {
       erro.value = resultado.mensagem
       etapaErro.value = resultado.etapa || 'Auth'
       erroDetalhes.value = resultado.detalhes || { status: null, message: '', code: null }
       precisaConfirmarEmail.value = !!resultado.precisaConfirmarEmail
-      diagnosticoRuntime.value = {
-        auth: resultado.detalhes?.code ? `Falha (${resultado.detalhes.code})` : 'Falha',
-        perfil: erro.value.toLowerCase().includes('perfil') || erro.value.toLowerCase().includes('usuário autenticado') ? 'Falha de perfil' : 'Não executado',
-        rls: erro.value.toLowerCase().includes('rls') ? 'Falha de RLS' : 'Não validado'
-      }
+      await executarDiagnostico()
     }
   } catch (error) {
     console.error('Erro no login:', error)
@@ -337,10 +343,77 @@ const handleLogin = async () => {
       code: error?.code ?? null
     }
     precisaConfirmarEmail.value = false
-    diagnosticoRuntime.value = { auth: 'Falha inesperada', perfil: 'Não validado', rls: 'Não validado' }
+    await executarDiagnostico()
   } finally {
     carregando.value = false
   }
+}
+
+
+const formatDiagError = (prefixo, error) => {
+  const code = error?.code || 'n/a'
+  const msg = error?.message || 'sem mensagem'
+  return `${prefixo} (code=${code}): ${msg}`
+}
+
+const executarDiagnostico = async () => {
+  if (!hasSupabaseEnv) {
+    diagnosticoRuntime.value = {
+      session: 'Env inválido',
+      perfil: 'Env inválido',
+      trechos: 'Env inválido',
+      leituras: 'Env inválido'
+    }
+    return
+  }
+
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  const authId = sessionData?.session?.user?.id
+
+  if (sessionError) {
+    diagnosticoRuntime.value = {
+      session: formatDiagError('Falha na sessão', sessionError),
+      perfil: 'Não executado',
+      trechos: 'Não executado',
+      leituras: 'Não executado'
+    }
+    return
+  }
+
+  diagnosticoRuntime.value.session = authId ? `ok (${authId})` : 'sem sessão ativa'
+
+  if (!authId) {
+    diagnosticoRuntime.value.perfil = 'Não executado (sem sessão)'
+    diagnosticoRuntime.value.trechos = 'Não executado (sem sessão)'
+    diagnosticoRuntime.value.leituras = 'Não executado (sem sessão)'
+    return
+  }
+
+  const { data: usuario, error: perfilError } = await supabase
+    .from('usuarios')
+    .select('id, perfil, auth_user_id')
+    .eq('auth_user_id', authId)
+    .maybeSingle()
+
+  diagnosticoRuntime.value.perfil = perfilError
+    ? formatDiagError('Falha no perfil', perfilError)
+    : usuario
+      ? `ok (id=${usuario.id}, perfil=${usuario.perfil})`
+      : 'sem cadastro em public.usuarios'
+
+  const { error: trechosError } = await supabase.from('trechos_medicao').select('id').limit(1)
+  diagnosticoRuntime.value.trechos = trechosError
+    ? formatDiagError('Falha', trechosError)
+    : 'ok'
+
+  const { data: leiturasData, error: leiturasError } = await supabase
+    .from('leituras_medicao')
+    .select('id')
+    .limit(5)
+
+  diagnosticoRuntime.value.leituras = leiturasError
+    ? formatDiagError('Falha', leiturasError)
+    : `ok (${leiturasData?.length || 0} registro(s))`
 }
 
 // Recuperação de senha
@@ -351,12 +424,14 @@ const abrirRecuperacaoSenha = () => {
 }
 
 
-onMounted(() => {
+onMounted(async () => {
   if (route.query.status === 'senha-atualizada') {
     mensagemStatus.value = 'Senha atualizada com sucesso. Faça login com sua nova senha.'
     tipoMensagemStatus.value = 'success'
     router.replace({ path: '/login' })
   }
+
+  await executarDiagnostico()
 })
 
 const enviarRecuperacao = async () => {

@@ -8,6 +8,24 @@
 
 import { supabase } from './supabase'
 
+function formatSupabaseError(error, fallback) {
+  return {
+    code: error?.code || null,
+    message: error?.message || fallback,
+    details: error?.details || null,
+    hint: error?.hint || null
+  }
+}
+
+async function ensureAuthenticatedSession() {
+  const { data, error } = await supabase.auth.getSession()
+  if (error || !data?.session?.user?.id) {
+    throw Object.assign(new Error('Sessão inválida ou ausente. Faça login novamente para salvar leituras.'), {
+      diagnostic: formatSupabaseError(error, 'Sessão não encontrada para a operação de escrita.')
+    })
+  }
+}
+
 /**
  * Criar novo trecho de medição
  */
@@ -105,23 +123,36 @@ export async function criarEstacao(dados) {
  */
 export async function adicionarLeitura(dados) {
   try {
+    await ensureAuthenticatedSession()
+
     const { data, error } = await supabase
       .from('leituras_medicao')
       .insert({
         estacao_id: dados.estacao_id,
         numero_leitura: dados.numero_leitura,
-        valor_ri: dados.valor_ri,
-        espacamento_metros: dados.espacamento_metros || 0.5
+        valor_mcd: dados.valor_mcd ?? dados.valor_ri,
+        espacamento_metros: dados.espacamento_metros || 0.5,
+        excluida_calculo: dados.excluida_calculo ?? false,
+        observacoes: dados.observacoes || null,
+        usuario_id: null
       })
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      throw Object.assign(new Error('Falha ao inserir leitura horizontal.'), {
+        diagnostic: formatSupabaseError(error, 'Erro inesperado ao inserir em leituras_medicao.')
+      })
+    }
 
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao adicionar leitura:', error)
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: error.message,
+      diagnostic: error?.diagnostic || formatSupabaseError(error, 'Erro ao inserir leitura horizontal.')
+    }
   }
 }
 
@@ -130,11 +161,16 @@ export async function adicionarLeitura(dados) {
  */
 export async function adicionarLeituras(estacaoId, valores) {
   try {
+    await ensureAuthenticatedSession()
+
     const leituras = valores.map((valor, index) => ({
       estacao_id: estacaoId,
       numero_leitura: index + 1,
-      valor_ri: parseFloat(valor),
-      espacamento_metros: 0.5
+      valor_mcd: parseFloat(valor),
+      espacamento_metros: 0.5,
+      excluida_calculo: false,
+      observacoes: null,
+      usuario_id: null
     }))
 
     const { data, error } = await supabase
@@ -142,12 +178,20 @@ export async function adicionarLeituras(estacaoId, valores) {
       .insert(leituras)
       .select()
 
-    if (error) throw error
+    if (error) {
+      throw Object.assign(new Error('Falha ao inserir leituras horizontais.'), {
+        diagnostic: formatSupabaseError(error, 'Erro inesperado ao inserir em lote em leituras_medicao.')
+      })
+    }
 
     return { success: true, data, count: data.length }
   } catch (error) {
     console.error('❌ Erro ao adicionar leituras:', error)
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: error.message,
+      diagnostic: error?.diagnostic || formatSupabaseError(error, 'Erro ao inserir leituras horizontais.')
+    }
   }
 }
 
