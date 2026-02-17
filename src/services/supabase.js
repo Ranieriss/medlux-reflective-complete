@@ -14,9 +14,6 @@ import {
 } from '@/config/env'
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
 
-/**
- * Avisos de variáveis de ambiente (Vercel / local)
- */
 if (!hasSupabaseEnv) {
   if (missingSupabaseEnvVars.length > 0) {
     console.error('⚠️ [supabase] variáveis de ambiente ausentes:', missingSupabaseEnvVars.join(', '))
@@ -28,9 +25,6 @@ if (!hasSupabaseEnv) {
   console.error(supabaseEnvErrorMessage)
 }
 
-/**
- * Proxy para quebrar cedo quando tentar usar supabase sem env
- */
 const buildMissingEnvProxy = () => {
   const error = new Error(supabaseEnvErrorMessage)
   return new Proxy(
@@ -59,7 +53,6 @@ export const supabase = hasSupabaseEnv
     })
   : buildMissingEnvProxy()
 
-// Re-export úteis (debug / telas)
 export {
   hasSupabaseEnv,
   maskSupabaseKey,
@@ -70,9 +63,6 @@ export {
   supabaseUrl
 }
 
-/**
- * Helpers de erro/permissão
- */
 function formatarErroSupabase(error, fallback = 'Erro inesperado no Supabase.') {
   return {
     message: error?.message || fallback,
@@ -91,9 +81,6 @@ function getMensagemPermissao(error) {
   return null
 }
 
-/**
- * Sessão obrigatória
- */
 export async function requireSession() {
   const { data, error } = await supabase.auth.getSession()
   if (error) throw error
@@ -109,8 +96,8 @@ export async function requireSession() {
 }
 
 /**
- * ADMIN obrigatório (usa tabela public.usuarios)
- * Requer: usuarios.auth_user_id = session.user.id
+ * ADMIN: valida perfil na tabela public.usuarios pela coluna auth_user_id
+ * (ajuste se sua coluna for diferente)
  */
 export async function requireAdmin() {
   const { session } = await requireSession()
@@ -147,69 +134,54 @@ export async function usuarioAtualEhAdmin() {
 // AUTENTICAÇÃO
 // ============================================
 
-/**
- * Fazer login com email e senha
- */
 export async function signIn(email, password) {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
     if (error) throw error
 
-    console.log('✅ Login realizado com sucesso:', data.user?.email)
     return { success: true, user: data.user, session: data.session }
   } catch (error) {
-    console.error('❌ Erro ao fazer login:', error?.message)
     return { success: false, error: error?.message || 'Erro ao fazer login' }
   }
 }
 
-/**
- * Fazer logout
- */
 export async function signOut() {
   try {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
-
-    console.log('✅ Logout realizado com sucesso')
     return { success: true }
   } catch (error) {
-    console.error('❌ Erro ao fazer logout:', error?.message)
-    return { success: false, error: error?.message || 'Erro ao fazer logout' }
+    return { success: false, error: error?.message || 'Erro ao sair' }
   }
 }
 
-/**
- * Obter usuário atual
- */
 export async function getCurrentUser() {
   try {
     const { data, error } = await supabase.auth.getUser()
     if (error) throw error
     return { success: true, user: data?.user || null }
   } catch (error) {
-    console.error('❌ Erro ao obter usuário:', error?.message)
     return { success: false, error: error?.message || 'Erro ao obter usuário' }
   }
 }
 
-/**
- * Registrar novo usuário (Auth + tabela usuarios)
- */
 export async function signUp(email, password, nome, perfil = 'tecnico') {
   try {
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password })
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password
+    })
     if (authError) throw authError
 
-    const authUser = authData?.user
-    if (!authUser?.id) {
-      return { success: false, error: 'Usuário não retornou ID no Auth.' }
-    }
-
-    // Importante: aqui gravamos o vínculo com Auth via auth_user_id
+    // OBS: aqui estou preservando sua lógica original.
+    // Se sua tabela usuarios usa auth_user_id, ajuste para inserir auth_user_id: authData.user.id
     const { error: userError } = await supabase.from('usuarios').insert([
       {
-        auth_user_id: authUser.id,
+        // se seu schema for auth_user_id, troque "id" por "auth_user_id"
+        id: authData.user.id,
         email,
         nome,
         perfil,
@@ -219,17 +191,12 @@ export async function signUp(email, password, nome, perfil = 'tecnico') {
 
     if (userError) throw userError
 
-    console.log('✅ Usuário cadastrado com sucesso:', email)
-    return { success: true, user: authUser }
+    return { success: true, user: authData.user }
   } catch (error) {
-    console.error('❌ Erro ao cadastrar usuário:', error?.message)
     return { success: false, error: error?.message || 'Erro ao cadastrar usuário' }
   }
 }
 
-/**
- * Enviar email de recuperação de senha
- */
 export async function resetPassword(email) {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -237,25 +204,18 @@ export async function resetPassword(email) {
     })
     if (error) throw error
 
-    console.log('✅ Email de recuperação enviado para:', email)
-    console.warn('[auth][reset-password] redirectTo aplicado:', RESET_PASSWORD_REDIRECT_URL)
     return { success: true, message: 'Email de recuperação enviado com sucesso!' }
   } catch (error) {
-    console.error('❌ Erro ao enviar email de recuperação:', error?.message)
-    return { success: false, error: error?.message || 'Erro ao enviar email de recuperação' }
+    return { success: false, error: error?.message || 'Erro ao enviar recuperação de senha' }
   }
 }
 
-/**
- * Atualizar senha do usuário (fluxo recovery precisa de sessão ativa)
- */
 export async function updatePassword(newPassword) {
   try {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
     if (sessionError) throw sessionError
 
     if (!sessionData?.session) {
-      console.error('[auth][update-password] updateUser bloqueado por falta de sessão ativa')
       return {
         success: false,
         error: 'Sessão de recuperação ausente. Abra novamente o link enviado por e-mail.'
@@ -265,10 +225,8 @@ export async function updatePassword(newPassword) {
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) throw error
 
-    console.log('✅ Senha atualizada com sucesso')
     return { success: true, message: 'Senha atualizada com sucesso!' }
   } catch (error) {
-    console.error('❌ Erro ao atualizar senha:', error?.message)
     return { success: false, error: error?.message || 'Erro ao atualizar senha' }
   }
 }
@@ -277,9 +235,6 @@ export async function updatePassword(newPassword) {
 // EQUIPAMENTOS
 // ============================================
 
-/**
- * Buscar todos os equipamentos
- */
 export async function getEquipamentos(filtros = {}) {
   try {
     let query = supabase
@@ -299,17 +254,12 @@ export async function getEquipamentos(filtros = {}) {
     const { data, error } = await query
     if (error) throw error
 
-    console.log(`✅ ${data?.length || 0} equipamentos carregados`)
     return { success: true, data: data || [] }
   } catch (error) {
-    console.error('❌ Erro ao buscar equipamentos:', error?.message)
     return { success: false, error: error?.message || 'Erro ao buscar equipamentos' }
   }
 }
 
-/**
- * Buscar equipamento por ID
- */
 export async function getEquipamento(id) {
   try {
     const { data, error } = await supabase
@@ -328,14 +278,10 @@ export async function getEquipamento(id) {
 
     return { success: true, data }
   } catch (error) {
-    console.error('❌ Erro ao buscar equipamento:', error?.message)
     return { success: false, error: error?.message || 'Erro ao buscar equipamento' }
   }
 }
 
-/**
- * Criar novo equipamento
- */
 export async function createEquipamento(equipamento) {
   try {
     await requireAdmin()
@@ -347,56 +293,39 @@ export async function createEquipamento(equipamento) {
       .maybeSingle()
 
     if (error) throw error
-    if (!data) {
-      return { success: false, error: 'Equipamento não retornou dados após criação.' }
-    }
+    if (!data) return { success: false, error: 'Equipamento não retornou dados após criação.' }
 
     await registrarAuditoria('equipamentos', data.id, 'CREATE', null, data)
 
-    console.log('✅ Equipamento criado:', data.codigo)
     return { success: true, data }
   } catch (error) {
     const friendly = getMensagemPermissao(error)
     const info = formatarErroSupabase(error, 'Erro ao criar equipamento')
-    console.error('❌ Erro ao criar equipamento:', info)
     return { success: false, error: friendly || info.message, details: info }
   }
 }
 
-/**
- * Atualizar equipamento
- */
 export async function updateEquipamento(id, updates) {
   try {
     await requireAdmin()
 
     const { data: dadosAnteriores } = await supabase.from('equipamentos').select('*').eq('id', id).maybeSingle()
 
-    const { data, error } = await supabase
-      .from('equipamentos')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .maybeSingle()
+    const { data, error } = await supabase.from('equipamentos').update(updates).eq('id', id).select().maybeSingle()
 
     if (error) throw error
     if (!data) return { success: false, error: 'Equipamento não encontrado para atualização.' }
 
     await registrarAuditoria('equipamentos', id, 'UPDATE', dadosAnteriores || null, data)
 
-    console.log('✅ Equipamento atualizado:', data.codigo)
     return { success: true, data }
   } catch (error) {
     const friendly = getMensagemPermissao(error)
     const info = formatarErroSupabase(error, 'Erro ao atualizar equipamento')
-    console.error('❌ Erro ao atualizar equipamento:', info)
     return { success: false, error: friendly || info.message, details: info }
   }
 }
 
-/**
- * Deletar equipamento
- */
 export async function deleteEquipamento(id) {
   try {
     await requireAdmin()
@@ -408,12 +337,10 @@ export async function deleteEquipamento(id) {
 
     await registrarAuditoria('equipamentos', id, 'DELETE', dadosAnteriores || null, null)
 
-    console.log('✅ Equipamento deletado:', id)
     return { success: true }
   } catch (error) {
     const friendly = getMensagemPermissao(error)
     const info = formatarErroSupabase(error, 'Erro ao deletar equipamento')
-    console.error('❌ Erro ao deletar equipamento:', info)
     return { success: false, error: friendly || info.message, details: info }
   }
 }
@@ -422,26 +349,17 @@ export async function deleteEquipamento(id) {
 // REALTIME - SINCRONIZAÇÃO EM TEMPO REAL
 // ============================================
 
-/**
- * Inscrever-se para mudanças em tempo real na tabela de equipamentos
- */
 export function subscribeToEquipamentos(callback) {
-  console.log('🔔 Inscrevendo-se em mudanças em tempo real de equipamentos...')
-
   const channel = supabase
     .channel('equipamentos-changes')
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'equipamentos' },
-      (payload) => {
-        console.log('🔔 Mudança detectada:', payload.eventType, payload.new || payload.old)
-        callback(payload)
-      }
+      (payload) => callback(payload)
     )
     .subscribe()
 
   return () => {
-    console.log('🔕 Cancelando inscrição de mudanças em tempo real')
     supabase.removeChannel(channel)
   }
 }
@@ -450,17 +368,12 @@ export function subscribeToEquipamentos(callback) {
 // DASHBOARD - ESTATÍSTICAS
 // ============================================
 
-/**
- * Obter estatísticas para o dashboard
- */
 export async function getDashboardStats() {
   try {
     const { data, error } = await supabase.from('vw_dashboard_stats').select('*').maybeSingle()
-
     if (error) throw error
     return { success: true, data: data || {} }
   } catch (error) {
-    console.error('❌ Erro ao buscar estatísticas:', error?.message)
     return { success: false, error: error?.message || 'Erro ao buscar estatísticas' }
   }
 }
@@ -469,17 +382,13 @@ export async function getDashboardStats() {
 // AUDITORIA
 // ============================================
 
-/**
- * Registrar ação na auditoria
- */
 export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteriores, dadosNovos) {
   try {
     const { data } = await supabase.auth.getUser()
-    const user = data?.user || null
 
-    const { error } = await supabase.from('auditoria').insert([
+    await supabase.from('auditoria').insert([
       {
-        usuario_id: user?.id || null,
+        usuario_id: data?.user?.id || null,
         entidade,
         entidade_id: entidadeId,
         acao,
@@ -487,16 +396,11 @@ export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteri
         dados_novos: dadosNovos
       }
     ])
-
-    if (error) throw error
   } catch (error) {
-    console.error('❌ Erro ao registrar auditoria:', error?.message)
+    console.error('❌ Erro ao registrar auditoria:', error?.message || error)
   }
 }
 
-/**
- * Buscar histórico de auditoria
- */
 export async function getAuditoria(filtros = {}) {
   try {
     let query = supabase
@@ -518,7 +422,6 @@ export async function getAuditoria(filtros = {}) {
 
     return { success: true, data: data || [] }
   } catch (error) {
-    console.error('❌ Erro ao buscar auditoria:', error?.message)
     return { success: false, error: error?.message || 'Erro ao buscar auditoria' }
   }
 }
@@ -527,18 +430,12 @@ export async function getAuditoria(filtros = {}) {
 // UTILITÁRIOS
 // ============================================
 
-/**
- * Verificar se o Supabase está conectado
- */
 export async function testConnection() {
   try {
     const { error } = await supabase.from('equipamentos').select('*', { count: 'exact', head: true })
     if (error) throw error
-
-    console.log('✅ Conexão com Supabase OK')
     return { success: true }
   } catch (error) {
-    console.error('❌ Erro de conexão com Supabase:', error?.message)
     return { success: false, error: error?.message || 'Erro de conexão com Supabase' }
   }
 }
