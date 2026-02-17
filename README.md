@@ -75,6 +75,14 @@ Esse script é idempotente e configura:
 - Mensagem `Usuário autenticado, mas sem cadastro em public.usuarios`: criar/ajustar linha na tabela `public.usuarios` com `auth_user_id` correto.
 - Mensagem `Perfil ausente/duplicado`: corrigir duplicidade em `public.usuarios` para o mesmo `auth_user_id`.
 
+## 📝 Release Note
+
+### Correções Supabase/RLS + Backup Import
+- Corrigida recursão de policies (RLS) com fonte de admin em `public.admins`.
+- Ajustadas policies ADMIN/USER para `usuarios`, `equipamentos`, `vinculos` e `leituras_*`.
+- Trigger unificada para preencher `usuario_id` nas leituras.
+- Importador JSON tolerante a schema antigo, incluindo mapeamento `marca -> fabricante` e preview de contagens.
+
 ## 🚀 Como Rodar
 
 ### Pré-requisitos

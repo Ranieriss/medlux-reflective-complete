@@ -74,7 +74,7 @@ export const popularDadosDemo = async () => {
       {
         codigo: 'H-2024-001',
         tipo: 'Horizontal',
-        marca: 'Zehntner',
+        fabricante: 'Zehntner',
         modelo: 'ZRM 6014',
         numero_serie: 'ZRM-2024-001',
         data_aquisicao: '2024-01-15',
@@ -88,7 +88,7 @@ export const popularDadosDemo = async () => {
       {
         codigo: 'V-2023-045',
         tipo: 'Vertical',
-        marca: 'Delta',
+        fabricante: 'Delta',
         modelo: 'LTL-X',
         numero_serie: 'DELTA-V-2023-045',
         data_aquisicao: '2023-06-20',
@@ -102,7 +102,7 @@ export const popularDadosDemo = async () => {
       {
         codigo: 'T-2024-003',
         tipo: 'Tachas',
-        marca: 'RoadVista',
+        fabricante: 'RoadVista',
         modelo: 'RV-300',
         numero_serie: 'RV-T-003-2024',
         data_aquisicao: '2024-02-10',

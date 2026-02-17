@@ -121,7 +121,7 @@ export async function buscarEquipamentosDoUsuario(usuarioId, perfil) {
           codigo,
           nome,
           tipo,
-          marca,
+          fabricante,
           modelo,
           numero_serie,
           localizacao,
@@ -166,7 +166,7 @@ export async function buscarVinculosAtivos(usuarioId) {
           codigo,
           nome,
           tipo,
-          marca,
+          fabricante,
           modelo
         )
       `)

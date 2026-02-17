@@ -616,7 +616,7 @@ export const obterCalibracao = async (calibracaoId) => {
           codigo,
           nome,
           tipo,
-          marca,
+          fabricante,
           modelo
         )
       `)

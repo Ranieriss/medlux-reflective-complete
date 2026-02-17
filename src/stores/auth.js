@@ -116,7 +116,16 @@ export const useAuthStore = defineStore('auth', () => {
     if (error) {
       const lowerMsg = getErrorMessage(error, '').toLowerCase()
       if (lowerMsg.includes('more than 1 row') || lowerMsg.includes('multiple') || error?.code === 'PGRST116') {
-        throw Object.assign(new Error('Perfil ausente/duplicado em public.usuarios para este auth_user_id. Contate o ADMIN.'), { details: formatErrorDetails(error) })
+        const { count } = await supabase
+          .from('usuarios')
+          .select('id', { count: 'exact', head: true })
+          .eq('auth_user_id', authId)
+
+        const mensagem = count > 1
+          ? 'Foram encontrados múltiplos cadastros em public.usuarios para este auth_user_id. Contate o ADMIN para remover duplicidades.'
+          : 'Usuário autenticado, mas sem cadastro em public.usuarios. Solicite ao ADMIN a criação do registro.'
+
+        throw Object.assign(new Error(mensagem), { details: formatErrorDetails(error) })
       }
 
       throw Object.assign(new Error(`Erro na etapa Perfil (status=${error?.status ?? 'n/a'}, code=${error?.code ?? 'n/a'}): ${getErrorMessage(error, 'sem detalhes')}. Verifique policies RLS em public.usuarios e variáveis de ambiente Supabase.`), { details: formatErrorDetails(error) })
@@ -208,7 +217,11 @@ export const useAuthStore = defineStore('auth', () => {
         .eq('id', usuarioPerfil.id)
 
       if (updateError) {
-        console.warn('⚠️ Não foi possível atualizar último acesso:', updateError.message)
+        if ((updateError.message || '').toLowerCase().includes('ultimo_acesso')) {
+          console.warn('⚠️ Coluna ultimo_acesso ausente no banco. Execute a migration de correção do Supabase/RLS.')
+        } else {
+          console.warn('⚠️ Não foi possível atualizar último acesso:', updateError.message)
+        }
       }
 
       const { data: sessionData } = await supabase.auth.getSession()

@@ -141,6 +141,7 @@
                     </p>
                     <v-file-input
                       v-model="arquivoBackup"
+                      @update:modelValue="analisarBackupSelecionado"
                       label="Selecionar arquivo"
                       accept=".json,.txt"
                       variant="outlined"
@@ -149,6 +150,19 @@
                       show-size
                       class="mb-2"
                     />
+                    <v-alert
+                      v-if="previewImportacao"
+                      type="info"
+                      variant="tonal"
+                      density="compact"
+                      class="mb-3"
+                    >
+                      Preview:
+                      equipamentos={{ previewImportacao.equipamentos }},
+                      usuarios={{ previewImportacao.usuarios }},
+                      vinculos={{ previewImportacao.vinculos }},
+                      auditoria={{ previewImportacao.auditoria }}
+                    </v-alert>
                     <v-btn
                       color="warning"
                       block
@@ -395,6 +409,7 @@ const importando = ref(false)
 const testando = ref(false)
 const limpandoCache = ref(false)
 const arquivoBackup = ref(null)
+const previewImportacao = ref(null)
 const dialogLogs = ref(false)
 const logs = ref([])
 
@@ -488,6 +503,63 @@ const exportarBackup = async () => {
   }
 }
 
+const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''))
+const gerarUuid = () => crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`
+
+const mapearRegistro = (registro = {}, tabela) => {
+  const base = { ...registro }
+
+  if (tabela === 'equipamentos' && !base.fabricante && base.marca) {
+    base.fabricante = base.marca
+  }
+
+  if (base.id && !isUuid(base.id)) {
+    base.id = gerarUuid()
+  }
+
+  return base
+}
+
+const normalizarBackup = (backup) => {
+  if (!backup?.data || typeof backup.data !== 'object') {
+    throw new Error('Arquivo de backup inválido')
+  }
+
+  const tabelas = ['equipamentos', 'usuarios', 'vinculos', 'auditoria']
+  const data = {}
+
+  for (const tabela of tabelas) {
+    const registros = Array.isArray(backup.data[tabela]) ? backup.data[tabela] : []
+    data[tabela] = registros.map((registro) => mapearRegistro(registro, tabela))
+  }
+
+  return data
+}
+
+const analisarBackupSelecionado = async () => {
+  try {
+    if (!arquivoBackup.value) {
+      previewImportacao.value = null
+      return
+    }
+
+    const file = arquivoBackup.value[0] || arquivoBackup.value
+    const text = await file.text()
+    const backup = JSON.parse(text)
+    const data = normalizarBackup(backup)
+
+    previewImportacao.value = {
+      equipamentos: data.equipamentos.length,
+      usuarios: data.usuarios.length,
+      vinculos: data.vinculos.length,
+      auditoria: data.auditoria.length
+    }
+  } catch (error) {
+    previewImportacao.value = null
+    mostrarSnackbar('Não foi possível gerar preview do backup: ' + error.message, 'warning')
+  }
+}
+
 const importarBackup = async () => {
   if (!arquivoBackup.value) return
 
@@ -498,35 +570,34 @@ const importarBackup = async () => {
     const file = arquivoBackup.value[0] || arquivoBackup.value
     const text = await file.text()
     const backup = JSON.parse(text)
+    const data = normalizarBackup(backup)
 
-    if (!backup.data) {
-      throw new Error('Arquivo de backup inválido')
-    }
+    const resultados = { equipamentos: 0, usuarios: 0, vinculos: 0, auditoria: 0 }
 
-    let imported = 0
+    const operacoes = [
+      { tabela: 'equipamentos', conflito: 'codigo' },
+      { tabela: 'usuarios', conflito: 'email' },
+      { tabela: 'vinculos', conflito: 'id' },
+      { tabela: 'auditoria', conflito: 'id' }
+    ]
 
-    // Importar equipamentos
-    if (backup.data.equipamentos?.length > 0) {
-      for (const eq of backup.data.equipamentos) {
-        const { error } = await supabase
-          .from('equipamentos')
-          .upsert(eq, { onConflict: 'codigo' })
-        if (!error) imported++
+    for (const op of operacoes) {
+      if (!data[op.tabela]?.length) continue
+
+      for (const registro of data[op.tabela]) {
+        const { error } = await supabase.from(op.tabela).upsert(registro, { onConflict: op.conflito, ignoreDuplicates: false })
+        if (!error) {
+          resultados[op.tabela]++
+        } else if (!String(error.message || '').toLowerCase().includes('does not exist')) {
+          console.warn(`⚠️ Falha ao importar ${op.tabela}:`, error.message)
+        }
       }
     }
 
-    // Importar vínculos (se houver)
-    if (backup.data.vinculos?.length > 0) {
-      for (const vinculo of backup.data.vinculos) {
-        await supabase
-          .from('vinculos')
-          .upsert(vinculo)
-      }
-    }
-
-    mostrarSnackbar(`Backup importado com sucesso! ${imported} equipamentos restaurados.`, 'success')
+    mostrarSnackbar(`Importação concluída. Equipamentos: ${resultados.equipamentos}, Usuários: ${resultados.usuarios}, Vínculos: ${resultados.vinculos}, Auditoria: ${resultados.auditoria}.`, 'success')
     await carregarEstatisticas()
     arquivoBackup.value = null
+    previewImportacao.value = null
   } catch (error) {
     console.error('❌ Erro ao importar backup:', error)
     mostrarSnackbar('Erro ao importar backup: ' + error.message, 'error')
