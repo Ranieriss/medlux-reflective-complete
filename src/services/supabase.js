@@ -13,8 +13,10 @@ import {
   supabaseUrl
 } from '@/config/env'
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
-import { requireAdmin, getCurrentProfile } from './authGuard'
 
+/**
+ * Avisos de variáveis de ambiente (Vercel / local)
+ */
 if (!hasSupabaseEnv) {
   if (missingSupabaseEnvVars.length > 0) {
     console.error('⚠️ [supabase] variáveis de ambiente ausentes:', missingSupabaseEnvVars.join(', '))
@@ -26,14 +28,19 @@ if (!hasSupabaseEnv) {
   console.error(supabaseEnvErrorMessage)
 }
 
+/**
+ * Proxy para quebrar cedo quando tentar usar supabase sem env
+ */
 const buildMissingEnvProxy = () => {
   const error = new Error(supabaseEnvErrorMessage)
-
-  return new Proxy({}, {
-    get() {
-      throw error
+  return new Proxy(
+    {},
+    {
+      get() {
+        throw error
+      }
     }
-  })
+  )
 }
 
 // Criar cliente Supabase
@@ -52,6 +59,7 @@ export const supabase = hasSupabaseEnv
     })
   : buildMissingEnvProxy()
 
+// Re-export úteis (debug / telas)
 export {
   hasSupabaseEnv,
   maskSupabaseKey,
@@ -62,6 +70,9 @@ export {
   supabaseUrl
 }
 
+/**
+ * Helpers de erro/permissão
+ */
 function formatarErroSupabase(error, fallback = 'Erro inesperado no Supabase.') {
   return {
     message: error?.message || fallback,
@@ -80,6 +91,9 @@ function getMensagemPermissao(error) {
   return null
 }
 
+/**
+ * Sessão obrigatória
+ */
 export async function requireSession() {
   const { data, error } = await supabase.auth.getSession()
   if (error) throw error
@@ -94,6 +108,10 @@ export async function requireSession() {
   return { session }
 }
 
+/**
+ * ADMIN obrigatório (usa tabela public.usuarios)
+ * Requer: usuarios.auth_user_id = session.user.id
+ */
 export async function requireAdmin() {
   const { session } = await requireSession()
 
@@ -134,18 +152,14 @@ export async function usuarioAtualEhAdmin() {
  */
 export async function signIn(email, password) {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
 
-    console.log('✅ Login realizado com sucesso:', data.user.email)
+    console.log('✅ Login realizado com sucesso:', data.user?.email)
     return { success: true, user: data.user, session: data.session }
   } catch (error) {
-    console.error('❌ Erro ao fazer login:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao fazer login:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao fazer login' }
   }
 }
 
@@ -160,8 +174,8 @@ export async function signOut() {
     console.log('✅ Logout realizado com sucesso')
     return { success: true }
   } catch (error) {
-    console.error('❌ Erro ao fazer logout:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao fazer logout:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao fazer logout' }
   }
 }
 
@@ -170,48 +184,46 @@ export async function signOut() {
  */
 export async function getCurrentUser() {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const { data, error } = await supabase.auth.getUser()
     if (error) throw error
-    return { success: true, user }
+    return { success: true, user: data?.user || null }
   } catch (error) {
-    console.error('❌ Erro ao obter usuário:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao obter usuário:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao obter usuário' }
   }
 }
 
 /**
- * Registrar novo usuário
+ * Registrar novo usuário (Auth + tabela usuarios)
  */
 export async function signUp(email, password, nome, perfil = 'tecnico') {
   try {
-    // 1. Criar usuário no Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password
-    })
-
+    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password })
     if (authError) throw authError
 
-    // 2. Inserir dados na tabela usuarios
-    const { data: userData, error: userError } = await supabase
-      .from('usuarios')
-      .insert([{
-        id: authData.user.id,
+    const authUser = authData?.user
+    if (!authUser?.id) {
+      return { success: false, error: 'Usuário não retornou ID no Auth.' }
+    }
+
+    // Importante: aqui gravamos o vínculo com Auth via auth_user_id
+    const { error: userError } = await supabase.from('usuarios').insert([
+      {
+        auth_user_id: authUser.id,
         email,
         nome,
         perfil,
         senha_hash: 'managed_by_supabase_auth'
-      }])
-      .select()
-      .single()
+      }
+    ])
 
     if (userError) throw userError
 
     console.log('✅ Usuário cadastrado com sucesso:', email)
-    return { success: true, user: authData.user }
+    return { success: true, user: authUser }
   } catch (error) {
-    console.error('❌ Erro ao cadastrar usuário:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao cadastrar usuário:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao cadastrar usuário' }
   }
 }
 
@@ -220,28 +232,26 @@ export async function signUp(email, password, nome, perfil = 'tecnico') {
  */
 export async function resetPassword(email) {
   try {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: RESET_PASSWORD_REDIRECT_URL
     })
-
     if (error) throw error
 
     console.log('✅ Email de recuperação enviado para:', email)
     console.warn('[auth][reset-password] redirectTo aplicado:', RESET_PASSWORD_REDIRECT_URL)
     return { success: true, message: 'Email de recuperação enviado com sucesso!' }
   } catch (error) {
-    console.error('❌ Erro ao enviar email de recuperação:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao enviar email de recuperação:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao enviar email de recuperação' }
   }
 }
 
 /**
- * Atualizar senha do usuário
+ * Atualizar senha do usuário (fluxo recovery precisa de sessão ativa)
  */
 export async function updatePassword(newPassword) {
   try {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-
     if (sessionError) throw sessionError
 
     if (!sessionData?.session) {
@@ -252,17 +262,14 @@ export async function updatePassword(newPassword) {
       }
     }
 
-    const { data, error } = await supabase.auth.updateUser({
-      password: newPassword
-    })
-
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) throw error
 
     console.log('✅ Senha atualizada com sucesso')
     return { success: true, message: 'Senha atualizada com sucesso!' }
   } catch (error) {
-    console.error('❌ Erro ao atualizar senha:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao atualizar senha:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao atualizar senha' }
   }
 }
 
@@ -277,32 +284,26 @@ export async function getEquipamentos(filtros = {}) {
   try {
     let query = supabase
       .from('equipamentos')
-      .select(`
+      .select(
+        `
         *,
         usuario_atual:usuarios!equipamentos_usuario_atual_id_fkey(id, nome, email)
-      `)
+      `
+      )
       .order('created_at', { ascending: false })
 
-    // Aplicar filtros
-    if (filtros.tipo) {
-      query = query.eq('tipo', filtros.tipo)
-    }
-    if (filtros.status) {
-      query = query.eq('status', filtros.status)
-    }
-    if (filtros.busca) {
-      query = query.or(`codigo.ilike.%${filtros.busca}%,nome.ilike.%${filtros.busca}%`)
-    }
+    if (filtros.tipo) query = query.eq('tipo', filtros.tipo)
+    if (filtros.status) query = query.eq('status', filtros.status)
+    if (filtros.busca) query = query.or(`codigo.ilike.%${filtros.busca}%,nome.ilike.%${filtros.busca}%`)
 
     const { data, error } = await query
-
     if (error) throw error
 
-    console.log(`✅ ${data.length} equipamentos carregados`)
-    return { success: true, data }
+    console.log(`✅ ${data?.length || 0} equipamentos carregados`)
+    return { success: true, data: data || [] }
   } catch (error) {
-    console.error('❌ Erro ao buscar equipamentos:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao buscar equipamentos:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao buscar equipamentos' }
   }
 }
 
@@ -313,22 +314,22 @@ export async function getEquipamento(id) {
   try {
     const { data, error } = await supabase
       .from('equipamentos')
-      .select(`
+      .select(
+        `
         *,
         usuario_atual:usuarios!equipamentos_usuario_atual_id_fkey(id, nome, email)
-      `)
+      `
+      )
       .eq('id', id)
       .maybeSingle()
 
     if (error) throw error
-    if (!data) {
-      return { success: false, error: 'Equipamento não encontrado.' }
-    }
+    if (!data) return { success: false, error: 'Equipamento não encontrado.' }
 
     return { success: true, data }
   } catch (error) {
-    console.error('❌ Erro ao buscar equipamento:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao buscar equipamento:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao buscar equipamento' }
   }
 }
 
@@ -345,24 +346,22 @@ export async function createEquipamento(equipamento) {
       .select()
       .maybeSingle()
 
-   const { data, error } = await supabase
-  .from('equipamentos')
-  .insert([equipamento])
-  .select()
-  .maybeSingle()
+    if (error) throw error
+    if (!data) {
+      return { success: false, error: 'Equipamento não retornou dados após criação.' }
+    }
 
-if (error) throw error
+    await registrarAuditoria('equipamentos', data.id, 'CREATE', null, data)
 
-if (!data) {
-  return { success: false, error: 'Equipamento não retornou dados após criação.' }
+    console.log('✅ Equipamento criado:', data.codigo)
+    return { success: true, data }
+  } catch (error) {
+    const friendly = getMensagemPermissao(error)
+    const info = formatarErroSupabase(error, 'Erro ao criar equipamento')
+    console.error('❌ Erro ao criar equipamento:', info)
+    return { success: false, error: friendly || info.message, details: info }
+  }
 }
-
-// Registrar na auditoria
-await registrarAuditoria('equipamentos', data.id, 'CREATE', null, data)
-
-console.log('✅ Equipamento criado:', data.codigo)
-return { success: true, data }
-
 
 /**
  * Atualizar equipamento
@@ -371,12 +370,7 @@ export async function updateEquipamento(id, updates) {
   try {
     await requireAdmin()
 
-    // Buscar dados anteriores
-    const { data: dadosAnteriores } = await supabase
-      .from('equipamentos')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle()
+    const { data: dadosAnteriores } = await supabase.from('equipamentos').select('*').eq('id', id).maybeSingle()
 
     const { data, error } = await supabase
       .from('equipamentos')
@@ -386,12 +380,9 @@ export async function updateEquipamento(id, updates) {
       .maybeSingle()
 
     if (error) throw error
-    if (!data) {
-      return { success: false, error: 'Equipamento não encontrado para atualização.' }
-    }
+    if (!data) return { success: false, error: 'Equipamento não encontrado para atualização.' }
 
-    // Registrar na auditoria
-    await registrarAuditoria('equipamentos', id, 'UPDATE', dadosAnteriores, data)
+    await registrarAuditoria('equipamentos', id, 'UPDATE', dadosAnteriores || null, data)
 
     console.log('✅ Equipamento atualizado:', data.codigo)
     return { success: true, data }
@@ -410,22 +401,12 @@ export async function deleteEquipamento(id) {
   try {
     await requireAdmin()
 
-    // Buscar dados antes de deletar
-    const { data: dadosAnteriores } = await supabase
-      .from('equipamentos')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle()
+    const { data: dadosAnteriores } = await supabase.from('equipamentos').select('*').eq('id', id).maybeSingle()
 
-    const { error } = await supabase
-      .from('equipamentos')
-      .delete()
-      .eq('id', id)
-
+    const { error } = await supabase.from('equipamentos').delete().eq('id', id)
     if (error) throw error
 
-    // Registrar na auditoria
-    await registrarAuditoria('equipamentos', id, 'DELETE', dadosAnteriores, null)
+    await registrarAuditoria('equipamentos', id, 'DELETE', dadosAnteriores || null, null)
 
     console.log('✅ Equipamento deletado:', id)
     return { success: true }
@@ -451,11 +432,7 @@ export function subscribeToEquipamentos(callback) {
     .channel('equipamentos-changes')
     .on(
       'postgres_changes',
-      {
-        event: '*', // INSERT, UPDATE, DELETE
-        schema: 'public',
-        table: 'equipamentos'
-      },
+      { event: '*', schema: 'public', table: 'equipamentos' },
       (payload) => {
         console.log('🔔 Mudança detectada:', payload.eventType, payload.new || payload.old)
         callback(payload)
@@ -463,7 +440,6 @@ export function subscribeToEquipamentos(callback) {
     )
     .subscribe()
 
-  // Retornar função para cancelar inscrição
   return () => {
     console.log('🔕 Cancelando inscrição de mudanças em tempo real')
     supabase.removeChannel(channel)
@@ -479,20 +455,13 @@ export function subscribeToEquipamentos(callback) {
  */
 export async function getDashboardStats() {
   try {
-    const { data, error } = await supabase
-      .from('vw_dashboard_stats')
-      .select('*')
-      .maybeSingle()
+    const { data, error } = await supabase.from('vw_dashboard_stats').select('*').maybeSingle()
 
     if (error) throw error
-    if (!data) {
-      return { success: true, data: {} }
-    }
-
-    return { success: true, data }
+    return { success: true, data: data || {} }
   } catch (error) {
-    console.error('❌ Erro ao buscar estatísticas:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao buscar estatísticas:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao buscar estatísticas' }
   }
 }
 
@@ -505,22 +474,23 @@ export async function getDashboardStats() {
  */
 export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteriores, dadosNovos) {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data } = await supabase.auth.getUser()
+    const user = data?.user || null
 
-    const { error } = await supabase
-      .from('auditoria')
-      .insert([{
-        usuario_id: user?.id,
+    const { error } = await supabase.from('auditoria').insert([
+      {
+        usuario_id: user?.id || null,
         entidade,
         entidade_id: entidadeId,
         acao,
         dados_anteriores: dadosAnteriores,
         dados_novos: dadosNovos
-      }])
+      }
+    ])
 
     if (error) throw error
   } catch (error) {
-    console.error('❌ Erro ao registrar auditoria:', error.message)
+    console.error('❌ Erro ao registrar auditoria:', error?.message)
   }
 }
 
@@ -531,28 +501,25 @@ export async function getAuditoria(filtros = {}) {
   try {
     let query = supabase
       .from('auditoria')
-      .select(`
+      .select(
+        `
         *,
         usuario:usuarios(id, nome, email)
-      `)
+      `
+      )
       .order('created_at', { ascending: false })
       .limit(100)
 
-    if (filtros.entidade) {
-      query = query.eq('entidade', filtros.entidade)
-    }
-    if (filtros.entidadeId) {
-      query = query.eq('entidade_id', filtros.entidadeId)
-    }
+    if (filtros.entidade) query = query.eq('entidade', filtros.entidade)
+    if (filtros.entidadeId) query = query.eq('entidade_id', filtros.entidadeId)
 
     const { data, error } = await query
-
     if (error) throw error
 
-    return { success: true, data }
+    return { success: true, data: data || [] }
   } catch (error) {
-    console.error('❌ Erro ao buscar auditoria:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro ao buscar auditoria:', error?.message)
+    return { success: false, error: error?.message || 'Erro ao buscar auditoria' }
   }
 }
 
@@ -565,18 +532,14 @@ export async function getAuditoria(filtros = {}) {
  */
 export async function testConnection() {
   try {
-    const { data, error } = await supabase
-      .from('equipamentos')
-      .select('count')
-      .limit(1)
-
+    const { error } = await supabase.from('equipamentos').select('*', { count: 'exact', head: true })
     if (error) throw error
 
     console.log('✅ Conexão com Supabase OK')
     return { success: true }
   } catch (error) {
-    console.error('❌ Erro de conexão com Supabase:', error.message)
-    return { success: false, error: error.message }
+    console.error('❌ Erro de conexão com Supabase:', error?.message)
+    return { success: false, error: error?.message || 'Erro de conexão com Supabase' }
   }
 }
 
