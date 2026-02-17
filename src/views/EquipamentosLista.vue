@@ -670,7 +670,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
-import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, registrarAuditoria } from '@/services/supabase'
+import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, requireAdmin } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import QRCode from 'qrcode'
@@ -761,11 +761,30 @@ const rules = {
 }
 
 
+
+const garantirAdmin = async () => {
+  try {
+    await requireAdmin()
+    return true
+  } catch (error) {
+    if (error?.code === 'SESSION_EXPIRED') {
+      mostrarSnackbar('Sessão expirada, faça login novamente', 'warning')
+      return false
+    }
+
+    mostrarSnackbar('Somente ADMIN', 'warning')
+    return false
+  }
+}
+
 const mapearErroSupabase = (error) => {
   const status = error?.status || null
   const code = error?.code || null
   const hint = error?.hint || null
   const message = error?.message || 'Erro inesperado.'
+
+  if (code === 'SESSION_EXPIRED') return 'Sessão expirada, faça login novamente'
+  if (code === 'FORBIDDEN_ADMIN_ONLY') return 'Somente ADMIN'
 
   if (status === 403) {
     return `Sem permissão para esta ação. (status=${status}, code=${code || 'n/a'})`
@@ -1017,11 +1036,8 @@ const carregarEquipamentos = async () => {
   }
 }
 
-const abrirDialogNovo = () => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+const abrirDialogNovo = async () => {
+  if (!await garantirAdmin()) return
 
   modoEdicao.value = false
   equipamentoForm.value = {
@@ -1043,11 +1059,8 @@ const abrirDialogNovo = () => {
   dialogForm.value = true
 }
 
-const editarEquipamento = (equipamento) => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+const editarEquipamento = async (equipamento) => {
+  if (!await garantirAdmin()) return
 
   modoEdicao.value = true
   equipamentoForm.value = { ...equipamento, fabricante: equipamento.fabricante || equipamento.marca || '' }
@@ -1072,10 +1085,7 @@ const processarFoto = async (event) => {
 }
 
 const salvarEquipamento = async () => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+  if (!await garantirAdmin()) return
 
   const codigoOk = await validarCodigoDuplicado()
   if (!codigoOk) return
@@ -1140,11 +1150,8 @@ const salvarEquipamento = async () => {
   }
 }
 
-const confirmarExclusao = (equipamento) => {
-  if (!podeGerenciarEquipamentos.value) {
-    mostrarSnackbar('Somente ADMIN', 'warning')
-    return
-  }
+const confirmarExclusao = async (equipamento) => {
+  if (!await garantirAdmin()) return
 
   equipamentoParaExcluir.value = equipamento
   dialogExclusao.value = true
@@ -1152,6 +1159,7 @@ const confirmarExclusao = (equipamento) => {
 
 const excluirEquipamento = async () => {
   if (!equipamentoParaExcluir.value) return
+  if (!await garantirAdmin()) return
 
   excluindo.value = true
 

@@ -65,13 +65,11 @@ export const buscarCriterioEspecifico = async (params) => {
       query = query.eq('geometria', geometria)
     }
 
-    const { data, error } = await query.limit(1).single()
+    const { data, error } = await query.limit(1).maybeSingle()
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
-      }
-      throw error
+    if (error) throw error
+    if (!data) {
+      return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
     }
 
     return { success: true, data }

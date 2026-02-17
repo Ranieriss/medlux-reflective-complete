@@ -73,35 +73,45 @@ function formatarErroSupabase(error, fallback = 'Erro inesperado no Supabase.') 
 
 function getMensagemPermissao(error) {
   const status = error?.status
-  if (status === 403) {
-    return 'Sem permissão para executar esta ação.'
-  }
+  if (error?.code === 'SESSION_EXPIRED') return 'Sessão expirada, faça login novamente'
+  if (error?.code === 'FORBIDDEN_ADMIN_ONLY') return 'Somente ADMIN'
+  if (status === 403) return 'Sem permissão para executar esta ação.'
   return null
 }
 
-async function usuarioAtualEhAdmin() {
-  const { data: authData, error: authError } = await supabase.auth.getUser()
-  if (authError) throw authError
+export async function requireSession() {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) throw error
 
-  const authUserId = authData?.user?.id
-  if (!authUserId) return false
+  const session = data?.session || null
+  if (!session) {
+    const sessionError = new Error('Sessão expirada, faça login novamente')
+    sessionError.code = 'SESSION_EXPIRED'
+    throw sessionError
+  }
+
+  return { session }
+}
+
+export async function requireAdmin() {
+  const { session } = await requireSession()
 
   const { data, error } = await supabase
     .from('usuarios')
-    .select('perfil')
-    .eq('auth_user_id', authUserId)
+    .select('id, perfil')
+    .eq('auth_user_id', session.user.id)
     .maybeSingle()
 
-  if (error) {
-    const lowerMessage = (error.message || '').toLowerCase()
-    if (lowerMessage.includes('multiple') || lowerMessage.includes('more than 1 row')) {
-      throw new Error('Foram encontrados múltiplos usuários para o mesmo auth_user_id. Corrija duplicidade em public.usuarios.')
-    }
-    throw error
-  }
+  if (error) throw error
 
   const perfil = (data?.perfil || '').toString().trim().toUpperCase()
-  return perfil === 'ADMIN' || perfil === 'ADMINISTRADOR'
+  if (perfil !== 'ADMIN') {
+    const forbiddenError = new Error('Somente ADMIN')
+    forbiddenError.code = 'FORBIDDEN_ADMIN_ONLY'
+    throw forbiddenError
+  }
+
+  return { session, usuario: data }
 }
 
 // ============================================
@@ -316,18 +326,18 @@ export async function getEquipamento(id) {
  */
 export async function createEquipamento(equipamento) {
   try {
-    const isAdmin = await usuarioAtualEhAdmin()
-    if (!isAdmin) {
-      return { success: false, error: 'Sem permissão para criar equipamento.' }
-    }
+    await requireAdmin()
 
     const { data, error } = await supabase
       .from('equipamentos')
       .insert([equipamento])
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) throw error
+    if (!data) {
+      return { success: false, error: 'Equipamento não retornado após criação.' }
+    }
 
     // Registrar na auditoria
     await registrarAuditoria('equipamentos', data.id, 'CREATE', null, data)
@@ -347,10 +357,7 @@ export async function createEquipamento(equipamento) {
  */
 export async function updateEquipamento(id, updates) {
   try {
-    const isAdmin = await usuarioAtualEhAdmin()
-    if (!isAdmin) {
-      return { success: false, error: 'Sem permissão para editar equipamento.' }
-    }
+    await requireAdmin()
 
     // Buscar dados anteriores
     const { data: dadosAnteriores } = await supabase
@@ -389,10 +396,7 @@ export async function updateEquipamento(id, updates) {
  */
 export async function deleteEquipamento(id) {
   try {
-    const isAdmin = await usuarioAtualEhAdmin()
-    if (!isAdmin) {
-      return { success: false, error: 'Sem permissão para excluir equipamento.' }
-    }
+    await requireAdmin()
 
     // Buscar dados antes de deletar
     const { data: dadosAnteriores } = await supabase
