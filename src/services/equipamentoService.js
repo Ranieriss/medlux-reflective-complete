@@ -202,7 +202,15 @@ export async function validarAcessoEquipamento(usuarioId, equipamentoId, perfil)
       .eq('equipamento_id', equipamentoId)
       .eq('ativo', true)
       .is('data_fim', null)
-      .single()
+      .maybeSingle()
+
+    if (error) {
+      const lowerMessage = (error.message || '').toLowerCase()
+      if (lowerMessage.includes('multiple') || lowerMessage.includes('more than 1 row')) {
+        throw new Error('Foram encontrados vínculos duplicados para este usuário e equipamento. Contate o administrador.')
+      }
+      throw error
+    }
     
     return !error && data
     
@@ -211,8 +219,25 @@ export async function validarAcessoEquipamento(usuarioId, equipamentoId, perfil)
   }
 }
 
+/**
+ * Lista equipamentos para telas que precisam de listagem simples
+ */
+export async function listar() {
+  const { data, error } = await supabase
+    .from('equipamentos')
+    .select('*')
+    .order('codigo', { ascending: true })
+
+  if (error) {
+    throw error
+  }
+
+  return data || []
+}
+
 export default {
   detectarTipoEquipamento,
+  listar,
   buscarEquipamentosDoUsuario,
   buscarVinculosAtivos,
   validarAcessoEquipamento
