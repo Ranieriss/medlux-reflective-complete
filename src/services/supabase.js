@@ -13,6 +13,7 @@ import {
   supabaseUrl
 } from '@/config/env'
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
+import { requireAdmin, getCurrentProfile } from './authGuard'
 
 if (!hasSupabaseEnv) {
   if (missingSupabaseEnvVars.length > 0) {
@@ -112,6 +113,18 @@ export async function requireAdmin() {
   }
 
   return { session, usuario: data }
+}
+
+// Mantém compatibilidade com código antigo que chamava usuarioAtualEhAdmin()
+export async function usuarioAtualEhAdmin() {
+  try {
+    await requireAdmin()
+    return true
+  } catch {
+    return false
+  }
+}
+
 }
 
 // ============================================
@@ -336,7 +349,11 @@ export async function createEquipamento(equipamento) {
 
     if (error) throw error
     if (!data) {
-      return { success: false, error: 'Equipamento não retornado após criação.' }
+if (error) throw error
+if (!data) {
+  return { success: false, error: 'Critério não encontrado para os parâmetros informados' }
+}
+
     }
 
     // Registrar na auditoria

@@ -559,6 +559,7 @@ import { supabase } from '@/services/supabase'
 import relatorioMedicoesService from '@/services/relatorioMedicoesService'
 import * as equipamentoService from '@/services/equipamentoService'
 
+
 // State
 const auditoria = ref([])
 const carregando = ref(false)
@@ -786,16 +787,17 @@ const formatarDataHora = (data) => {
 // Métodos de Relatórios
 const carregarEquipamentos = async () => {
   try {
-    const listarFn = equipamentoService.listar || equipamentoService.default?.listar
+const listarFn = equipamentoService.listar || equipamentoService.default?.listar
 
-    if (typeof listarFn !== 'function') {
-      console.warn('Serviço de equipamentos sem função listar()')
-      equipamentosDisponiveis.value = []
-      return
-    }
+if (typeof listarFn !== 'function') {
+  console.warn('Serviço de equipamentos sem função listar()')
+  equipamentosDisponiveis.value = []
+  return
+}
 
-    const response = await listarFn()
-    equipamentosDisponiveis.value = (response || []).map(eq => ({
+const response = await listarFn()
+equipamentosDisponiveis.value = (response || []).map(eq => ({
+
       ...eq,
       nome_completo: `${eq.codigo} - ${eq.nome || eq.modelo || 'Sem nome'}`
     }))

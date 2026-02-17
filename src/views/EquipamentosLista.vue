@@ -575,6 +575,7 @@
 
         <v-card-actions class="pa-4">
           <v-btn
+            v-if="podeGerenciarEquipamentos"
             color="primary"
             variant="text"
             @click="editarEquipamento(equipamentoSelecionado)"
@@ -672,6 +673,7 @@
 import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
 import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, requireAdmin } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { requireAdmin } from '@/services/authGuard'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import QRCode from 'qrcode'
 
@@ -1037,7 +1039,17 @@ const carregarEquipamentos = async () => {
 }
 
 const abrirDialogNovo = async () => {
-  if (!await garantirAdmin()) return
+if (!await garantirAdmin()) {
+  mostrarSnackbar('Somente ADMIN', 'warning')
+  return
+}
+
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
+    return
+  }
 
   modoEdicao.value = false
   equipamentoForm.value = {
@@ -1060,7 +1072,17 @@ const abrirDialogNovo = async () => {
 }
 
 const editarEquipamento = async (equipamento) => {
-  if (!await garantirAdmin()) return
+if (!await requireAdmin()) {
+  mostrarSnackbar('Somente ADMIN', 'warning')
+  return
+}
+
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
+    return
+  }
 
   modoEdicao.value = true
   equipamentoForm.value = { ...equipamento, fabricante: equipamento.fabricante || equipamento.marca || '' }
@@ -1086,6 +1108,12 @@ const processarFoto = async (event) => {
 
 const salvarEquipamento = async () => {
   if (!await garantirAdmin()) return
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
+    return
+  }
 
   const codigoOk = await validarCodigoDuplicado()
   if (!codigoOk) return
@@ -1151,7 +1179,17 @@ const salvarEquipamento = async () => {
 }
 
 const confirmarExclusao = async (equipamento) => {
-  if (!await garantirAdmin()) return
+if (!await garantirAdmin()) {
+  mostrarSnackbar('Somente ADMIN', 'warning')
+  return
+}
+
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
+    return
+  }
 
   equipamentoParaExcluir.value = equipamento
   dialogExclusao.value = true
@@ -1160,6 +1198,12 @@ const confirmarExclusao = async (equipamento) => {
 const excluirEquipamento = async () => {
   if (!equipamentoParaExcluir.value) return
   if (!await garantirAdmin()) return
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
+    return
+  }
 
   excluindo.value = true
 

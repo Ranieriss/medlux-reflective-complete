@@ -160,12 +160,28 @@
                       Preview: equipamentos={{ previewImportacao.equipamentos }}, usuarios={{ previewImportacao.usuarios }},
                       vinculos={{ previewImportacao.vinculos }}, auditoria={{ previewImportacao.auditoria }},
                       ignoradas={{ previewImportacao.ignoradas || 0 }}
-                      <div v-if="previewImportacao.warnings?.length" class="mt-2">
-                        <strong>Warnings:</strong>
-                        <ul class="pl-4">
-                          <li v-for="(warning, index) in previewImportacao.warnings.slice(0, 5)" :key="index">{{ warning }}</li>
-                        </ul>
-                      </div>
+<div v-if="previewImportacao.entidadesDetectadas?.length" class="mt-2">
+  Entidades detectadas: {{ previewImportacao.entidadesDetectadas.join(', ') }}
+</div>
+
+<div v-if="previewImportacao.warnings?.length" class="mt-2">
+  <strong>Warnings:</strong>
+  <ul class="pl-4">
+    <li
+      v-for="(warning, index) in previewImportacao.warnings.slice(0, 5)"
+      :key="index"
+    >
+      {{ warning }}
+    </li>
+  </ul>
+</div>
+
+<ul v-if="previewImportacao.logs?.length" class="mt-2 pl-4">
+  <li v-for="(logItem, idx) in previewImportacao.logs.slice(0, 5)" :key="idx">
+    {{ logItem }}
+  </li>
+</ul>
+
                     </v-alert>
                     <v-btn
                       color="warning"
@@ -526,32 +542,68 @@ const normalizarDataISO = (valor, somenteData = false) => {
   return data.toISOString()
 }
 
+const normalizarString = (valor) => {
+  if (valor === null || valor === undefined) return valor
+  return String(valor).trim()
+}
+
+const normalizarArrayRegistros = (registros) => {
+  if (!Array.isArray(registros)) return []
+  return registros
+}
+
+// Extrai os dados do backup de forma tolerante:
+// - formato novo: { data: { tabela: [...] } }
+// - formato medlux-control: { tabela: [...] } na raiz
+// - formato genérico: qualquer chave com array vira entidade detectada
 const extrairDadosBackup = (backup) => {
   if (!backup || typeof backup !== 'object') {
     throw new Error('Arquivo de backup inválido')
   }
 
-  if (backup.data && typeof backup.data === 'object') {
-    return backup.data
+  const origem = (backup.data && typeof backup.data === 'object')
+    ? backup.data
+    : backup
+
+  if (!origem || typeof origem !== 'object') {
+    throw new Error('Arquivo de backup inválido')
   }
 
-  // Compatibilidade com medlux-control (tabelas na raiz)
+  // 1) Preferência: tabelasSuportadas (compatibilidade com medlux-control)
   const root = {}
-  for (const tabela of tabelasSuportadas) {
-    if (Array.isArray(backup[tabela])) {
-      root[tabela] = backup[tabela]
+  if (typeof tabelasSuportadas !== 'undefined' && Array.isArray(tabelasSuportadas)) {
+    for (const tabela of tabelasSuportadas) {
+      if (Array.isArray(origem[tabela])) {
+        root[tabela] = origem[tabela]
+      }
+    }
+    if (Object.keys(root).length > 0) return root
+  }
+
+  // 2) Fallback: detectar qualquer entidade que seja array
+  const entidades = {}
+  for (const [chave, valor] of Object.entries(origem)) {
+    if (Array.isArray(valor)) {
+      entidades[chave] = normalizarArrayRegistros(valor)
     }
   }
 
-  if (Object.keys(root).length > 0) {
-    return root
+  if (Object.keys(entidades).length > 0) {
+    return entidades
   }
 
   throw new Error('Backup sem estrutura compatível')
 }
 
 const mapearRegistro = (registro = {}, tabela, idMap = new Map(), warnings = []) => {
+
   const base = { ...registro }
+
+  for (const [chave, valor] of Object.entries(base)) {
+    if (typeof valor === 'string') {
+      base[chave] = normalizarString(valor)
+    }
+  }
 
   if (tabela === 'equipamentos') {
     if (!base.fabricante && base.marca) {
@@ -566,18 +618,28 @@ const mapearRegistro = (registro = {}, tabela, idMap = new Map(), warnings = [])
     if (!base.foto_url) {
       base.foto_url = base.termo_pdf_url || base.cautela_url || null
     }
+if (!base.certificado_url && base.certificado_calibracao) {
+  base.certificado_url = base.certificado_calibracao
+}
 
-    if (!base.nome && (base.modelo || base.codigo)) {
-      base.nome = String(base.modelo || base.codigo)
-    }
+if (!base.nome && (base.modelo || base.codigo)) {
+  base.nome = String(base.modelo || base.codigo)
+}
 
-    if (base.data_aquisicao) base.data_aquisicao = normalizarDataISO(base.data_aquisicao, true)
-    if (base.ultima_calibracao) base.ultima_calibracao = normalizarDataISO(base.ultima_calibracao, true)
-    if (base.proxima_calibracao) base.proxima_calibracao = normalizarDataISO(base.proxima_calibracao, true)
+if (base.codigo) {
+  base.codigo = String(base.codigo).trim().toUpperCase()
+}
+
+if (base.data_aquisicao) base.data_aquisicao = normalizarDataISO(base.data_aquisicao, true)
+if (base.ultima_calibracao) base.ultima_calibracao = normalizarDataISO(base.ultima_calibracao, true)
+if (base.proxima_calibracao) base.proxima_calibracao = normalizarDataISO(base.proxima_calibracao, true)
+
   }
 
-  if (tabela === 'usuarios' && base.email) {
-    base.email = String(base.email).trim().toLowerCase()
+  if (tabela === 'usuarios') {
+    if (base.email) {
+      base.email = String(base.email).trim().toLowerCase()
+    }
   }
 
   if (base.created_at) base.created_at = normalizarDataISO(base.created_at)
@@ -592,39 +654,101 @@ const mapearRegistro = (registro = {}, tabela, idMap = new Map(), warnings = [])
   return base
 }
 
-const deduplicarPor = (lista, keyFn) => {
+const deduplicarPor = (lista, keyFn, logs = []) => {
   const seen = new Map()
   for (const item of lista) {
     const key = keyFn(item)
     if (!key) continue
-    seen.set(String(key), item)
+
+    const k = String(key)
+    if (seen.has(k)) {
+      logs.push(`Registro duplicado ignorado (${k})`)
+      continue
+    }
+    seen.set(k, item)
   }
   return Array.from(seen.values())
+}
+
+// Mantém comportamento "inteligente" por tabela (usuarios/email, equipamentos/codigo)
+const deduplicarRegistros = (tabela, registros, logs = []) => {
+  if (!Array.isArray(registros) || registros.length === 0) return []
+
+  if (tabela === 'usuarios') {
+    return deduplicarPor(
+      registros,
+      (r) => r?.email ? String(r.email).trim().toLowerCase() : null,
+      logs
+    )
+  }
+
+  if (tabela === 'equipamentos') {
+    return deduplicarPor(
+      registros,
+      (r) => r?.codigo ? String(r.codigo).trim().toUpperCase() : null,
+      logs
+    )
+  }
+
+  // fallback
+  return deduplicarPor(
+    registros,
+    (r) => r?.id ? String(r.id) : null,
+    logs
+  )
 }
 
 const normalizarBackup = (backup) => {
   const origem = extrairDadosBackup(backup)
 
-  const data = {}
+
+    vistos.add(valor)
+    return true
+  })
+}
+
+const normalizarBackup = (backup) => {
+  const entidades = extrairEntidadesBackup(backup)
+  const data = { equipamentos: [], usuarios: [], vinculos: [], auditoria: [] }
   const logs = []
   const warnings = []
   const idMap = new Map()
-  const tabelasEncontradas = Object.keys(origem || {})
+const tabelasEncontradas = Object.keys(origem ?? entidades ?? {})
+
   const tabelasIgnoradas = tabelasEncontradas.filter((tabela) => !tabelasSuportadas.includes(tabela))
 
   for (const tabela of tabelasIgnoradas) {
-    logs.push(`Tabela ignorada: ${tabela}`)
+    logs.push(`Entidade não suportada ignorada: ${tabela}`)
   }
 
   for (const tabela of tabelasSuportadas) {
-    const registros = Array.isArray(origem[tabela]) ? origem[tabela] : []
-    data[tabela] = registros.map((registro) => mapearRegistro(registro, tabela, idMap, warnings))
+    const fonte = origem ?? entidades ?? {}
+    const registrosBrutos = Array.isArray(fonte[tabela]) ? fonte[tabela] : []
+    const registros = normalizarArrayRegistros
+      ? normalizarArrayRegistros(registrosBrutos)
+      : registrosBrutos
+
+    const mapeados = registros.map((registro) =>
+      mapearRegistro(registro, tabela, idMap, warnings)
+    )
+
+    data[tabela] = typeof deduplicarRegistros === "function"
+      ? deduplicarRegistros(tabela, mapeados, logs)
+      : mapeados
   }
 
-  data.equipamentos = deduplicarPor(data.equipamentos, item => item.codigo?.toString().trim().toUpperCase())
-  data.usuarios = deduplicarPor(data.usuarios, item => item.email?.toString().trim().toLowerCase())
+  data.equipamentos = deduplicarPor(
+    data.equipamentos,
+    item => item.codigo?.toString().trim().toUpperCase()
+  )
+
+  data.usuarios = deduplicarPor(
+    data.usuarios,
+    item => item.email?.toString().trim().toLowerCase()
+  )
 
   // Ajustar relações com UUID regenerado
+
   data.vinculos = data.vinculos.map((item) => {
     const vinculo = { ...item }
     if (vinculo.usuario_id && idMap.has(String(vinculo.usuario_id))) {
@@ -636,7 +760,8 @@ const normalizarBackup = (backup) => {
     return vinculo
   })
 
-  return { data, logs, warnings, tabelasIgnoradas }
+return { data, logs, warnings, tabelasEncontradas }
+
 }
 
 const analisarBackupSelecionado = async () => {
@@ -657,8 +782,10 @@ const analisarBackupSelecionado = async () => {
       vinculos: normalizado.data.vinculos.length,
       auditoria: normalizado.data.auditoria.length,
       ignoradas: normalizado.tabelasIgnoradas.length,
+      entidadesDetectadas: normalizado.tabelasEncontradas,
       logs: normalizado.logs,
       warnings: normalizado.warnings
+
     }
   } catch (error) {
     previewImportacao.value = null
@@ -680,29 +807,36 @@ const importarBackup = async () => {
     const data = normalizado.data
 
     const resultados = { equipamentos: 0, usuarios: 0, vinculos: 0, auditoria: 0 }
-    const logsImportacao = [...normalizado.logs, ...normalizado.warnings]
+    const ignorados = { equipamentos: 0, usuarios: 0, vinculos: 0, auditoria: 0 }
+    const logsImportacao = [...(normalizado.logs || []), ...(normalizado.warnings || [])]
+
 
     for (const tabela of tabelasSuportadas) {
       const registros = data[tabela] || []
       if (!registros.length) {
-        logsImportacao.push(`Tabela sem registros para importar: ${tabela}`)
+logsImportacao.push(`Tabela sem registros para importar: ${tabela}`)
+
         continue
       }
 
       const conflito = conflitosPorTabela[tabela]
       const payload = tabela === 'auditoria' ? registros.slice(0, 5000) : registros
 
-      const { error } = await supabase
+      const { data: upsertData, error } = await supabase
         .from(tabela)
         .upsert(payload, { onConflict: conflito, ignoreDuplicates: false })
+        .select('id')
+
 
       if (error) {
         logsImportacao.push(`Falha em ${tabela}: ${error.message}`)
         continue
       }
 
-      resultados[tabela] += payload.length
-      logsImportacao.push(`Importados ${payload.length} registro(s) em ${tabela}`)
+      resultados[tabela] += upsertData?.length || 0
+      ignorados[tabela] += Math.max(payload.length - (upsertData?.length || 0), 0)
+      logsImportacao.push(`Processados ${payload.length} registro(s) em ${tabela}`)
+
     }
 
     if (logsImportacao.length) {
@@ -710,7 +844,10 @@ const importarBackup = async () => {
     }
     console.info('📦 Log detalhado da importação:', logsImportacao)
 
-    mostrarSnackbar(`Importação concluída. Equipamentos: ${resultados.equipamentos}, Usuários: ${resultados.usuarios}, Vínculos: ${resultados.vinculos}, Auditoria: ${resultados.auditoria}.`, 'success')
+    mostrarSnackbar(
+      `Importação concluída. Importados: equipamentos=${resultados.equipamentos}, usuários=${resultados.usuarios}, vínculos=${resultados.vinculos}, auditoria=${resultados.auditoria}. Ignorados: equipamentos=${ignorados.equipamentos}, usuários=${ignorados.usuarios}, vínculos=${ignorados.vinculos}, auditoria=${ignorados.auditoria}.`,
+      'success'
+    )
     await carregarEstatisticas()
     arquivoBackup.value = null
     previewImportacao.value = null
