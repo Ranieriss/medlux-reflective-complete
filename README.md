@@ -416,3 +416,11 @@ Configuração de Auth para recuperação de senha:
 
 Consulte detalhes no arquivo `SUPABASE_SETUP.md`.
 
+
+## ⚙️ Observações de build (Sass)
+
+Durante `npm run build`, podem aparecer avisos `DEPRECATION WARNING [legacy-js-api]` do Sass.
+
+- Origem identificada: pipeline de estilos Sass de dependências do ecossistema Vuetify/Vite (não do código de negócio do app).
+- Impacto: **não bloqueia** a build e **não afeta** o deploy na Vercel.
+- Status atual: dependências já estão em versões recentes no projeto; a remoção definitiva do warning depende de atualização upstream para a API moderna do Sass.

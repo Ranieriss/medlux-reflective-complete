@@ -1,22 +1,37 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
+const LoginView = () => import('@/views/Login.vue')
+const RedefinirSenhaView = () => import('@/views/RedefinirSenha.vue')
+const LayoutView = () => import('@/views/Layout.vue')
+const DashboardView = () => import('@/views/Dashboard.vue')
+const EquipamentosView = () => import('@/views/EquipamentosLista.vue')
+const UsuariosView = () => import('@/views/UsuariosLista.vue')
+const VinculosView = () => import('@/views/VinculosLista.vue')
+const CalibracoesView = () => import('@/views/CalibracoesLista.vue')
+const MedicaoHorizontalView = () => import('@/views/MedicaoHorizontal.vue')
+const MedicaoVerticalView = () => import('@/views/MedicaoVertical.vue')
+const DispositivosView = () => import('@/views/DispositivosLista.vue')
+const RelatoriosView = () => import('@/views/RelatoriosLista.vue')
+const AuditoriaView = () => import('@/views/AuditoriaView.vue')
+const SistemaView = () => import('@/views/SistemaView.vue')
+
 const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
+    component: LoginView,
     meta: { requiresAuth: false }
   },
   {
     path: '/redefinir-senha',
     name: 'RedefinirSenha',
-    component: () => import('@/views/RedefinirSenha.vue'),
+    component: RedefinirSenhaView,
     meta: { requiresAuth: false }
   },
   {
     path: '/',
-    component: () => import('@/views/Layout.vue'),
+    component: LayoutView,
     meta: { requiresAuth: true },
     children: [
       {
@@ -26,67 +41,67 @@ const routes = [
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('@/views/Dashboard.vue'),
+        component: DashboardView,
         meta: { title: 'Dashboard' }
       },
       {
         path: 'equipamentos',
         name: 'Equipamentos',
-        component: () => import('@/views/EquipamentosLista.vue'),
+        component: EquipamentosView,
         meta: { title: 'Equipamentos' }
       },
       {
         path: 'usuarios',
         name: 'Usuarios',
-        component: () => import('@/views/UsuariosLista.vue'),
+        component: UsuariosView,
         meta: { title: 'Usuários', requiresAdmin: true }
       },
       {
         path: 'vinculos',
         name: 'Vinculos',
-        component: () => import('@/views/VinculosLista.vue'),
+        component: VinculosView,
         meta: { title: 'Vínculos' }
       },
       {
         path: 'calibracoes',
         name: 'Calibracoes',
-        component: () => import('@/views/CalibracoesLista.vue'),
+        component: CalibracoesView,
         meta: { title: 'Medições' }
       },
       {
         path: 'medicoes-horizontal',
         name: 'MedicoesHorizontal',
-        component: () => import('@/views/MedicaoHorizontal.vue'),
+        component: MedicaoHorizontalView,
         meta: { title: 'Medição Horizontal - NBR 14723' }
       },
       {
         path: 'medicoes-vertical',
         name: 'MedicoesVertical',
-        component: () => import('@/views/MedicaoVertical.vue'),
+        component: MedicaoVerticalView,
         meta: { title: 'Medição Vertical - NBR 15426' }
       },
       {
         path: 'dispositivos',
         name: 'Dispositivos',
-        component: () => import('@/views/DispositivosLista.vue'),
+        component: DispositivosView,
         meta: { title: 'Tachas e Tachões - NBR 14636 + NBR 15576' }
       },
       {
         path: 'relatorios',
         name: 'Relatorios',
-        component: () => import('@/views/RelatoriosLista.vue'),
+        component: RelatoriosView,
         meta: { title: 'Relatórios' }
       },
       {
         path: 'auditoria',
         name: 'Auditoria',
-        component: () => import('@/views/AuditoriaView.vue'),
+        component: AuditoriaView,
         meta: { title: 'Auditoria', requiresAdmin: true }
       },
       {
         path: 'sistema',
         name: 'Sistema',
-        component: () => import('@/views/SistemaView.vue'),
+        component: SistemaView,
         meta: { title: 'Sistema', requiresAdmin: true }
       }
     ]

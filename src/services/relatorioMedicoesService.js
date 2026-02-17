@@ -1,14 +1,34 @@
 import { supabase } from './supabase'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
 
 /**
  * Serviço de Relatórios de Medições de Retrorrefletância
  * Sistema completo de emissão de relatórios com filtros avançados
  */
 class RelatorioMedicoesService {
+
+
+  pdfDepsPromise = null
+
+  async carregarDependenciasPDF() {
+    if (!this.pdfDepsPromise) {
+      this.pdfDepsPromise = Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ]).then(([jspdfModule, autoTableModule]) => {
+        const jsPDF = jspdfModule.default
+
+        if (typeof autoTableModule.applyPlugin === 'function') {
+          autoTableModule.applyPlugin(jsPDF)
+        }
+
+        return { jsPDF }
+      })
+    }
+
+    return this.pdfDepsPromise
+  }
 
   /**
    * Dados da empresa para cabeçalho dos relatórios
@@ -408,6 +428,7 @@ class RelatorioMedicoesService {
    * Gerar PDF - Relatório Global
    */
   async gerarPDFGlobal(dados) {
+    const { jsPDF } = await this.carregarDependenciasPDF()
     const doc = new jsPDF('landscape', 'mm', 'a4')
     
     this.adicionarCabecalho(doc, dados.titulo, dados.subtitulo)
@@ -432,6 +453,7 @@ class RelatorioMedicoesService {
    * Gerar PDF - Relatório por Tipo
    */
   async gerarPDFPorTipo(dados) {
+    const { jsPDF } = await this.carregarDependenciasPDF()
     const doc = new jsPDF('landscape', 'mm', 'a4')
     
     this.adicionarCabecalho(doc, dados.titulo, dados.subtitulo)
@@ -456,6 +478,7 @@ class RelatorioMedicoesService {
    * Gerar PDF - Relatório Individual
    */
   async gerarPDFIndividual(dados) {
+    const { jsPDF } = await this.carregarDependenciasPDF()
     const doc = new jsPDF('portrait', 'mm', 'a4')
     
     this.adicionarCabecalho(doc, dados.titulo, dados.subtitulo)
