@@ -82,49 +82,81 @@ function getMensagemPermissao(error) {
 }
 
 export async function requireSession() {
-  const { data, error } = await supabase.auth.getSession()
-  if (error) throw error
+  try {
+    const { data, error } = await supabase.auth.getSession()
+    if (error) throw error
 
-  const session = data?.session || null
-  if (!session) {
-    const sessionError = new Error('Sessão expirada, faça login novamente')
-    sessionError.code = 'SESSION_EXPIRED'
-    throw sessionError
+    const session = data?.session || null
+    if (!session) {
+      const sessionError = new Error('Sessão expirada, faça login novamente')
+      sessionError.code = 'SESSION_EXPIRED'
+      throw sessionError
+    }
+
+    return { success: true, data: { session } }
+  } catch (error) {
+    const info = formatarErroSupabase(error, 'Sessão expirada, faça login novamente')
+    return { success: false, error: info.message, details: info }
   }
-
-  return { session }
 }
 
-/**
- * ADMIN: valida perfil na tabela public.usuarios pela coluna auth_user_id
- * (ajuste se sua coluna for diferente)
- */
-export async function requireAdmin() {
-  const { session } = await requireSession()
+export async function getCurrentProfile() {
+  try {
+    const sessionResult = await requireSession()
+    if (!sessionResult.success) {
+      return sessionResult
+    }
 
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('id, perfil')
-    .eq('auth_user_id', session.user.id)
-    .maybeSingle()
+    const { session } = sessionResult.data
 
-  if (error) throw error
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('id, perfil, nome, email, ativo')
+      .eq('id', session.user.id)
+      .maybeSingle()
 
-  const perfil = (data?.perfil || '').toString().trim().toUpperCase()
-  if (perfil !== 'ADMIN') {
-    const forbiddenError = new Error('Somente ADMIN')
-    forbiddenError.code = 'FORBIDDEN_ADMIN_ONLY'
-    throw forbiddenError
+    if (error) throw error
+
+    if (!data) {
+      const profileError = new Error('Perfil de usuário não encontrado')
+      profileError.code = 'PROFILE_NOT_FOUND'
+      throw profileError
+    }
+
+    return { success: true, data: { ...data, session } }
+  } catch (error) {
+    const info = formatarErroSupabase(error, 'Falha ao carregar perfil do usuário')
+    return { success: false, error: info.message, details: info }
   }
+}
 
-  return { session, usuario: data }
+export async function requireAdmin() {
+  try {
+    const profileResult = await getCurrentProfile()
+    if (!profileResult.success) {
+      return profileResult
+    }
+
+    const { session, ...usuario } = profileResult.data
+    const perfil = (usuario?.perfil || '').toString().trim().toUpperCase()
+    if (perfil !== 'ADMIN') {
+      const forbiddenError = new Error('Somente ADMIN')
+      forbiddenError.code = 'FORBIDDEN_ADMIN_ONLY'
+      throw forbiddenError
+    }
+
+    return { success: true, data: { session, usuario } }
+  } catch (error) {
+    const info = formatarErroSupabase(error, 'Falha ao validar permissão ADMIN')
+    return { success: false, error: getMensagemPermissao(error) || info.message, details: info }
+  }
 }
 
 // Mantém compatibilidade com código antigo que chamava usuarioAtualEhAdmin()
 export async function usuarioAtualEhAdmin() {
   try {
-    await requireAdmin()
-    return true
+    const result = await requireAdmin()
+    return !!result.success
   } catch {
     return false
   }
@@ -142,9 +174,10 @@ export async function signIn(email, password) {
     })
     if (error) throw error
 
-    return { success: true, user: data.user, session: data.session }
+    return { success: true, data: { user: data.user, session: data.session } }
   } catch (error) {
-    return { success: false, error: error?.message || 'Erro ao fazer login' }
+    const info = formatarErroSupabase(error, 'Erro ao fazer login')
+    return { success: false, error: info.message, details: info }
   }
 }
 
@@ -152,9 +185,10 @@ export async function signOut() {
   try {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
-    return { success: true }
+    return { success: true, data: null }
   } catch (error) {
-    return { success: false, error: error?.message || 'Erro ao sair' }
+    const info = formatarErroSupabase(error, 'Erro ao sair')
+    return { success: false, error: info.message, details: info }
   }
 }
 
@@ -162,38 +196,39 @@ export async function getCurrentUser() {
   try {
     const { data, error } = await supabase.auth.getUser()
     if (error) throw error
-    return { success: true, user: data?.user || null }
+    return { success: true, data: data?.user || null }
   } catch (error) {
-    return { success: false, error: error?.message || 'Erro ao obter usuário' }
+    const info = formatarErroSupabase(error, 'Erro ao obter usuário')
+    return { success: false, error: info.message, details: info }
   }
 }
 
-export async function signUp(email, password, nome, perfil = 'tecnico') {
+export async function signUp(email, password, nome, perfil = 'TECNICO') {
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password
     })
     if (authError) throw authError
+    if (!authData?.user?.id) throw new Error('Usuário não retornado pelo Supabase Auth')
 
-    // OBS: aqui estou preservando sua lógica original.
-    // Se sua tabela usuarios usa auth_user_id, ajuste para inserir auth_user_id: authData.user.id
-    const { error: userError } = await supabase.from('usuarios').insert([
+    const perfilPadrao = (perfil || 'TECNICO').toString().trim().toUpperCase()
+    const { error: userError } = await supabase.from('usuarios').upsert(
       {
-        // se seu schema for auth_user_id, troque "id" por "auth_user_id"
         id: authData.user.id,
         email,
         nome,
-        perfil,
-        senha_hash: 'managed_by_supabase_auth'
-      }
-    ])
+        perfil: perfilPadrao
+      },
+      { onConflict: 'id' }
+    )
 
     if (userError) throw userError
 
-    return { success: true, user: authData.user }
+    return { success: true, data: authData.user }
   } catch (error) {
-    return { success: false, error: error?.message || 'Erro ao cadastrar usuário' }
+    const info = formatarErroSupabase(error, 'Erro ao cadastrar usuário')
+    return { success: false, error: info.message, details: info }
   }
 }
 
@@ -204,9 +239,10 @@ export async function resetPassword(email) {
     })
     if (error) throw error
 
-    return { success: true, message: 'Email de recuperação enviado com sucesso!' }
+    return { success: true, data: { message: 'Email de recuperação enviado com sucesso!' } }
   } catch (error) {
-    return { success: false, error: error?.message || 'Erro ao enviar recuperação de senha' }
+    const info = formatarErroSupabase(error, 'Erro ao enviar recuperação de senha')
+    return { success: false, error: info.message, details: info }
   }
 }
 
@@ -218,16 +254,18 @@ export async function updatePassword(newPassword) {
     if (!sessionData?.session) {
       return {
         success: false,
-        error: 'Sessão de recuperação ausente. Abra novamente o link enviado por e-mail.'
+        error: 'Sessão de recuperação ausente. Abra novamente o link enviado por e-mail.',
+        details: { code: 'SESSION_EXPIRED', status: 401 }
       }
     }
 
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) throw error
 
-    return { success: true, message: 'Senha atualizada com sucesso!' }
+    return { success: true, data: { message: 'Senha atualizada com sucesso!' } }
   } catch (error) {
-    return { success: false, error: error?.message || 'Erro ao atualizar senha' }
+    const info = formatarErroSupabase(error, 'Erro ao atualizar senha')
+    return { success: false, error: info.message, details: info }
   }
 }
 
@@ -284,7 +322,8 @@ export async function getEquipamento(id) {
 
 export async function createEquipamento(equipamento) {
   try {
-    await requireAdmin()
+    const adminResult = await requireAdmin()
+    if (!adminResult.success) return adminResult
 
     const { data, error } = await supabase
       .from('equipamentos')
@@ -307,7 +346,8 @@ export async function createEquipamento(equipamento) {
 
 export async function updateEquipamento(id, updates) {
   try {
-    await requireAdmin()
+    const adminResult = await requireAdmin()
+    if (!adminResult.success) return adminResult
 
     const { data: dadosAnteriores } = await supabase.from('equipamentos').select('*').eq('id', id).maybeSingle()
 
@@ -328,7 +368,8 @@ export async function updateEquipamento(id, updates) {
 
 export async function deleteEquipamento(id) {
   try {
-    await requireAdmin()
+    const adminResult = await requireAdmin()
+    if (!adminResult.success) return adminResult
 
     const { data: dadosAnteriores } = await supabase.from('equipamentos').select('*').eq('id', id).maybeSingle()
 

@@ -391,8 +391,8 @@ const executarDiagnostico = async () => {
 
   const { data: usuario, error: perfilError } = await supabase
     .from('usuarios')
-    .select('id, perfil, auth_user_id')
-    .eq('auth_user_id', authId)
+    .select('id, perfil')
+    .eq('id', authId)
     .maybeSingle()
 
   diagnosticoRuntime.value.perfil = perfilError
