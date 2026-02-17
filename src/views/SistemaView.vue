@@ -701,21 +701,13 @@ const deduplicarRegistros = (tabela, registros, logs = []) => {
 const normalizarBackup = (backup) => {
   const origem = extrairDadosBackup(backup)
 
-
-vistos.add(valor)
-return true
-});
-}
-
-
-const normalizarBackup = (backup) => {
-  const entidades = extrairEntidadesBackup(backup)
+  const entidades = origem // compatibilidade com o restante do código
   const data = { equipamentos: [], usuarios: [], vinculos: [], auditoria: [] }
   const logs = []
   const warnings = []
   const idMap = new Map()
-const tabelasEncontradas = Object.keys(origem ?? entidades ?? {})
 
+  const tabelasEncontradas = Object.keys(origem ?? entidades ?? {})
   const tabelasIgnoradas = tabelasEncontradas.filter((tabela) => !tabelasSuportadas.includes(tabela))
 
   for (const tabela of tabelasIgnoradas) {
@@ -733,23 +725,24 @@ const tabelasEncontradas = Object.keys(origem ?? entidades ?? {})
       mapearRegistro(registro, tabela, idMap, warnings)
     )
 
-    data[tabela] = typeof deduplicarRegistros === "function"
+    data[tabela] = typeof deduplicarRegistros === 'function'
       ? deduplicarRegistros(tabela, mapeados, logs)
       : mapeados
   }
 
   data.equipamentos = deduplicarPor(
     data.equipamentos,
-    item => item.codigo?.toString().trim().toUpperCase()
+    item => item.codigo?.toString().trim().toUpperCase(),
+    logs
   )
 
   data.usuarios = deduplicarPor(
     data.usuarios,
-    item => item.email?.toString().trim().toLowerCase()
+    item => item.email?.toString().trim().toLowerCase(),
+    logs
   )
 
   // Ajustar relações com UUID regenerado
-
   data.vinculos = data.vinculos.map((item) => {
     const vinculo = { ...item }
     if (vinculo.usuario_id && idMap.has(String(vinculo.usuario_id))) {
@@ -761,8 +754,7 @@ const tabelasEncontradas = Object.keys(origem ?? entidades ?? {})
     return vinculo
   })
 
-return { data, logs, warnings, tabelasEncontradas }
-
+  return { data, logs, warnings, tabelasIgnoradas, tabelasEncontradas }
 }
 
 const analisarBackupSelecionado = async () => {
