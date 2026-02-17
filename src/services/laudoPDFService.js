@@ -1,5 +1,3 @@
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
 import QRCode from 'qrcode'
 
 /**
@@ -8,6 +6,28 @@ import QRCode from 'qrcode'
  */
 class LaudoPDFService {
   
+
+  pdfDepsPromise = null
+
+  async carregarDependenciasPDF() {
+    if (!this.pdfDepsPromise) {
+      this.pdfDepsPromise = Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ]).then(([jspdfModule, autoTableModule]) => {
+        const jsPDF = jspdfModule.default
+
+        if (typeof autoTableModule.applyPlugin === 'function') {
+          autoTableModule.applyPlugin(jsPDF)
+        }
+
+        return { jsPDF }
+      })
+    }
+
+    return this.pdfDepsPromise
+  }
+
   /**
    * Dados da empresa ICDVias
    */
@@ -42,6 +62,8 @@ class LaudoPDFService {
    */
   async gerarLaudo(dadosMedicao) {
     try {
+      const { jsPDF } = await this.carregarDependenciasPDF()
+
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
