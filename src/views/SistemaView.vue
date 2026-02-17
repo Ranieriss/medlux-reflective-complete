@@ -704,8 +704,9 @@ const normalizarBackup = (backup) => {
 
 vistos.add(valor)
 return true
-})
+});
 }
+
 
 const normalizarBackup = (backup) => {
   const entidades = extrairEntidadesBackup(backup)
