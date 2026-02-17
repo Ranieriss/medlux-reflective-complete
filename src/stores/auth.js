@@ -8,6 +8,14 @@ function getErrorMessage(error, fallback) {
   return error?.message || fallback
 }
 
+function formatErrorDetails(error) {
+  return {
+    status: error?.status ?? null,
+    message: getErrorMessage(error, 'Erro ao realizar login.'),
+    code: error?.code ?? null
+  }
+}
+
 function mapLoginError(error) {
   const message = getErrorMessage(error, '').toLowerCase()
 
@@ -15,8 +23,16 @@ function mapLoginError(error) {
     return supabaseEnvErrorMessage
   }
 
+  if (message.includes('user_banned')) {
+    return 'Usuário bloqueado no Auth (user_banned). Contate o ADMIN.'
+  }
+
+  if (message.includes('email not confirmed') || message.includes('email_not_confirmed')) {
+    return 'E-mail não confirmado. Verifique sua caixa de entrada para confirmar o cadastro.'
+  }
+
   if (error?.status === 401 || error?.status === 403) {
-    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou VITE_SUPABASE_PUBLISHABLE_KEY) no Vercel.'
+    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
   }
 
   if (
@@ -26,23 +42,14 @@ function mapLoginError(error) {
     message.includes('invalid jwt') ||
     message.includes('jwt malformed')
   ) {
-    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou VITE_SUPABASE_PUBLISHABLE_KEY) no Vercel.'
+    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
   }
 
-  if (
-    message.includes('invalid login credentials') ||
-    message.includes('invalid_credentials') ||
-    message.includes('email not confirmed') ||
-    error?.status === 400
-  ) {
+  if (message.includes('invalid login credentials') || message.includes('invalid_credentials') || error?.status === 400) {
     return 'Credenciais inválidas. Verifique e-mail e senha cadastrados.'
   }
 
-  if (
-    message.includes('failed to fetch') ||
-    message.includes('network') ||
-    message.includes('cors')
-  ) {
+  if (message.includes('failed to fetch') || message.includes('network') || message.includes('cors')) {
     return 'Falha de rede/CORS ao conectar ao Supabase. Verifique sua conexão e as configurações de domínio permitido.'
   }
 
@@ -54,34 +61,31 @@ function isEmailConfirmationRequired(error) {
   return message.includes('email not confirmed') || message.includes('email_not_confirmed')
 }
 
-function formatErrorDetails(error) {
-  return {
-    status: error?.status ?? null,
-    message: getErrorMessage(error, 'Erro ao realizar login.'),
-    code: error?.code ?? null
-  }
+function normalizePerfil(perfil) {
+  const normalized = (perfil || '').toString().trim().toUpperCase()
+  if (normalized === 'ADMIN' || normalized === 'ADMINISTRADOR') return 'ADMIN'
+  if (normalized === 'USER' || normalized === 'TECNICO' || normalized === 'OPERADOR') return 'USER'
+  return normalized || 'USER'
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  // State
   const usuario = ref(null)
   const isAuthenticated = ref(false)
   const session = ref(null)
 
-  // Getters
-  const isAdmin = computed(() => usuario.value?.perfil === 'administrador' || usuario.value?.perfil === 'admin')
-  const isTecnico = computed(() => usuario.value?.perfil === 'tecnico')
-  const isOperador = computed(() => usuario.value?.perfil === 'operador')
+  const isAdmin = computed(() => normalizePerfil(usuario.value?.perfil) === 'ADMIN')
+  const isTecnico = computed(() => normalizePerfil(usuario.value?.perfil) === 'USER')
+  const isOperador = computed(() => normalizePerfil(usuario.value?.perfil) === 'USER')
   const nomeUsuario = computed(() => usuario.value?.nome || 'Usuário')
   const emailUsuario = computed(() => usuario.value?.email || '')
-  const perfilUsuario = computed(() => usuario.value?.perfil || 'operador')
+  const perfilUsuario = computed(() => normalizePerfil(usuario.value?.perfil))
 
   const salvarSessaoLocal = (dadosUsuario) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       id: dadosUsuario.id,
       email: dadosUsuario.email,
       nome: dadosUsuario.nome,
-      perfil: dadosUsuario.perfil,
+      perfil: normalizePerfil(dadosUsuario.perfil),
       ativo: dadosUsuario.ativo
     }))
   }
@@ -90,53 +94,64 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  const carregarPerfilUsuario = async ({ userId, email }) => {
-    let query = supabase
-      .from('usuarios')
-      .select('id, email, nome, perfil, ativo')
-
-    if (userId) {
-      query = query.eq('id', userId)
-    } else if (email) {
-      query = query.eq('email', email)
-    } else {
-      throw new Error('Identificador de usuário ausente para carregar perfil.')
+  const carregarPerfilUsuario = async () => {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) {
+      throw Object.assign(new Error('Falha ao obter sessão atual para carregar perfil.'), { cause: sessionError, details: formatErrorDetails(sessionError) })
     }
 
-    const { data, error } = await query.limit(2)
+    const authId = sessionData?.session?.user?.id
+    if (!authId) {
+      throw new Error('Usuário autenticado não encontrado na sessão atual.')
+    }
+
+    const { data: perfil, error } = await supabase
+      .from('usuarios')
+      .select('id, auth_user_id, email, nome, perfil, ativo')
+      .eq('auth_user_id', authId)
+      .maybeSingle()
 
     if (error) {
-      console.error('[auth] erro ao carregar perfil do usuário:', error)
-      throw new Error(getErrorMessage(error, 'Não foi possível carregar perfil do usuário.'))
+      const lowerMsg = getErrorMessage(error, '').toLowerCase()
+      if (lowerMsg.includes('more than 1 row') || lowerMsg.includes('multiple') || error?.code === 'PGRST116') {
+        throw Object.assign(new Error('Perfil ausente/duplicado em public.usuarios para este auth_user_id. Contate o ADMIN.'), { details: formatErrorDetails(error) })
+      }
+
+      throw Object.assign(new Error(`Erro ao carregar perfil (status=${error?.status ?? 'n/a'}, code=${error?.code ?? 'n/a'}): ${getErrorMessage(error, 'sem detalhes')}`), { details: formatErrorDetails(error) })
     }
 
-    if (!Array.isArray(data) || data.length === 0) {
-      console.error('[auth] perfil não encontrado para usuário', { userId, email })
-      throw new Error('Usuário não cadastrado. Solicite ao administrador o cadastro na tabela public.usuarios.')
+    if (!perfil) {
+      throw new Error('Usuário autenticado, mas sem cadastro em public.usuarios. Contate o ADMIN.')
     }
-
-    if (data.length > 1) {
-      console.error('[auth][audit] múltiplos perfis encontrados para o mesmo usuário', {
-        userId,
-        email,
-        totalEncontrado: data.length,
-        ids: data.map((item) => item.id)
-      })
-      throw new Error('Cadastro duplicado no banco. Solicite ao administrador a correção na tabela public.usuarios.')
-    }
-
-    const perfil = data[0]
 
     if (!perfil?.ativo) {
       throw new Error('Usuário inativo. Entre em contato com o administrador.')
     }
 
-    return perfil
+    return { ...perfil, perfil: normalizePerfil(perfil.perfil) }
   }
 
-  // Actions
   const login = async (email, senha) => {
     try {
+      const emailLimpo = (email || '').trim()
+      const senhaLimpa = senha || ''
+
+      if (!emailLimpo || !emailLimpo.includes('@')) {
+        return {
+          sucesso: false,
+          mensagem: 'Informe um e-mail válido para continuar.',
+          detalhes: { status: 400, message: 'E-mail ausente ou inválido.', code: 'invalid_email' }
+        }
+      }
+
+      if (!senhaLimpa) {
+        return {
+          sucesso: false,
+          mensagem: 'Informe a senha para continuar.',
+          detalhes: { status: 400, message: 'Senha ausente.', code: 'missing_password' }
+        }
+      }
+
       if (!hasSupabaseEnv) {
         return {
           sucesso: false,
@@ -149,34 +164,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      const emailLimpo = (email || '').trim()
-      const senhaLimpa = senha || ''
-
-      if (!emailLimpo || !emailLimpo.includes('@')) {
-        return {
-          sucesso: false,
-          mensagem: 'Informe um e-mail válido para continuar.',
-          detalhes: {
-            status: 400,
-            message: 'E-mail ausente ou inválido.',
-            code: 'invalid_email'
-          }
-        }
-      }
-
-      if (!senhaLimpa) {
-        return {
-          sucesso: false,
-          mensagem: 'Informe a senha para continuar.',
-          detalhes: {
-            status: 400,
-            message: 'Senha ausente.',
-            code: 'missing_password'
-          }
-        }
-      }
-
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: emailLimpo,
         password: senhaLimpa
       })
@@ -190,10 +178,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      const usuarioPerfil = await carregarPerfilUsuario({
-        userId: authData?.user?.id,
-        email: authData?.user?.email || emailLimpo
-      })
+      const usuarioPerfil = await carregarPerfilUsuario()
 
       const { error: updateError } = await supabase
         .from('usuarios')
@@ -204,18 +189,20 @@ export const useAuthStore = defineStore('auth', () => {
         console.warn('⚠️ Não foi possível atualizar último acesso:', updateError.message)
       }
 
+      const { data: sessionData } = await supabase.auth.getSession()
       usuario.value = usuarioPerfil
-      session.value = authData.session
+      session.value = sessionData?.session || null
       isAuthenticated.value = true
       salvarSessaoLocal(usuarioPerfil)
 
       return { sucesso: true }
     } catch (error) {
       console.error('❌ Erro no login:', error)
+      const errorDetalhes = error?.details || formatErrorDetails(error)
       return {
         sucesso: false,
-        mensagem: mapLoginError(error),
-        detalhes: formatErrorDetails(error),
+        mensagem: error?.message || mapLoginError(error),
+        detalhes: errorDetalhes,
         precisaConfirmarEmail: isEmailConfirmationRequired(error)
       }
     }
@@ -269,10 +256,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       session.value = currentSession
 
-      const usuarioPerfil = await carregarPerfilUsuario({
-        userId: currentSession.user.id,
-        email: currentSession.user.email
-      })
+      const usuarioPerfil = await carregarPerfilUsuario()
 
       usuario.value = usuarioPerfil
       isAuthenticated.value = true
@@ -290,47 +274,29 @@ export const useAuthStore = defineStore('auth', () => {
 
   const temPermissao = (permissao) => {
     if (!usuario.value) return false
+    if (normalizePerfil(usuario.value.perfil) === 'ADMIN') return true
 
-    if (usuario.value.perfil === 'admin' || usuario.value.perfil === 'administrador') return true
-
-    const permissoesTecnico = [
+    const permissoesUser = [
       'ver_equipamentos',
       'ver_vinculos',
       'ver_calibracoes',
-      'criar_medicoes'
-    ]
-
-    const permissoesOperador = [
-      'ver_equipamentos_vinculados',
       'criar_medicoes',
+      'ver_equipamentos_vinculados',
       'ver_medicoes'
     ]
 
-    if (usuario.value.perfil === 'tecnico') {
-      return permissoesTecnico.includes(permissao)
-    }
-
-    if (usuario.value.perfil === 'operador') {
-      return permissoesOperador.includes(permissao)
-    }
-
-    return false
+    return permissoesUser.includes(permissao)
   }
 
   return {
-    // State
     usuario,
     isAuthenticated,
-
-    // Getters
     isAdmin,
     isTecnico,
     isOperador,
     nomeUsuario,
     emailUsuario,
     perfilUsuario,
-
-    // Actions
     login,
     logout,
     restaurarSessao,

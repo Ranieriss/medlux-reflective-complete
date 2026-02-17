@@ -24,7 +24,9 @@
             variant="tonal"
             class="mb-4"
           >
-            {{ supabaseEnvErrorMessage }}
+            <div class="font-weight-medium mb-1">{{ supabaseEnvErrorMessage }}</div>
+            <div class="text-caption">Configure <strong>VITE_SUPABASE_URL</strong> (https://&lt;project&gt;.supabase.co) e <strong>VITE_SUPABASE_ANON_KEY</strong> (JWT iniciando com eyJ...).</div>
+            <div class="text-caption">No Vercel: Project → Settings → Environment Variables (Production, Preview e Development) e faça novo deploy.</div>
           </v-alert>
 
 
@@ -45,6 +47,9 @@
                   <div><strong>Key definida:</strong> {{ diagnosticoSupabase.keyDefinida ? 'sim' : 'não' }}</div>
                   <div><strong>Fonte da key:</strong> {{ diagnosticoSupabase.fonteKey || 'não definida' }}</div>
                   <div><strong>Key mascarada:</strong> {{ diagnosticoSupabase.keyMascarada }}</div>
+                  <div class="mt-2"><strong>Auth:</strong> {{ diagnosticoSupabase.authStatus }}</div>
+                  <div><strong>Perfil:</strong> {{ diagnosticoSupabase.perfilStatus }}</div>
+                  <div><strong>RLS:</strong> {{ diagnosticoSupabase.rlsStatus }}</div>
                 </div>
               </v-expansion-panel-text>
             </v-expansion-panel>
@@ -110,7 +115,7 @@
               color="primary"
               size="large"
               :loading="carregando"
-              :disabled="carregando || !hasSupabaseEnv"
+              :disabled="carregando"
               block
               class="mb-4 glow-primary"
             >
@@ -250,7 +255,10 @@ const diagnosticoSupabase = computed(() => ({
   urlDefinida: !!supabaseUrl,
   keyDefinida: !!supabaseAnonKey,
   fonteKey: supabaseKeySource,
-  keyMascarada: maskSupabaseKey(supabaseAnonKey)
+  keyMascarada: maskSupabaseKey(supabaseAnonKey),
+  authStatus: diagnosticoRuntime.value.auth,
+  perfilStatus: diagnosticoRuntime.value.perfil,
+  rlsStatus: diagnosticoRuntime.value.rls
 }))
 
 
@@ -266,6 +274,7 @@ const erroDetalhes = ref({ status: null, message: '', code: null })
 const precisaConfirmarEmail = ref(false)
 const mensagemStatus = ref('')
 const tipoMensagemStatus = ref('success')
+const diagnosticoRuntime = ref({ auth: 'Pendente', perfil: 'Pendente', rls: 'Pendente' })
 
 // Recuperação de senha
 const dialogRecuperacao = ref(false)
@@ -295,16 +304,23 @@ const handleLogin = async () => {
   erro.value = ''
   erroDetalhes.value = { status: null, message: '', code: null }
   precisaConfirmarEmail.value = false
+  diagnosticoRuntime.value = { auth: 'Executando...', perfil: 'Aguardando', rls: 'Aguardando' }
 
   try {
     const resultado = await authStore.login(email.value, senha.value)
     
     if (resultado.sucesso) {
+      diagnosticoRuntime.value = { auth: 'Auth OK', perfil: 'Perfil OK', rls: 'RLS OK (consulta de perfil executada)' }
       router.push('/dashboard')
     } else {
       erro.value = resultado.mensagem
       erroDetalhes.value = resultado.detalhes || { status: null, message: '', code: null }
       precisaConfirmarEmail.value = !!resultado.precisaConfirmarEmail
+      diagnosticoRuntime.value = {
+        auth: resultado.detalhes?.code ? `Falha (${resultado.detalhes.code})` : 'Falha',
+        perfil: erro.value.toLowerCase().includes('perfil') || erro.value.toLowerCase().includes('usuário autenticado') ? 'Falha de perfil' : 'Não executado',
+        rls: erro.value.toLowerCase().includes('rls') ? 'Falha de RLS' : 'Não validado'
+      }
     }
   } catch (error) {
     console.error('Erro no login:', error)
@@ -315,6 +331,7 @@ const handleLogin = async () => {
       code: error?.code ?? null
     }
     precisaConfirmarEmail.value = false
+    diagnosticoRuntime.value = { auth: 'Falha inesperada', perfil: 'Não validado', rls: 'Não validado' }
   } finally {
     carregando.value = false
   }
