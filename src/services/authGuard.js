@@ -34,8 +34,8 @@ export async function getCurrentProfile(notifyFn) {
 
   const { data, error } = await supabase
     .from('usuarios')
-    .select('id, auth_user_id, perfil, nome, email, ativo')
-    .eq('auth_user_id', session.user.id)
+    .select('id, perfil, nome, email, ativo')
+    .eq('id', session.user.id)
     .maybeSingle()
 
   if (error) {

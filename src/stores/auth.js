@@ -109,8 +109,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     const { data: perfil, error } = await supabase
       .from('usuarios')
-      .select('id, auth_user_id, email, nome, perfil, ativo')
-      .eq('auth_user_id', authId)
+      .select('id, email, nome, perfil, ativo')
+      .eq('id', authId)
       .maybeSingle()
 
     if (error) {
@@ -119,10 +119,10 @@ export const useAuthStore = defineStore('auth', () => {
         const { count } = await supabase
           .from('usuarios')
           .select('id', { count: 'exact', head: true })
-          .eq('auth_user_id', authId)
+          .eq('id', authId)
 
         const mensagem = count > 1
-          ? 'Foram encontrados múltiplos cadastros em public.usuarios para este auth_user_id. Contate o ADMIN para remover duplicidades.'
+          ? 'Foram encontrados múltiplos cadastros em public.usuarios para este id/auth.uid(). Contate o ADMIN para remover duplicidades.'
           : 'Usuário autenticado, mas sem cadastro em public.usuarios. Solicite ao ADMIN a criação do registro.'
 
         throw Object.assign(new Error(mensagem), { details: formatErrorDetails(error) })

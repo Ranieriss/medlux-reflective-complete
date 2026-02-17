@@ -662,11 +662,11 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import calibracaoService from '@/services/calibracaoService'
 import { buscarEquipamentosDoUsuario, detectarTipoEquipamento } from '@/services/equipamentoService'
-import supabase from '@/services/supabase'
+import supabase, { getCurrentProfile } from '@/services/supabase'
 
 // Ambiente
 const IS_DEV = import.meta.env.DEV
@@ -807,7 +807,7 @@ export default {
       loading.value = true
       try {
         // Passar dados do usuário para filtrar medições por operador
-        const usuario = authStore.usuario.value
+        const usuario = authStore.usuario
         const response = await calibracaoService.listarCalibracoes(filtros.value, usuario)
         medicoes.value = response
         console.log(`✅ ${medicoes.value.length} medições carregadas para ${usuario?.perfil || 'desconhecido'}`)
@@ -820,7 +820,7 @@ export default {
     
     const carregarStats = async () => {
       try {
-        const usuario = authStore.usuario.value
+        const usuario = authStore.usuario
         const response = await calibracaoService.obterEstatisticas(usuario)
         stats.value = response
         console.log('✅ Estatísticas carregadas:', response)
@@ -829,32 +829,29 @@ export default {
       }
     }
     
+    const garantirUsuarioAutenticado = async () => {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !sessionData?.session?.user?.id) {
+        throw new Error('Sessão expirada. Por favor, faça login novamente.')
+      }
+
+      const profileResult = await getCurrentProfile()
+      if (!profileResult.success || !profileResult.data) {
+        throw new Error(profileResult.error || 'Perfil de usuário não encontrado.')
+      }
+
+      authStore.usuario = profileResult.data
+      return profileResult.data
+    }
+
     const carregarEquipamentos = async () => {
       loadingEquipamentos.value = true
       try {
-        // Garantir que temos usuário autenticado
-        let usuario = authStore.usuario.value
-        
-        if (!usuario) {
-          console.log('🔄 Usuário não encontrado, restaurando sessão...')
-          const restaurado = await authStore.restaurarSessao()
-          
-          if (!restaurado) {
-            console.error('❌ Não foi possível restaurar a sessão')
-            mostrarNotificacao('Sessão expirada. Por favor, faça login novamente.', 'error')
-            loadingEquipamentos.value = false
-            return
-          }
-          
-          // Aguardar próximo tick para garantir que o ref foi atualizado
-          await nextTick()
-          usuario = authStore.usuario.value
-          
-          if (!usuario) {
-            console.error('❌ Usuario ainda undefined após restaurarSessao')
-            loadingEquipamentos.value = false
-            return
-          }
+        let usuario = authStore.usuario
+
+        if (!usuario?.id) {
+          console.log('🔄 Usuário ausente no store, carregando sessão/perfil...')
+          usuario = await garantirUsuarioAutenticado()
         }
         
         console.log('👤 Carregando equipamentos para:', {
