@@ -8,6 +8,7 @@
       </h1>
       
       <v-btn
+        v-if="podeGerenciarEquipamentos"
         color="primary"
         size="large"
         class="glow-primary"
@@ -172,6 +173,7 @@
               <v-icon size="20">mdi-eye</v-icon>
             </v-btn>
             <v-btn
+              v-if="podeGerenciarEquipamentos"
               icon
               size="small"
               variant="text"
@@ -181,6 +183,7 @@
               <v-icon size="20">mdi-pencil</v-icon>
             </v-btn>
             <v-btn
+              v-if="podeGerenciarEquipamentos"
               icon
               size="small"
               variant="text"
@@ -235,7 +238,9 @@
                 <v-text-field
                   v-model="equipamentoForm.codigo"
                   label="Código *"
-                  :rules="[rules.required, rules.codigoUnico]"
+                  :rules="[rules.required]"
+                  :error-messages="codigoErro"
+                  @blur="validarCodigoDuplicado"
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-barcode"
@@ -687,6 +692,10 @@ const formRef = ref(null)
 const fotoFile = ref(null)
 const equipamentoSelecionado = ref(null)
 const equipamentoParaExcluir = ref(null)
+const podeGerenciarEquipamentos = computed(() => authStore.isAdmin)
+const codigoErro = ref('')
+let codigoValidationTimeout = null
+
 
 // Filtros
 const filtros = ref({
@@ -748,23 +757,53 @@ const equipamentoForm = ref({
 
 // Regras de validação
 const rules = {
-  required: v => !!v || 'Campo obrigatório',
-  codigoUnico: async v => {
-    if (modoEdicao.value) return true
-    
-    try {
-      const { data, error } = await supabase
-        .from('equipamentos')
-        .select('id')
-        .eq('codigo', v)
-        .single()
-      
-      return !data || 'Código já cadastrado'
-    } catch (error) {
-      // Se não encontrar (erro 406), o código está disponível
-      return true
-    }
+  required: v => !!v || 'Campo obrigatório'
+}
+
+
+const mapearErroSupabase = (error) => {
+  const status = error?.status || null
+  const code = error?.code || null
+  const hint = error?.hint || null
+  const message = error?.message || 'Erro inesperado.'
+
+  if (status === 403) {
+    return `Sem permissão para esta ação. (status=${status}, code=${code || 'n/a'})`
   }
+
+  return `Erro: ${message} (status=${status || 'n/a'}, code=${code || 'n/a'}${hint ? `, hint=${hint}` : ''})`
+}
+
+const validarCodigoDuplicado = async () => {
+  if (modoEdicao.value || !dialogForm.value) {
+    codigoErro.value = ''
+    return true
+  }
+
+  const codigo = (equipamentoForm.value.codigo || '').trim().toUpperCase()
+  if (!codigo) {
+    codigoErro.value = ''
+    return true
+  }
+
+  const { data, error } = await supabase
+    .from('equipamentos')
+    .select('id')
+    .eq('codigo', codigo)
+    .maybeSingle()
+
+  if (error) {
+    const lower = (error.message || '').toLowerCase()
+    if (lower.includes('multiple') || lower.includes('more than 1 row')) {
+      codigoErro.value = 'Foram encontrados equipamentos duplicados com este código. Contate o administrador.'
+      return false
+    }
+    codigoErro.value = mapearErroSupabase(error)
+    return false
+  }
+
+  codigoErro.value = data ? 'Código já cadastrado' : ''
+  return !data
 }
 
 const calcularProximaCalibracao = (ultimaCalibracao) => {
@@ -979,6 +1018,11 @@ const carregarEquipamentos = async () => {
 }
 
 const abrirDialogNovo = () => {
+  if (!podeGerenciarEquipamentos.value) {
+    mostrarSnackbar('Sem permissão para cadastrar equipamentos', 'warning')
+    return
+  }
+
   modoEdicao.value = false
   equipamentoForm.value = {
     codigo: '',
@@ -1000,6 +1044,11 @@ const abrirDialogNovo = () => {
 }
 
 const editarEquipamento = (equipamento) => {
+  if (!podeGerenciarEquipamentos.value) {
+    mostrarSnackbar('Sem permissão para editar equipamentos', 'warning')
+    return
+  }
+
   modoEdicao.value = true
   equipamentoForm.value = { ...equipamento, fabricante: equipamento.fabricante || equipamento.marca || '' }
   dialogVisualizacao.value = false
@@ -1023,6 +1072,14 @@ const processarFoto = async (event) => {
 }
 
 const salvarEquipamento = async () => {
+  if (!podeGerenciarEquipamentos.value) {
+    mostrarSnackbar('Sem permissão para salvar equipamentos', 'warning')
+    return
+  }
+
+  const codigoOk = await validarCodigoDuplicado()
+  if (!codigoOk) return
+
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
@@ -1077,13 +1134,18 @@ const salvarEquipamento = async () => {
     fecharDialog()
   } catch (error) {
     console.error('❌ Erro ao salvar equipamento:', error)
-    mostrarSnackbar(`Erro ao salvar equipamento: ${error.message}`, 'error')
+    mostrarSnackbar(mapearErroSupabase(error), 'error')
   } finally {
     salvando.value = false
   }
 }
 
 const confirmarExclusao = (equipamento) => {
+  if (!podeGerenciarEquipamentos.value) {
+    mostrarSnackbar('Sem permissão para excluir equipamentos', 'warning')
+    return
+  }
+
   equipamentoParaExcluir.value = equipamento
   dialogExclusao.value = true
 }
@@ -1107,7 +1169,7 @@ const excluirEquipamento = async () => {
     }
   } catch (error) {
     console.error('❌ Erro ao excluir equipamento:', error)
-    mostrarSnackbar(`Erro ao excluir equipamento: ${error.message}`, 'error')
+    mostrarSnackbar(mapearErroSupabase(error), 'error')
   } finally {
     excluindo.value = false
   }
@@ -1180,12 +1242,33 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (codigoValidationTimeout) {
+    clearTimeout(codigoValidationTimeout)
+  }
+
   // Cancelar inscrição ao sair da página
   if (unsubscribe) {
     console.log('🔕 Desativando sincronização em tempo real')
     unsubscribe()
   }
 })
+
+watch(
+  () => equipamentoForm.value.codigo,
+  () => {
+    codigoErro.value = ''
+
+    if (codigoValidationTimeout) {
+      clearTimeout(codigoValidationTimeout)
+    }
+
+    if (!dialogForm.value || modoEdicao.value) return
+
+    codigoValidationTimeout = setTimeout(() => {
+      validarCodigoDuplicado()
+    }, 450)
+  }
+)
 
 watch(
   () => equipamentoForm.value.ultima_calibracao,

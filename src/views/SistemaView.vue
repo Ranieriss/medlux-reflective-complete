@@ -513,6 +513,10 @@ const mapearRegistro = (registro = {}, tabela) => {
     base.fabricante = base.marca
   }
 
+  if (tabela === 'usuarios' && base.email) {
+    base.email = String(base.email).trim().toLowerCase()
+  }
+
   if (base.id && !isUuid(base.id)) {
     base.id = gerarUuid()
   }

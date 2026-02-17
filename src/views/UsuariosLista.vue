@@ -667,6 +667,19 @@ const telefoneRules = [
   v => /^\(\d{2}\) \d{5}-\d{4}$/.test(v) || 'Telefone inválido'
 ]
 
+
+const formatarErroSupabase = (error) => {
+  const status = error?.status || null
+  const code = error?.code || null
+  const hint = error?.hint || null
+  const message = error?.message || 'Erro inesperado.'
+
+  if (code === '23505') return 'E-mail já cadastrado'
+  if (status === 403) return 'Sem permissão para esta ação'
+
+  return `Erro: ${message} (status=${status || 'n/a'}, code=${code || 'n/a'}${hint ? `, hint=${hint}` : ''})`
+}
+
 // Snackbar
 const snackbar = ref({
   show: false,
@@ -715,7 +728,7 @@ const carregarUsuarios = async () => {
     console.log('✅ Usuários carregados:', usuarios.value.length)
   } catch (error) {
     console.error('❌ Erro ao carregar usuários:', error)
-    mostrarSnackbar('Erro ao carregar usuários', 'error')
+    mostrarSnackbar(formatarErroSupabase(error), 'error')
   } finally {
     carregando.value = false
   }
@@ -789,7 +802,7 @@ const salvarUsuario = async () => {
         .from('usuarios')
         .insert([{
           nome: usuarioForm.value.nome,
-          email: usuarioForm.value.email,
+          email: (usuarioForm.value.email || '').trim().toLowerCase(),
           cpf: cpfLimpo || null,
           telefone: telefoneLimpo || null,
           senha_hash: usuarioForm.value.senha, // TODO: Hash em produção
@@ -807,11 +820,7 @@ const salvarUsuario = async () => {
     await carregarUsuarios()
   } catch (error) {
     console.error('❌ Erro ao salvar usuário:', error)
-    if (error.code === '23505') {
-      mostrarSnackbar('E-mail já cadastrado', 'error')
-    } else {
-      mostrarSnackbar('Erro ao salvar usuário', 'error')
-    }
+    mostrarSnackbar(formatarErroSupabase(error), 'error')
   } finally {
     salvando.value = false
   }
@@ -847,7 +856,7 @@ const confirmarResetSenha = async () => {
     novaSenha.value = ''
   } catch (error) {
     console.error('❌ Erro ao resetar senha:', error)
-    mostrarSnackbar('Erro ao resetar senha', 'error')
+    mostrarSnackbar(formatarErroSupabase(error), 'error')
   } finally {
     resetandoSenha.value = false
   }
@@ -877,7 +886,7 @@ const excluirUsuario = async () => {
     await carregarUsuarios()
   } catch (error) {
     console.error('❌ Erro ao excluir usuário:', error)
-    mostrarSnackbar('Erro ao excluir usuário', 'error')
+    mostrarSnackbar(formatarErroSupabase(error), 'error')
   } finally {
     excluindo.value = false
   }

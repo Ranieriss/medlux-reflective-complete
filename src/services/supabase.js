@@ -61,6 +61,49 @@ export {
   supabaseUrl
 }
 
+function formatarErroSupabase(error, fallback = 'Erro inesperado no Supabase.') {
+  return {
+    message: error?.message || fallback,
+    code: error?.code || null,
+    status: error?.status || null,
+    hint: error?.hint || null,
+    details: error?.details || null
+  }
+}
+
+function getMensagemPermissao(error) {
+  const status = error?.status
+  if (status === 403) {
+    return 'Sem permissão para executar esta ação.'
+  }
+  return null
+}
+
+async function usuarioAtualEhAdmin() {
+  const { data: authData, error: authError } = await supabase.auth.getUser()
+  if (authError) throw authError
+
+  const authUserId = authData?.user?.id
+  if (!authUserId) return false
+
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('perfil')
+    .eq('auth_user_id', authUserId)
+    .maybeSingle()
+
+  if (error) {
+    const lowerMessage = (error.message || '').toLowerCase()
+    if (lowerMessage.includes('multiple') || lowerMessage.includes('more than 1 row')) {
+      throw new Error('Foram encontrados múltiplos usuários para o mesmo auth_user_id. Corrija duplicidade em public.usuarios.')
+    }
+    throw error
+  }
+
+  const perfil = (data?.perfil || '').toString().trim().toUpperCase()
+  return perfil === 'ADMIN' || perfil === 'ADMINISTRADOR'
+}
+
 // ============================================
 // AUTENTICAÇÃO
 // ============================================
@@ -254,9 +297,12 @@ export async function getEquipamento(id) {
         usuario_atual:usuarios!equipamentos_usuario_atual_id_fkey(id, nome, email)
       `)
       .eq('id', id)
-      .single()
+      .maybeSingle()
 
     if (error) throw error
+    if (!data) {
+      return { success: false, error: 'Equipamento não encontrado.' }
+    }
 
     return { success: true, data }
   } catch (error) {
@@ -270,6 +316,11 @@ export async function getEquipamento(id) {
  */
 export async function createEquipamento(equipamento) {
   try {
+    const isAdmin = await usuarioAtualEhAdmin()
+    if (!isAdmin) {
+      return { success: false, error: 'Sem permissão para criar equipamento.' }
+    }
+
     const { data, error } = await supabase
       .from('equipamentos')
       .insert([equipamento])
@@ -284,8 +335,10 @@ export async function createEquipamento(equipamento) {
     console.log('✅ Equipamento criado:', data.codigo)
     return { success: true, data }
   } catch (error) {
-    console.error('❌ Erro ao criar equipamento:', error.message)
-    return { success: false, error: error.message }
+    const friendly = getMensagemPermissao(error)
+    const info = formatarErroSupabase(error, 'Erro ao criar equipamento')
+    console.error('❌ Erro ao criar equipamento:', info)
+    return { success: false, error: friendly || info.message, details: info }
   }
 }
 
@@ -294,21 +347,29 @@ export async function createEquipamento(equipamento) {
  */
 export async function updateEquipamento(id, updates) {
   try {
+    const isAdmin = await usuarioAtualEhAdmin()
+    if (!isAdmin) {
+      return { success: false, error: 'Sem permissão para editar equipamento.' }
+    }
+
     // Buscar dados anteriores
     const { data: dadosAnteriores } = await supabase
       .from('equipamentos')
       .select('*')
       .eq('id', id)
-      .single()
+      .maybeSingle()
 
     const { data, error } = await supabase
       .from('equipamentos')
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) throw error
+    if (!data) {
+      return { success: false, error: 'Equipamento não encontrado para atualização.' }
+    }
 
     // Registrar na auditoria
     await registrarAuditoria('equipamentos', id, 'UPDATE', dadosAnteriores, data)
@@ -316,8 +377,10 @@ export async function updateEquipamento(id, updates) {
     console.log('✅ Equipamento atualizado:', data.codigo)
     return { success: true, data }
   } catch (error) {
-    console.error('❌ Erro ao atualizar equipamento:', error.message)
-    return { success: false, error: error.message }
+    const friendly = getMensagemPermissao(error)
+    const info = formatarErroSupabase(error, 'Erro ao atualizar equipamento')
+    console.error('❌ Erro ao atualizar equipamento:', info)
+    return { success: false, error: friendly || info.message, details: info }
   }
 }
 
@@ -326,12 +389,17 @@ export async function updateEquipamento(id, updates) {
  */
 export async function deleteEquipamento(id) {
   try {
+    const isAdmin = await usuarioAtualEhAdmin()
+    if (!isAdmin) {
+      return { success: false, error: 'Sem permissão para excluir equipamento.' }
+    }
+
     // Buscar dados antes de deletar
     const { data: dadosAnteriores } = await supabase
       .from('equipamentos')
       .select('*')
       .eq('id', id)
-      .single()
+      .maybeSingle()
 
     const { error } = await supabase
       .from('equipamentos')
@@ -346,8 +414,10 @@ export async function deleteEquipamento(id) {
     console.log('✅ Equipamento deletado:', id)
     return { success: true }
   } catch (error) {
-    console.error('❌ Erro ao deletar equipamento:', error.message)
-    return { success: false, error: error.message }
+    const friendly = getMensagemPermissao(error)
+    const info = formatarErroSupabase(error, 'Erro ao deletar equipamento')
+    console.error('❌ Erro ao deletar equipamento:', info)
+    return { success: false, error: friendly || info.message, details: info }
   }
 }
 
