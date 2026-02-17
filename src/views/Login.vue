@@ -28,6 +28,29 @@
           </v-alert>
 
 
+          <v-expansion-panels
+            v-if="diagnosticoDisponivel"
+            variant="accordion"
+            class="mb-4"
+          >
+            <v-expansion-panel>
+              <v-expansion-panel-title>
+                <v-icon class="mr-2">mdi-stethoscope</v-icon>
+                Diagnóstico Supabase
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <div class="text-caption">
+                  <div><strong>Hostname:</strong> {{ diagnosticoSupabase.hostname }}</div>
+                  <div><strong>URL definida:</strong> {{ diagnosticoSupabase.urlDefinida ? 'sim' : 'não' }}</div>
+                  <div><strong>Key definida:</strong> {{ diagnosticoSupabase.keyDefinida ? 'sim' : 'não' }}</div>
+                  <div><strong>Fonte da key:</strong> {{ diagnosticoSupabase.fonteKey || 'não definida' }}</div>
+                  <div><strong>Key mascarada:</strong> {{ diagnosticoSupabase.keyMascarada }}</div>
+                </div>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+
+
           <v-alert
             v-if="mensagemStatus"
             :type="tipoMensagemStatus"
@@ -203,14 +226,33 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { hasSupabaseEnv, resetPassword, supabaseEnvErrorMessage } from '@/services/supabase'
+import {
+  hasSupabaseEnv,
+  maskSupabaseKey,
+  resetPassword,
+  supabaseAnonKey,
+  supabaseEnvErrorMessage,
+  supabaseKeySource,
+  supabaseUrl
+} from '@/services/supabase'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const isDev = import.meta.env.DEV
+const diagnosticoForcado = route.query.debugSupabase === '1'
+const diagnosticoDisponivel = computed(() => isDev || diagnosticoForcado)
+const diagnosticoSupabase = computed(() => ({
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'n/a',
+  urlDefinida: !!supabaseUrl,
+  keyDefinida: !!supabaseAnonKey,
+  fonteKey: supabaseKeySource,
+  keyMascarada: maskSupabaseKey(supabaseAnonKey)
+}))
+
 
 // State
 const formRef = ref(null)

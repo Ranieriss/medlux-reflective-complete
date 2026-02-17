@@ -318,21 +318,37 @@ Sistema desenvolvido para gestão profissional de equipamentos refletivos de sin
 **Próxima Feature**: 🚧 Gestão de Vínculos/Custódia
 <!-- trigger new checks -->
 
+## Supabase env vars
 
-## Configuração Supabase Auth (produção)
+Para evitar erros de login e build no Vercel, configure **sempre** estas variáveis de ambiente:
 
-Para evitar erros de login/reset de senha em produção:
+- `VITE_SUPABASE_URL=https://<project-ref>.supabase.co`
+- `VITE_SUPABASE_ANON_KEY=sb_publishable_...` (**recomendado**)
+- `VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...` (fallback compatível, caso você prefira manter esse nome)
 
-- No Supabase, acesse **Settings → API** e copie:
-  - **Project URL** (`https://<project-ref>.supabase.co`) para `VITE_SUPABASE_URL`.
-  - **Publishable/anon key** (normalmente inicia com `eyJ...`) para `VITE_SUPABASE_ANON_KEY`.
-- ⚠️ `prj_...` é apenas o project ref/identificador e **não** é uma anon key válida.
-- Configure na Vercel as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (Production/Preview/Development).
-- Após alterar variáveis na Vercel, faça **Redeploy** para o frontend ler os novos valores.
+Regras importantes:
+
+- O frontend usa `VITE_SUPABASE_ANON_KEY` como prioridade e `VITE_SUPABASE_PUBLISHABLE_KEY` como fallback.
+- Use a **Publishable key** do Supabase (prefixo `sb_publishable_...`).
+- ⚠️ `prj_...` é apenas o identificador do projeto e **não** funciona como chave de API.
+- Nunca use `service_role` no frontend.
+- Configure as variáveis na Vercel em **Production / Preview / Development** e faça **Redeploy** após qualquer alteração.
+
+Exemplo para Vercel:
+
+```bash
+VITE_SUPABASE_URL=https://abcd1234.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_xxxxxxxxxxxxxxxxx
+# opcional (fallback)
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxxxxxxxxxxx
+```
+
+Configuração de Auth para recuperação de senha:
+
 - Em **Supabase > Auth > URL Configuration**, defina:
   - Site URL: `https://medlux-reflective-complete.vercel.app`
   - Redirect URL: `https://medlux-reflective-complete.vercel.app/redefinir-senha`
-- O app usa `redirectTo` fixo para `https://medlux-reflective-complete.vercel.app/redefinir-senha` no fluxo de recuperação.
-- Nunca use `service_role` no frontend.
+- Em desenvolvimento, o app usa o hostname atual para `redirectTo`; em produção, usa a URL oficial do projeto.
 
 Consulte detalhes no arquivo `SUPABASE_SETUP.md`.
+

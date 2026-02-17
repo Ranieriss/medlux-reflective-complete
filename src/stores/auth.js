@@ -16,11 +16,7 @@ function mapLoginError(error) {
   }
 
   if (error?.status === 401 || error?.status === 403) {
-    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
-  }
-
-  if (error?.code === 'PGRST116' || message.includes('cannot coerce the result to a single json object')) {
-    return 'Configuração de usuário inconsistente (mais de um registro ou nenhum).'
+    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou VITE_SUPABASE_PUBLISHABLE_KEY) no Vercel.'
   }
 
   if (
@@ -30,7 +26,7 @@ function mapLoginError(error) {
     message.includes('invalid jwt') ||
     message.includes('jwt malformed')
   ) {
-    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
+    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou VITE_SUPABASE_PUBLISHABLE_KEY) no Vercel.'
   }
 
   if (
@@ -39,7 +35,7 @@ function mapLoginError(error) {
     message.includes('email not confirmed') ||
     error?.status === 400
   ) {
-    return 'Credenciais inválidas. Verifique e-mail e senha.'
+    return 'Credenciais inválidas. Verifique e-mail e senha cadastrados.'
   }
 
   if (
@@ -116,7 +112,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (!Array.isArray(data) || data.length === 0) {
       console.error('[auth] perfil não encontrado para usuário', { userId, email })
-      throw new Error('Configuração de usuário inconsistente (mais de um registro ou nenhum).')
+      throw new Error('Usuário não cadastrado. Solicite ao administrador o cadastro na tabela public.usuarios.')
     }
 
     if (data.length > 1) {
@@ -126,7 +122,7 @@ export const useAuthStore = defineStore('auth', () => {
         totalEncontrado: data.length,
         ids: data.map((item) => item.id)
       })
-      throw new Error('Configuração de usuário inconsistente (mais de um registro ou nenhum).')
+      throw new Error('Cadastro duplicado no banco. Solicite ao administrador a correção na tabela public.usuarios.')
     }
 
     const perfil = data[0]
@@ -179,9 +175,6 @@ export const useAuthStore = defineStore('auth', () => {
           }
         }
       }
-
-      console.info('[auth] supabase url present?', !!import.meta.env.VITE_SUPABASE_URL)
-      console.info('[auth] anon key present?', !!import.meta.env.VITE_SUPABASE_ANON_KEY)
 
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: emailLimpo,
