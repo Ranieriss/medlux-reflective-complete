@@ -557,7 +557,7 @@ import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
 import relatorioMedicoesService from '@/services/relatorioMedicoesService'
-import { listar as listarEquipamentos } from '@/services/equipamentoService'
+import equipamentoService, { listar as listarEquipamentos } from '@/services/equipamentoService'
 
 // State
 const auditoria = ref([])
@@ -786,7 +786,15 @@ const formatarDataHora = (data) => {
 // Métodos de Relatórios
 const carregarEquipamentos = async () => {
   try {
-    const response = await listarEquipamentos()
+    const listarFn = typeof listarEquipamentos === 'function'
+      ? listarEquipamentos
+      : equipamentoService?.listar
+
+    if (typeof listarFn !== 'function') {
+      throw new Error('Função listar indisponível no serviço de equipamentos')
+    }
+
+    const response = await listarFn()
     equipamentosDisponiveis.value = response.map(eq => ({
       ...eq,
       nome_completo: `${eq.codigo} - ${eq.nome}`

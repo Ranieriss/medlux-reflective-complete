@@ -13,6 +13,7 @@ import {
   supabaseUrl
 } from '@/config/env'
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
+import { requireAdmin, getCurrentProfile } from './authGuard'
 
 if (!hasSupabaseEnv) {
   if (missingSupabaseEnvVars.length > 0) {
@@ -80,28 +81,12 @@ function getMensagemPermissao(error) {
 }
 
 async function usuarioAtualEhAdmin() {
-  const { data: authData, error: authError } = await supabase.auth.getUser()
-  if (authError) throw authError
-
-  const authUserId = authData?.user?.id
-  if (!authUserId) return false
-
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('perfil')
-    .eq('auth_user_id', authUserId)
-    .maybeSingle()
-
-  if (error) {
-    const lowerMessage = (error.message || '').toLowerCase()
-    if (lowerMessage.includes('multiple') || lowerMessage.includes('more than 1 row')) {
-      throw new Error('Foram encontrados múltiplos usuários para o mesmo auth_user_id. Corrija duplicidade em public.usuarios.')
-    }
-    throw error
+  try {
+    const profile = await getCurrentProfile()
+    return profile.perfilNormalizado === 'ADMIN' || profile.perfilNormalizado === 'ADMINISTRADOR'
+  } catch {
+    return false
   }
-
-  const perfil = (data?.perfil || '').toString().trim().toUpperCase()
-  return perfil === 'ADMIN' || perfil === 'ADMINISTRADOR'
 }
 
 // ============================================
@@ -316,18 +301,18 @@ export async function getEquipamento(id) {
  */
 export async function createEquipamento(equipamento) {
   try {
-    const isAdmin = await usuarioAtualEhAdmin()
-    if (!isAdmin) {
-      return { success: false, error: 'Sem permissão para criar equipamento.' }
-    }
+    await requireAdmin()
 
     const { data, error } = await supabase
       .from('equipamentos')
       .insert([equipamento])
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) throw error
+    if (!data) {
+      return { success: false, error: 'Falha ao criar equipamento.' }
+    }
 
     // Registrar na auditoria
     await registrarAuditoria('equipamentos', data.id, 'CREATE', null, data)
@@ -347,10 +332,7 @@ export async function createEquipamento(equipamento) {
  */
 export async function updateEquipamento(id, updates) {
   try {
-    const isAdmin = await usuarioAtualEhAdmin()
-    if (!isAdmin) {
-      return { success: false, error: 'Sem permissão para editar equipamento.' }
-    }
+    await requireAdmin()
 
     // Buscar dados anteriores
     const { data: dadosAnteriores } = await supabase
@@ -389,10 +371,7 @@ export async function updateEquipamento(id, updates) {
  */
 export async function deleteEquipamento(id) {
   try {
-    const isAdmin = await usuarioAtualEhAdmin()
-    if (!isAdmin) {
-      return { success: false, error: 'Sem permissão para excluir equipamento.' }
-    }
+    await requireAdmin()
 
     // Buscar dados antes de deletar
     const { data: dadosAnteriores } = await supabase

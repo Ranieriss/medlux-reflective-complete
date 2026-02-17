@@ -575,6 +575,7 @@
 
         <v-card-actions class="pa-4">
           <v-btn
+            v-if="podeGerenciarEquipamentos"
             color="primary"
             variant="text"
             @click="editarEquipamento(equipamentoSelecionado)"
@@ -672,6 +673,7 @@
 import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
 import supabase, { getEquipamentos, createEquipamento, updateEquipamento, deleteEquipamento, subscribeToEquipamentos, registrarAuditoria } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { requireAdmin } from '@/services/authGuard'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import QRCode from 'qrcode'
 
@@ -1017,9 +1019,15 @@ const carregarEquipamentos = async () => {
   }
 }
 
-const abrirDialogNovo = () => {
+const abrirDialogNovo = async () => {
   if (!podeGerenciarEquipamentos.value) {
     mostrarSnackbar('Somente ADMIN', 'warning')
+    return
+  }
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
     return
   }
 
@@ -1043,9 +1051,15 @@ const abrirDialogNovo = () => {
   dialogForm.value = true
 }
 
-const editarEquipamento = (equipamento) => {
+const editarEquipamento = async (equipamento) => {
   if (!podeGerenciarEquipamentos.value) {
     mostrarSnackbar('Somente ADMIN', 'warning')
+    return
+  }
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
     return
   }
 
@@ -1074,6 +1088,12 @@ const processarFoto = async (event) => {
 const salvarEquipamento = async () => {
   if (!podeGerenciarEquipamentos.value) {
     mostrarSnackbar('Somente ADMIN', 'warning')
+    return
+  }
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
     return
   }
 
@@ -1140,9 +1160,15 @@ const salvarEquipamento = async () => {
   }
 }
 
-const confirmarExclusao = (equipamento) => {
+const confirmarExclusao = async (equipamento) => {
   if (!podeGerenciarEquipamentos.value) {
     mostrarSnackbar('Somente ADMIN', 'warning')
+    return
+  }
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
     return
   }
 
@@ -1152,6 +1178,12 @@ const confirmarExclusao = (equipamento) => {
 
 const excluirEquipamento = async () => {
   if (!equipamentoParaExcluir.value) return
+
+  try {
+    await requireAdmin((message) => mostrarSnackbar(message, 'warning'))
+  } catch {
+    return
+  }
 
   excluindo.value = true
 

@@ -820,7 +820,11 @@ const salvarUsuario = async () => {
     await carregarUsuarios()
   } catch (error) {
     console.error('❌ Erro ao salvar usuário:', error)
-    mostrarSnackbar(formatarErroSupabase(error), 'error')
+    if (error?.code === '23505') {
+      mostrarSnackbar('E-mail já cadastrado', 'warning')
+    } else {
+      mostrarSnackbar(formatarErroSupabase(error), 'error')
+    }
   } finally {
     salvando.value = false
   }
