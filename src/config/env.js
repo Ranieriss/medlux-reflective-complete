@@ -10,30 +10,34 @@ const env = getClientEnv()
 
 export const supabaseUrl = env.VITE_SUPABASE_URL?.trim() || ''
 const anonKeyFromEnv = env.VITE_SUPABASE_ANON_KEY?.trim() || ''
-const publishableKeyFromEnv = env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() || ''
 
-export const supabaseKeySource = anonKeyFromEnv
-  ? 'VITE_SUPABASE_ANON_KEY'
-  : (publishableKeyFromEnv ? 'VITE_SUPABASE_PUBLISHABLE_KEY' : '')
+export const supabaseKeySource = anonKeyFromEnv ? 'VITE_SUPABASE_ANON_KEY' : ''
 
-export const supabaseAnonKey = anonKeyFromEnv || publishableKeyFromEnv
+export const supabaseAnonKey = anonKeyFromEnv
 
 const isValidSupabaseUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(supabaseUrl)
 const looksLikeProjectRef = /^prj_/i.test(supabaseAnonKey)
-const isLikelyJwt = supabaseAnonKey.startsWith('eyJ')
+const isLikelyJwt = /^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(supabaseAnonKey)
 const isPublishableKey = /^sb_publishable_/i.test(supabaseAnonKey)
-const hasAnySupabaseKey = !!anonKeyFromEnv || !!publishableKeyFromEnv
+const isServiceRoleKey = /service_role/i.test(supabaseAnonKey)
+const hasAnySupabaseKey = !!anonKeyFromEnv
 
 export const missingSupabaseEnvVars = [
   !supabaseUrl ? 'VITE_SUPABASE_URL' : null,
-  !hasAnySupabaseKey ? 'VITE_SUPABASE_ANON_KEY ou VITE_SUPABASE_PUBLISHABLE_KEY' : null
+  !hasAnySupabaseKey ? 'VITE_SUPABASE_ANON_KEY' : null
 ].filter(Boolean)
 
 export const invalidSupabaseEnvVars = [
   supabaseUrl && !isValidSupabaseUrl ? 'VITE_SUPABASE_URL (esperado formato https://<project-ref>.supabase.co)' : null,
   looksLikeProjectRef ? `${supabaseKeySource || 'VITE_SUPABASE_ANON_KEY'} (valor prj_... não é chave pública válida)` : null,
-  supabaseAnonKey && !looksLikeProjectRef && !isLikelyJwt && !isPublishableKey
-    ? `${supabaseKeySource || 'VITE_SUPABASE_ANON_KEY'} (esperado token iniciando com eyJ... ou sb_publishable_...)`
+  isPublishableKey
+    ? `${supabaseKeySource || 'VITE_SUPABASE_ANON_KEY'} (sb_publishable_ detectada; use a anon/public key JWT que começa com eyJ...)`
+    : null,
+  isServiceRoleKey
+    ? `${supabaseKeySource || 'VITE_SUPABASE_ANON_KEY'} (service_role não pode ser usada no frontend)`
+    : null,
+  supabaseAnonKey && !looksLikeProjectRef && !isLikelyJwt && !isPublishableKey && !isServiceRoleKey
+    ? `${supabaseKeySource || 'VITE_SUPABASE_ANON_KEY'} (esperado JWT anon/public com formato header.payload.signature)`
     : null
 ].filter(Boolean)
 

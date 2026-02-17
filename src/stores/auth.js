@@ -16,6 +16,7 @@ function formatErrorDetails(error) {
   }
 }
 
+
 function mapLoginError(error) {
   const message = getErrorMessage(error, '').toLowerCase()
 
@@ -24,11 +25,11 @@ function mapLoginError(error) {
   }
 
   if (message.includes('user_banned')) {
-    return 'Usuário bloqueado no Auth (user_banned). Contate o ADMIN.'
+    return 'Usuário bloqueado no Auth. Solicite ao ADMIN desbloqueio.'
   }
 
   if (message.includes('email not confirmed') || message.includes('email_not_confirmed')) {
-    return 'E-mail não confirmado. Verifique sua caixa de entrada para confirmar o cadastro.'
+    return 'E-mail não confirmado. Confirme no e-mail ou peça ao ADMIN.'
   }
 
   if (error?.status === 401 || error?.status === 403) {
@@ -65,7 +66,7 @@ function normalizePerfil(perfil) {
   const normalized = (perfil || '').toString().trim().toUpperCase()
   if (normalized === 'ADMIN' || normalized === 'ADMINISTRADOR') return 'ADMIN'
   if (normalized === 'USER' || normalized === 'TECNICO' || normalized === 'OPERADOR') return 'USER'
-  return normalized || 'USER'
+  return normalized
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -117,11 +118,11 @@ export const useAuthStore = defineStore('auth', () => {
         throw Object.assign(new Error('Perfil ausente/duplicado em public.usuarios para este auth_user_id. Contate o ADMIN.'), { details: formatErrorDetails(error) })
       }
 
-      throw Object.assign(new Error(`Erro ao carregar perfil (status=${error?.status ?? 'n/a'}, code=${error?.code ?? 'n/a'}): ${getErrorMessage(error, 'sem detalhes')}`), { details: formatErrorDetails(error) })
+      throw Object.assign(new Error(`Erro na etapa Perfil (status=${error?.status ?? 'n/a'}, code=${error?.code ?? 'n/a'}): ${getErrorMessage(error, 'sem detalhes')}. Verifique policies RLS em public.usuarios e variáveis de ambiente Supabase.`), { details: formatErrorDetails(error) })
     }
 
     if (!perfil) {
-      throw new Error('Usuário autenticado, mas sem cadastro em public.usuarios. Contate o ADMIN.')
+      throw new Error('Usuário autenticado, mas sem cadastro em public.usuarios (perfil). Contate o ADMIN.')
     }
 
     if (!perfil?.ativo) {
@@ -139,6 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!emailLimpo || !emailLimpo.includes('@')) {
         return {
           sucesso: false,
+          etapa: 'Auth',
           mensagem: 'Informe um e-mail válido para continuar.',
           detalhes: { status: 400, message: 'E-mail ausente ou inválido.', code: 'invalid_email' }
         }
@@ -147,6 +149,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!senhaLimpa) {
         return {
           sucesso: false,
+          etapa: 'Auth',
           mensagem: 'Informe a senha para continuar.',
           detalhes: { status: 400, message: 'Senha ausente.', code: 'missing_password' }
         }
@@ -155,6 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!hasSupabaseEnv) {
         return {
           sucesso: false,
+          etapa: 'Configuração',
           mensagem: supabaseEnvErrorMessage,
           detalhes: {
             status: null,
@@ -172,6 +176,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (authError) {
         return {
           sucesso: false,
+          etapa: 'Auth',
           mensagem: mapLoginError(authError),
           detalhes: formatErrorDetails(authError),
           precisaConfirmarEmail: isEmailConfirmationRequired(authError)
@@ -179,6 +184,22 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const usuarioPerfil = await carregarPerfilUsuario()
+
+      const perfilNormalizado = normalizePerfil(usuarioPerfil.perfil)
+      if (perfilNormalizado !== 'ADMIN' && perfilNormalizado !== 'USER') {
+        return {
+          sucesso: false,
+          etapa: 'Permissões',
+          mensagem: `Perfil inconsistente em public.usuarios: "${usuarioPerfil.perfil || 'vazio'}". Apenas ADMIN ou USER são aceitos.`,
+          detalhes: {
+            status: 403,
+            message: 'Perfil inválido para autorização no app.',
+            code: 'invalid_profile_role'
+          }
+        }
+      }
+
+      usuarioPerfil.perfil = perfilNormalizado
 
       const { error: updateError } = await supabase
         .from('usuarios')
@@ -199,8 +220,14 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('❌ Erro no login:', error)
       const errorDetalhes = error?.details || formatErrorDetails(error)
+      const etapa = error?.message?.includes('sessão')
+        ? 'Session'
+        : error?.message?.toLowerCase().includes('perfil') || error?.message?.toLowerCase().includes('public.usuarios')
+          ? 'Perfil'
+          : 'Auth'
       return {
         sucesso: false,
+        etapa,
         mensagem: error?.message || mapLoginError(error),
         detalhes: errorDetalhes,
         precisaConfirmarEmail: isEmailConfirmationRequired(error)

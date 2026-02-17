@@ -26,6 +26,7 @@
           >
             <div class="font-weight-medium mb-1">{{ supabaseEnvErrorMessage }}</div>
             <div class="text-caption">Configure <strong>VITE_SUPABASE_URL</strong> (https://&lt;project&gt;.supabase.co) e <strong>VITE_SUPABASE_ANON_KEY</strong> (JWT iniciando com eyJ...).</div>
+            <div class="text-caption">Se estiver usando <strong>sb_publishable_...</strong> ou <strong>service_role</strong>, substitua pela chave anon/public correta.</div>
             <div class="text-caption">No Vercel: Project → Settings → Environment Variables (Production, Preview e Development) e faça novo deploy.</div>
           </v-alert>
 
@@ -72,6 +73,7 @@
             class="mb-4"
           >
             <div class="font-weight-medium mb-1">{{ erro }}</div>
+            <div class="text-caption">etapa: {{ etapaErro || 'n/a' }}</div>
             <div class="text-caption">status: {{ erroDetalhes.status ?? 'n/a' }}</div>
             <div class="text-caption">message: {{ erroDetalhes.message || 'n/a' }}</div>
             <div class="text-caption">code: {{ erroDetalhes.code || 'n/a' }}</div>
@@ -270,6 +272,7 @@ const senha = ref('')
 const mostrarSenha = ref(false)
 const carregando = ref(false)
 const erro = ref('')
+const etapaErro = ref('')
 const erroDetalhes = ref({ status: null, message: '', code: null })
 const precisaConfirmarEmail = ref(false)
 const mensagemStatus = ref('')
@@ -302,6 +305,7 @@ const handleLogin = async () => {
 
   carregando.value = true
   erro.value = ''
+  etapaErro.value = ''
   erroDetalhes.value = { status: null, message: '', code: null }
   precisaConfirmarEmail.value = false
   diagnosticoRuntime.value = { auth: 'Executando...', perfil: 'Aguardando', rls: 'Aguardando' }
@@ -314,6 +318,7 @@ const handleLogin = async () => {
       router.push('/dashboard')
     } else {
       erro.value = resultado.mensagem
+      etapaErro.value = resultado.etapa || 'Auth'
       erroDetalhes.value = resultado.detalhes || { status: null, message: '', code: null }
       precisaConfirmarEmail.value = !!resultado.precisaConfirmarEmail
       diagnosticoRuntime.value = {
@@ -325,6 +330,7 @@ const handleLogin = async () => {
   } catch (error) {
     console.error('Erro no login:', error)
     erro.value = 'Erro ao realizar login. Tente novamente.'
+    etapaErro.value = 'Auth'
     erroDetalhes.value = {
       status: error?.status ?? null,
       message: error?.message || 'Erro inesperado no login.',
