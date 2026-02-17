@@ -21,7 +21,7 @@ if (!hasSupabaseEnv) {
   if (invalidSupabaseEnvVars.length > 0) {
     console.error('⚠️ [supabase] variáveis de ambiente inválidas:', invalidSupabaseEnvVars.join(', '))
   }
-  console.error('ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou VITE_SUPABASE_PUBLISHABLE_KEY) no ambiente da Vercel e gere novo deploy.')
+  console.error('ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel e gere novo deploy.')
   console.error(supabaseEnvErrorMessage)
 }
 

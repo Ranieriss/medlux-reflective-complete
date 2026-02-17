@@ -44,6 +44,37 @@ Sistema completo de gestão de equipamentos refletivos de sinalização viária 
 - **date-fns 3.3.1** - Manipulação de datas
 - **QRCode 1.5.3** - Geração de QR Codes
 
+
+## 🔐 Supabase + Vercel (obrigatório para login)
+
+Defina estas variáveis de ambiente no frontend Vite:
+
+- `VITE_SUPABASE_URL` → `https://<project-ref>.supabase.co`
+- `VITE_SUPABASE_ANON_KEY` → chave **anon/public** (JWT, normalmente começa com `eyJ...`)
+
+### Onde configurar no Vercel
+
+1. Acesse **Project → Settings → Environment Variables**.
+2. Cadastre as duas variáveis para **Production**, **Preview** e **Development**.
+3. Faça **Redeploy** do projeto para aplicar as novas vars.
+
+### Aplicar SQL final de RLS
+
+Execute o arquivo abaixo no **Supabase SQL Editor**:
+
+- `supabase/medlux_rls_final.sql`
+
+Esse script é idempotente e configura:
+- Auth por `usuarios.auth_user_id = auth.uid()`
+- Policies ADMIN/USER finais
+- ownership (`usuario_id`) e trigger nas tabelas de leituras
+
+### Troubleshooting rápido de login
+
+- Botão de login habilitado, mas erro de configuração: revisar as env vars acima.
+- Mensagem `Usuário autenticado, mas sem cadastro em public.usuarios`: criar/ajustar linha na tabela `public.usuarios` com `auth_user_id` correto.
+- Mensagem `Perfil ausente/duplicado`: corrigir duplicidade em `public.usuarios` para o mesmo `auth_user_id`.
+
 ## 🚀 Como Rodar
 
 ### Pré-requisitos
@@ -247,6 +278,35 @@ Todas as ações são registradas:
 1. Clique no ícone de lixeira (🗑️)
 2. Confirme a exclusão
 3. ✅ Equipamento excluído e auditoria registrada
+
+
+## ✅ Plano de testes (ADMIN e USER)
+
+### ADMIN
+1. Login com usuário ADMIN.
+2. Confirmar leitura de todas as medições e cadastros.
+3. Confirmar escrita em `trechos_medicao`, `segmentos_medicao`, `estacoes_medicao` (se UI disponível).
+
+### USER (`teste@medlux.com`)
+1. Login com usuário USER.
+2. Confirmar leitura de `trechos_medicao`, `segmentos_medicao`, `estacoes_medicao`.
+3. Inserir leituras sem enviar `usuario_id` (trigger deve preencher automaticamente).
+4. Confirmar listagem apenas das próprias leituras.
+
+### Sanidade no banco
+```sql
+select schemaname, tablename, policyname, roles, cmd
+from pg_policies
+where schemaname='public'
+order by tablename, policyname;
+
+select relname, relrowsecurity
+from pg_class
+where relname in (
+  'usuarios','trechos_medicao','segmentos_medicao','estacoes_medicao',
+  'leituras_medicao','leituras_vertical','leituras_dispositivos'
+);
+```
 
 ## 📊 Próximos Passos
 

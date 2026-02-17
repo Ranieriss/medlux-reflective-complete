@@ -43,7 +43,7 @@ const envProblems = [...missingSupabaseEnvVars, ...invalidSupabaseEnvVars]
 
 export const supabaseEnvErrorMessage = hasSupabaseEnv
   ? ''
-  : `Configuração Supabase inválida/ausente. Corrija: ${envProblems.join(', ')}. Defina as variáveis no Vercel (Production/Preview/Development), use a Publishable key (sb_publishable_...) e gere um novo deploy.`
+  : `Configuração Supabase inválida/ausente. Corrija: ${envProblems.join(', ')}. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel (Production/Preview/Development) e gere um novo deploy.`
 
 export function maskSupabaseKey(key) {
   if (!key) {
