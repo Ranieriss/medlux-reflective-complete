@@ -381,15 +381,34 @@ const salvarVinculo = async () => {
   salvando.value = true
 
   try {
+    const payload = {
+      equipamento_id: vinculoForm.value.equipamento_id,
+      usuario_id: vinculoForm.value.usuario_id,
+      data_inicio: vinculoForm.value.data_inicio,
+      data_fim: vinculoForm.value.data_fim || null,
+      observacoes: vinculoForm.value.observacoes || null,
+      ativo: true,
+      ...(vinculoForm.value.cautela_url !== undefined ? { cautela_url: vinculoForm.value.cautela_url || null } : {}),
+      ...(vinculoForm.value.cautela_data_upload !== undefined
+        ? { cautela_data_upload: vinculoForm.value.cautela_data_upload || null }
+        : {}),
+      ...(vinculoForm.value.cautela_data_entrega !== undefined
+        ? { cautela_data_entrega: vinculoForm.value.cautela_data_entrega || null }
+        : {}),
+      ...(vinculoForm.value.cautela_tecnico_responsavel !== undefined
+        ? { cautela_tecnico_responsavel: vinculoForm.value.cautela_tecnico_responsavel || null }
+        : {}),
+      ...(vinculoForm.value.cautela_treinamento_realizado !== undefined
+        ? { cautela_treinamento_realizado: !!vinculoForm.value.cautela_treinamento_realizado }
+        : {}),
+      ...(vinculoForm.value.cautela_observacoes !== undefined
+        ? { cautela_observacoes: vinculoForm.value.cautela_observacoes || null }
+        : {})
+    }
+
     const { data, error } = await supabase
       .from('vinculos')
-      .insert([{
-        equipamento_id: vinculoForm.value.equipamento_id,
-        usuario_id: vinculoForm.value.usuario_id,
-        data_inicio: vinculoForm.value.data_inicio,
-        observacoes: vinculoForm.value.observacoes,
-        ativo: true
-      }])
+      .insert([payload])
       .select()
 
     if (error) throw error
@@ -399,7 +418,7 @@ const salvarVinculo = async () => {
     fecharDialog()
   } catch (error) {
     console.error('❌ Erro ao criar vínculo:', error)
-    mostrarSnackbar(`Erro ao criar vínculo: ${error.message}`, 'error')
+    mostrarSnackbar(isRlsError(error) ? getMensagemErroRls() : `Erro ao criar vínculo: ${error.message}`, 'error')
   } finally {
     salvando.value = false
   }
@@ -423,7 +442,7 @@ const encerrarVinculo = async (vinculo) => {
     await carregarVinculos()
   } catch (error) {
     console.error('❌ Erro ao encerrar vínculo:', error)
-    mostrarSnackbar(`Erro ao encerrar vínculo: ${error.message}`, 'error')
+    mostrarSnackbar(isRlsError(error) ? getMensagemErroRls() : `Erro ao encerrar vínculo: ${error.message}`, 'error')
   }
 }
 
@@ -453,6 +472,12 @@ const mostrarSnackbar = (message, color = 'success') => {
     color
   }
 }
+
+
+const isRlsError = (error) => error?.code === '42501' || error?.status === 403
+
+const getMensagemErroRls = () =>
+  'Permissão negada (RLS). Verifique se o usuário está como ADMIN no cadastro e se as policies do Supabase foram aplicadas.'
 
 // Lifecycle
 onMounted(async () => {
