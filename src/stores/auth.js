@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ensureSessionAndProfile, hasSupabaseEnv, supabase, supabaseEnvErrorMessage } from '@/services/supabase'
+import { formatSupabaseError } from '@/utils/formatSupabaseError'
 
 const STORAGE_KEY = 'medlux_auth'
 
@@ -9,10 +10,11 @@ function getErrorMessage(error, fallback) {
 }
 
 function formatErrorDetails(error) {
+  const normalized = formatSupabaseError(error, 'Erro ao realizar login.')
   return {
-    status: error?.status ?? null,
-    message: getErrorMessage(error, 'Erro ao realizar login.'),
-    code: error?.code ?? null
+    status: normalized.status ?? null,
+    message: normalized.message,
+    code: normalized.code ?? null
   }
 }
 
@@ -32,20 +34,6 @@ function mapLoginError(error) {
     return 'E-mail não confirmado. Confirme no e-mail ou peça ao ADMIN.'
   }
 
-  if (error?.status === 401 || error?.status === 403) {
-    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
-  }
-
-  if (
-    message.includes('invalid api key') ||
-    message.includes('api key') ||
-    message.includes('project not found') ||
-    message.includes('invalid jwt') ||
-    message.includes('jwt malformed')
-  ) {
-    return 'Chave/URL do Supabase inválida. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.'
-  }
-
   if (message.includes('invalid login credentials') || message.includes('invalid_credentials') || error?.status === 400) {
     return 'Credenciais inválidas. Verifique e-mail e senha cadastrados.'
   }
@@ -54,7 +42,7 @@ function mapLoginError(error) {
     return 'Falha de rede/CORS ao conectar ao Supabase. Verifique sua conexão e as configurações de domínio permitido.'
   }
 
-  return getErrorMessage(error, 'Erro ao realizar login.')
+  return formatSupabaseError(error, 'Erro ao realizar login.').message
 }
 
 function isEmailConfirmationRequired(error) {
@@ -110,11 +98,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (error) {
       const lowerMsg = getErrorMessage(error, '').toLowerCase()
-      if (lowerMsg.includes('more than 1 row') || lowerMsg.includes('multiple') || error?.code === 'PGRST116') {
+      if (lowerMsg.includes('more than 1 row') || lowerMsg.includes('multiple') || error?.code === 'PGRST116' || error?.code === 'PROFILE_DUPLICATED') {
         const { count } = await supabase
           .from('usuarios')
           .select('id', { count: 'exact', head: true })
-          .eq('id', authId)
+          .eq('user_id', authId)
 
         const mensagem = count > 1
           ? 'Foram encontrados múltiplos cadastros em public.usuarios para este id/auth.uid(). Contate o ADMIN para remover duplicidades.'

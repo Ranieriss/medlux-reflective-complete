@@ -389,11 +389,39 @@ const executarDiagnostico = async () => {
     return
   }
 
-  const { data: usuario, error: perfilError } = await supabase
+  let usuario = null
+  let perfilError = null
+
+  const perfilByUserId = await supabase
     .from('usuarios')
-    .select('id, perfil')
-    .eq('id', authId)
+    .select('id, perfil, user_id, auth_user_id')
+    .eq('user_id', authId)
     .maybeSingle()
+
+  usuario = perfilByUserId.data
+  perfilError = perfilByUserId.error
+
+  if (perfilError && (perfilError.code === '42703' || (perfilError.message || '').toLowerCase().includes('user_id'))) {
+    const perfilByAuthId = await supabase
+      .from('usuarios')
+      .select('id, perfil, user_id, auth_user_id')
+      .eq('auth_user_id', authId)
+      .maybeSingle()
+
+    usuario = perfilByAuthId.data
+    perfilError = perfilByAuthId.error
+  }
+
+  if (!usuario && !perfilError) {
+    const perfilById = await supabase
+      .from('usuarios')
+      .select('id, perfil, user_id, auth_user_id')
+      .eq('id', authId)
+      .maybeSingle()
+
+    usuario = perfilById.data
+    perfilError = perfilById.error
+  }
 
   diagnosticoRuntime.value.perfil = perfilError
     ? formatDiagError('Falha no perfil', perfilError)

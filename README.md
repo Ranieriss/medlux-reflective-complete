@@ -388,7 +388,7 @@ Sistema desenvolvido para gestão profissional de equipamentos refletivos de sin
 
 ## Supabase env vars
 
-Para evitar erros de login e build no Vercel, configure **sempre** estas variáveis de ambiente:
+Para evitar erros de login e deploy no Vercel, configure **sempre** estas variáveis:
 
 - `VITE_SUPABASE_URL=https://<project-ref>.supabase.co`
 - `VITE_SUPABASE_ANON_KEY=eyJ...` (**obrigatório: anon/public JWT**)
@@ -396,9 +396,9 @@ Para evitar erros de login e build no Vercel, configure **sempre** estas variáv
 Regras importantes:
 
 - O frontend usa **somente** `VITE_SUPABASE_ANON_KEY`.
-- A chave deve ser JWT anon/public (formato `header.payload.signature`, normalmente iniciando com `eyJ...`).
+- A chave deve ser JWT anon/public (`header.payload.signature`, normalmente iniciando com `eyJ...`).
 - ⚠️ `sb_publishable_...`, `prj_...` e `service_role` **não** devem ser usados no frontend.
-- Configure as variáveis na Vercel em **Production / Preview / Development** e faça **Redeploy** após qualquer alteração.
+- Configure as variáveis na Vercel em **Production / Preview / Development** e faça **Redeploy** após alterar qualquer env.
 
 Exemplo para Vercel:
 
@@ -414,13 +414,56 @@ Configuração de Auth para recuperação de senha:
   - Redirect URL: `https://medlux-reflective-complete.vercel.app/redefinir-senha`
 - Em desenvolvimento, o app usa o hostname atual para `redirectTo`; em produção, usa a URL oficial do projeto.
 
-Consulte detalhes no arquivo `SUPABASE_SETUP.md`.
+### SQL mínimo (public.usuarios + RLS)
 
+```sql
+-- coluna canônica de vínculo com auth.users
+alter table public.usuarios
+  add column if not exists user_id uuid;
+
+-- opcional: compatibilidade com schema antigo
+alter table public.usuarios
+  add column if not exists auth_user_id uuid;
+
+-- unicidade para evitar duplicidades de perfil
+create unique index if not exists usuarios_user_id_unique
+  on public.usuarios (user_id)
+  where user_id is not null;
+
+create unique index if not exists usuarios_email_lower_unique
+  on public.usuarios (lower(email))
+  where email is not null;
+
+alter table public.usuarios enable row level security;
+
+create policy if not exists usuarios_select_own
+on public.usuarios
+for select
+using (user_id = auth.uid());
+
+create policy if not exists usuarios_insert_own
+on public.usuarios
+for insert
+with check (user_id = auth.uid());
+
+create policy if not exists usuarios_update_own
+on public.usuarios
+for update
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+```
+
+> Opcional: criar trigger em `auth.users` para inserir automaticamente em `public.usuarios` no signup.
+> Mesmo sem trigger, o app agora usa `maybeSingle()` + autocreate de perfil para não quebrar o login.
 
 ## ⚙️ Observações de build (Sass)
 
-Durante `npm run build`, podem aparecer avisos `DEPRECATION WARNING [legacy-js-api]` do Sass.
+A build foi ajustada para usar a API moderna do Dart Sass no Vite (`css.preprocessorOptions.{scss,sass}.api = "modern-compiler"`).
 
-- Origem identificada: pipeline de estilos Sass de dependências do ecossistema Vuetify/Vite (não do código de negócio do app).
-- Impacto: **não bloqueia** a build e **não afeta** o deploy na Vercel.
-- Status atual: dependências já estão em versões recentes no projeto; a remoção definitiva do warning depende de atualização upstream para a API moderna do Sass.
+Checklist aplicado:
+
+- `npm ls sass node-sass` → somente `sass` (Dart Sass) no projeto.
+- `node-sass` não é utilizado.
+- Build validada sem `DEPRECATION WARNING [legacy-js-api]`.
+
+Referência oficial do deprecation: https://sass-lang.com/documentation/breaking-changes/legacy-js-api/
