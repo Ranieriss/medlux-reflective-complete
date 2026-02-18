@@ -1277,13 +1277,35 @@ export default {
         }
 
         diagnosticsStore.pushRequest({ service: 'registrarCalibracao', payload: { equipamento_id: dados.equipamento_id } })
-        await calibracaoService.registrarCalibracao(dados)
+        const resultado = await calibracaoService.registrarCalibracao(dados)
+        if (!resultado?.success) {
+          const saveError = new Error(resultado?.error || 'Falha ao salvar medição.')
+          saveError.code = resultado?.code || null
+          throw saveError
+        }
+
         mostrarNotificacao('Medição salva com sucesso!', 'success')
         fecharDialog()
         carregarMedicoes()
         carregarStats()
       } catch (error) {
-        mostrarNotificacao('Erro ao salvar medição: ' + error.message, 'error')
+        const mensagem = error?.code === 'SESSION_INVALID'
+          ? 'Sessão inválida. Faça login novamente.'
+          : `Erro ao salvar medição: ${error.message}`
+
+        diagnosticsStore.pushEvent({
+          type: 'medicao-save-error',
+          message: mensagem,
+          route: route.fullPath,
+          component: 'CalibracoesLista',
+          error,
+          context: {
+            equipamento_id: formMedicaoData.value.equipamento_id,
+            prefixo: formMedicaoData.value.prefixo_equipamento
+          }
+        })
+
+        mostrarNotificacao(mensagem, 'error')
       } finally {
         salvando.value = false
       }

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 const MAX_EVENTS = 50
-const MAX_REQUESTS = 20
+const MAX_REQUESTS = 50
 
 const serializeError = (error) => {
   if (!error) return null

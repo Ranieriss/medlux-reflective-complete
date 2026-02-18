@@ -73,21 +73,13 @@ Esse script é idempotente e configura:
 ### Diagnóstico de bootstrap + modo debug completo
 
 - Em caso de falha crítica de inicialização, o app exibe um overlay com o botão **"Gerar Diagnóstico Completo"** (download `.json` + tentativa de cópia para clipboard).
-- Para ativar o modo debug em **produção ou dev**, use uma das opções:
+- Para ativar o modo debug:
   - `?debug=1` na URL.
-  - `localStorage.setItem('MEDLUX_DEBUG', '1')` e recarregue a página.
-- Quando o debug está ativo, os hooks globais ficam disponíveis no DevTools:
-  - `window.supabase` → client Supabase exposto para inspeção.
-  - `window.__app__` → objeto com `version`, `env`, `routes`, `stores`, `currentUser`, `session`, `isAdmin`, `lastErrors`, `lastNetwork`, `lastStorageOps`.
-  - `window.__medlux_debug_dump()` → gera o dump completo (JSON) do diagnóstico.
-- Na tela **Sistema → Logs de Erro**, o botão **"Diagnóstico Completo"** gera o relatório completo e permite copiar/baixar o JSON.
-
-#### Testes rápidos no Console
-
-```js
-window.supabase
-window.supabase.auth.getSession().then(console.log)
-```
+  - `localStorage.setItem('MEDLUX_DEBUG', '1')` e recarregue.
+- Quando o debug está ativo:
+  - `window.supabase`
+  - `window.__app__`
+  - `window.__medlux_debug_dump()`
 
 ### Troubleshooting rápido de login
 

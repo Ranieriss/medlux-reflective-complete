@@ -358,6 +358,15 @@
           <v-icon class="mr-2" color="error">mdi-alert-octagon</v-icon>
           Logs de Erro
           <v-spacer />
+          <v-btn
+            color="primary"
+            variant="tonal"
+            prepend-icon="mdi-file-download"
+            class="mr-2"
+            @click="gerarDiagnosticoCompleto"
+          >
+            Diagnóstico Completo
+          </v-btn>
           <v-btn icon="mdi-close" variant="text" @click="dialogLogs = false" />
         </v-card-title>
 
@@ -415,8 +424,11 @@
                     {{ formatarDataHora(log.timestamp) }}
                   </div>
                   <div class="text-body-2 font-weight-bold mb-1">{{ log.message }}</div>
-                  <div v-if="log.stack" class="text-caption">
-                    <pre class="log-stack">{{ log.stack }}</pre>
+                  <div v-if="log.route || log.component" class="text-caption mb-1">
+                    <strong>Rota:</strong> {{ log.route || '-' }} · <strong>Componente:</strong> {{ log.component || '-' }}
+                  </div>
+                  <div v-if="log.error?.stack || log.stack" class="text-caption">
+                    <pre class="log-stack">{{ log.error?.stack || log.stack }}</pre>
                   </div>
                 </v-card-text>
               </v-card>
@@ -454,10 +466,14 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDiagnosticsStore } from '@/stores/diagnostics'
 import { generateDiagnosticDump } from '@/debug'
+
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
 import { supabaseUrl } from '@/config/env'
+import { useDiagnosticsStore } from '@/stores/diagnostics'
+import { exportDiagnosticsPayload } from '@/services/diagnosticsReportService'
+import { useRoute } from 'vue-router'
 
 // State
 const versaoSistema = '2.0.0'
@@ -477,6 +493,7 @@ const gerandoDiagnostico = ref(false)
 const diagnosticoJson = ref('')
 const authStore = useAuthStore()
 const diagnosticsStore = useDiagnosticsStore()
+
 
 // Stats
 const stats = ref({
@@ -938,8 +955,59 @@ const limparCache = async () => {
   }
 }
 
+const salvarJsonDiagnostico = (json) => {
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `medlux-diagnostico-${Date.now()}.json`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+const copiarDiagnostico = async (json) => {
+  if (!navigator?.clipboard?.writeText) {
+    return { copied: false, reason: 'Clipboard indisponível' }
+  }
+
+  try {
+    await navigator.clipboard.writeText(json)
+    return { copied: true }
+  } catch (error) {
+    return { copied: false, reason: error?.message || 'Falha ao copiar diagnóstico' }
+  }
+}
+
+const gerarDiagnosticoCompleto = async () => {
+  try {
+    const { json } = await exportDiagnosticsPayload({
+      diagnosticsStore,
+      route: route.fullPath,
+      logToConsole: true
+    })
+
+    salvarJsonDiagnostico(json)
+    const copied = await copiarDiagnostico(json)
+    mostrarSnackbar(
+      copied.copied
+        ? 'Diagnóstico completo baixado e copiado para a área de transferência.'
+        : `Diagnóstico completo baixado (${copied.reason}).`,
+      copied.copied ? 'success' : 'warning'
+    )
+  } catch (error) {
+    diagnosticsStore.pushEvent({
+      type: 'diagnostic-error',
+      message: error?.message || 'Falha ao gerar diagnóstico completo',
+      route: route.fullPath,
+      error
+    })
+    mostrarSnackbar('Falha ao gerar diagnóstico completo.', 'error')
+  }
+}
+
 const verLogsErro = () => {
-  logs.value = window.__app__?.lastErrors || []
+logs.value = diagnosticsStore?.events?.slice(0, 50) || []
+
   dialogLogs.value = true
 }
 
