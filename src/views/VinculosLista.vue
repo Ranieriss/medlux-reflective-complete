@@ -664,7 +664,23 @@ const salvarVinculo = async () => {
       data_inicio: vinculoForm.value.data_inicio,
       data_fim: vinculoForm.value.data_fim || null,
       observacoes: vinculoForm.value.observacoes || null,
-      ativo: vinculoForm.value.ativo
+      ativo: vinculoForm.value.ativo,
+      ...(vinculoForm.value.cautela_url !== undefined ? { cautela_url: vinculoForm.value.cautela_url || null } : {}),
+      ...(vinculoForm.value.cautela_data_upload !== undefined
+        ? { cautela_data_upload: vinculoForm.value.cautela_data_upload || null }
+        : {}),
+      ...(vinculoForm.value.cautela_data_entrega !== undefined
+        ? { cautela_data_entrega: vinculoForm.value.cautela_data_entrega || null }
+        : {}),
+      ...(vinculoForm.value.cautela_tecnico_responsavel !== undefined
+        ? { cautela_tecnico_responsavel: vinculoForm.value.cautela_tecnico_responsavel || null }
+        : {}),
+      ...(vinculoForm.value.cautela_treinamento_realizado !== undefined
+        ? { cautela_treinamento_realizado: !!vinculoForm.value.cautela_treinamento_realizado }
+        : {}),
+      ...(vinculoForm.value.cautela_observacoes !== undefined
+        ? { cautela_observacoes: vinculoForm.value.cautela_observacoes || null }
+        : {})
     }
 
     let error
@@ -694,7 +710,7 @@ const salvarVinculo = async () => {
     await carregarVinculos()
   } catch (error) {
     console.error('❌ Erro ao salvar vínculo:', error)
-    mostrarSnackbar('Erro ao salvar vínculo', 'error')
+    mostrarSnackbar(isRlsError(error) ? getMensagemErroRls() : 'Erro ao salvar vínculo', 'error')
   } finally {
     salvando.value = false
   }
@@ -721,7 +737,7 @@ const finalizarVinculo = async (vinculo) => {
     await carregarVinculos()
   } catch (error) {
     console.error('❌ Erro ao finalizar vínculo:', error)
-    mostrarSnackbar('Erro ao finalizar vínculo', 'error')
+    mostrarSnackbar(isRlsError(error) ? getMensagemErroRls() : 'Erro ao finalizar vínculo', 'error')
   }
 }
 
@@ -749,7 +765,7 @@ const excluirVinculo = async () => {
     await carregarVinculos()
   } catch (error) {
     console.error('❌ Erro ao excluir vínculo:', error)
-    mostrarSnackbar('Erro ao excluir vínculo', 'error')
+    mostrarSnackbar(isRlsError(error) ? getMensagemErroRls() : 'Erro ao excluir vínculo', 'error')
   } finally {
     excluindo.value = false
   }
@@ -809,6 +825,12 @@ const mostrarSnackbar = (message, color = 'success') => {
     color
   }
 }
+
+
+const isRlsError = (error) => error?.code === '42501' || error?.status === 403
+
+const getMensagemErroRls = () =>
+  'Permissão negada (RLS). Verifique se o usuário está como ADMIN no cadastro e se as policies do Supabase foram aplicadas.'
 
 // Realtime subscription
 const setupRealtimeSubscription = () => {

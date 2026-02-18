@@ -77,7 +77,9 @@ function getMensagemPermissao(error) {
   const status = error?.status
   if (error?.code === 'SESSION_EXPIRED') return 'Sessão expirada, faça login novamente'
   if (error?.code === 'FORBIDDEN_ADMIN_ONLY') return 'Somente ADMIN'
-  if (status === 403) return 'Sem permissão para executar esta ação.'
+  if (error?.code === '42501' || status === 403) {
+    return 'Permissão negada (RLS). Verifique se o usuário está como ADMIN no cadastro e se as policies do Supabase foram aplicadas.'
+  }
   return null
 }
 
@@ -427,7 +429,7 @@ export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteri
   try {
     const { data } = await supabase.auth.getUser()
 
-    await supabase.from('auditoria').insert([
+    const { error } = await supabase.from('auditoria').insert([
       {
         usuario_id: data?.user?.id || null,
         entidade,
@@ -437,8 +439,17 @@ export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteri
         dados_novos: dadosNovos
       }
     ])
+
+    if (error) {
+      throw error
+    }
   } catch (error) {
-    console.error('❌ Erro ao registrar auditoria:', error?.message || error)
+    console.error('❌ Erro ao registrar auditoria (best-effort):', {
+      message: error?.message || String(error),
+      code: error?.code || null,
+      status: error?.status || null,
+      details: error?.details || null
+    })
   }
 }
 
