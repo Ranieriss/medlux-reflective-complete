@@ -338,6 +338,7 @@ const carregarEquipamentosDisponiveis = async () => {
       .from('equipamentos')
       .select('id, codigo, nome, modelo, fabricante')
       .eq('status', 'ativo')
+      .order('codigo', { ascending: true })
 
     if (error) throw error
 

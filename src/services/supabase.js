@@ -472,7 +472,7 @@ export async function getEquipamentos(filtros = {}) {
         usuario_atual:usuarios!equipamentos_usuario_atual_id_fkey(id, nome, email)
       `
       )
-      .order('created_at', { ascending: false })
+      .order('codigo', { ascending: true })
 
     if (filtros.tipo) query = query.eq('tipo', filtros.tipo)
     if (filtros.status) query = query.eq('status', filtros.status)

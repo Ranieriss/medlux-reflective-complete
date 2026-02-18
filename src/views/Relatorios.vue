@@ -136,7 +136,7 @@ const confirmarGeracao = async () => {
     
     switch(relatorioSelecionado.value.id) {
       case 1: // Equipamentos
-        const { data: equipamentos } = await supabase.from('equipamentos').select('*')
+        const { data: equipamentos } = await supabase.from('equipamentos').select('*').order('codigo', { ascending: true })
         dados = equipamentos
         break
       case 2: // Calibrações
