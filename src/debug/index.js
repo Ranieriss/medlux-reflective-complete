@@ -334,7 +334,7 @@ const getRuntimeInfo = () => ({
     : null
 })
 
-const runSupabaseChecks = async () => {
+const runSupabaseChecks = async ({ session } = {}) => {
   const checks = {
     db: [],
     storage: []
@@ -346,7 +346,13 @@ const runSupabaseChecks = async () => {
     return checks
   }
 
-  const tables = ['usuarios', 'equipamentos', 'criterios_validacao']
+  if (!session) {
+    checks.db.push({ action: 'skipped', ok: true, reason: 'not_logged_in' })
+    checks.storage.push({ action: 'skipped', ok: true, reason: 'not_logged_in' })
+    return checks
+  }
+
+  const tables = ['usuarios', 'equipamentos', 'criterios_retrorrefletancia']
 
   for (const table of tables) {
     try {
@@ -377,10 +383,20 @@ const runSupabaseChecks = async () => {
   }
 
   try {
-    const { data, error } = await supabase.storage.from('medicoes').createSignedUrl('debug/dummy.txt', 60)
+    const { data, error, status } = await supabase.storage.from('medicoes').createSignedUrl('debug/dummy.txt', 60)
     if (error) {
       recordRlsHint(error, 'storage:signed-url')
-      checks.storage.push({ action: 'signedUrlDummy', bucket: 'medicoes', ok: false, error: sanitizeByKey('error', error) })
+      checks.storage.push({
+        action: 'signedUrlDummy',
+        bucket: 'medicoes',
+        ok: false,
+        error: sanitizeByKey('error', error),
+        storageError: {
+          status: status || error?.status || null,
+          code: error?.code || null,
+          body: error?.message || null
+        }
+      })
     } else {
       checks.storage.push({
         action: 'signedUrlDummy',
@@ -392,7 +408,17 @@ const runSupabaseChecks = async () => {
     }
   } catch (error) {
     recordRlsHint(error, 'storage:signed-url:catch')
-    checks.storage.push({ action: 'signedUrlDummy', bucket: 'medicoes', ok: false, error: sanitizeByKey('error', error) })
+    checks.storage.push({
+      action: 'signedUrlDummy',
+      bucket: 'medicoes',
+      ok: false,
+      error: sanitizeByKey('error', error),
+      storageError: {
+        status: error?.status || null,
+        code: error?.code || null,
+        body: error?.message || String(error)
+      }
+    })
   }
 
   return checks
@@ -455,7 +481,20 @@ export const generateDiagnosticDump = async ({ authStore, diagnosticsStore } = {
 
   if (sessionError) recordRlsHint(sessionError, 'auth:getSession')
 
-  const checks = await runSupabaseChecks()
+  const checks = await runSupabaseChecks({ session })
+
+  const authInfo = {
+    loggedIn: Boolean(session),
+    session: session
+      ? {
+          userId: session?.user?.id || null,
+          exp: session?.expires_at || null,
+          provider: session?.user?.app_metadata?.provider || null
+        }
+      : null,
+    reason: session ? null : 'not_logged_in',
+    currentUser: sanitizeByKey('currentUser', authStore?.usuario || null)
+  }
 
   return {
     generatedAt: toIso(),
@@ -477,15 +516,12 @@ export const generateDiagnosticDump = async ({ authStore, diagnosticsStore } = {
       baseURL: window.location.origin,
       VITE_SUPABASE_URL: maskSupabaseUrl(supabaseUrl)
     },
-    auth: {
-      hasSession: Boolean(session),
-      userId: session?.user?.id || null,
-      exp: session?.expires_at || null,
-      provider: session?.user?.app_metadata?.provider || null,
-      currentUser: sanitizeByKey('currentUser', authStore?.usuario || null)
-    },
+    auth: authInfo,
     db: checks.db,
-    storage: checks.storage,
+    storage: {
+      checks: checks.storage,
+      error: checks.storage.find((item) => item?.storageError)?.storageError || null
+    },
     rlsHints: debugState.rlsHints.slice(0, MAX_ERROR_ITEMS),
     logs: {
       internal: debugState.logs.slice(0, MAX_LOG_ITEMS),
