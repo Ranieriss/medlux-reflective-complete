@@ -1017,7 +1017,7 @@ const carregarEquipamentos = async () => {
         .from('equipamentos')
         .select('*')
         .in('id', equipamentosIds)
-        .order('codigo')
+        .order('codigo', { ascending: true })
       
       if (error) throw error
       equipamentos.value = (data || []).map(eq => ({

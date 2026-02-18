@@ -590,7 +590,7 @@ const carregarEquipamentos = async () => {
       .from('equipamentos')
       .select('id, codigo, nome, tipo, localizacao, status')
       .eq('status', 'ativo')
-      .order('codigo')
+      .order('codigo', { ascending: true })
 
     if (error) throw error
 
