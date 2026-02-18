@@ -7,7 +7,9 @@ export default defineConfig({
   plugins: [
     vue(),
     vuetify({
-      autoImport: true,
+      autoImport: {
+        labs: false,
+      },
       styles: {
         configFile: 'src/styles/settings.scss',
       },
@@ -51,13 +53,7 @@ export default defineConfig({
           if (id.includes('@mdi/font') || id.includes('materialdesignicons')) {
             return 'icons'
           }
-          if (id.includes('vuetify/lib/components')) {
-            return 'vuetify-components'
-          }
 
-          if (id.includes('vuetify/lib/directives') || id.includes('vuetify/lib/labs')) {
-            return 'vuetify-labs'
-          }
 
           if (id.includes('vuetify')) {
             return 'vuetify'
