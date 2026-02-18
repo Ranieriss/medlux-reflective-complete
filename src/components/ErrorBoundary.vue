@@ -57,11 +57,13 @@
 <script setup>
 import { ref, onErrorCaptured } from 'vue'
 import { useRouter } from 'vue-router'
+import { useDiagnosticsStore } from '@/stores/diagnostics'
 
 const router = useRouter()
 const error = ref(null)
 const showDetails = ref(false)
 const isDev = import.meta.env.DEV
+const diagnosticsStore = useDiagnosticsStore()
 
 onErrorCaptured((err, instance, info) => {
   error.value = {
@@ -83,6 +85,13 @@ onErrorCaptured((err, instance, info) => {
     })
   }
   
+  diagnosticsStore.pushEvent({
+    type: 'vue-error-captured',
+    message: err.message,
+    context: { info, component: instance?.$options?.name },
+    error: err
+  })
+
   console.error('Error captured:', err)
   
   // Prevenir propagação

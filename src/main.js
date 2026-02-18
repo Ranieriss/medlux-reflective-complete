@@ -15,6 +15,7 @@ import './styles/main.css'
 
 // Banco de dados
 import { popularDadosDemo } from './services/db'
+import { useDiagnosticsStore } from './stores/diagnostics'
 
 // Configurar Vuetify com tema dark
 const vuetify = createVuetify({
@@ -56,6 +57,21 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(vuetify)
+
+
+const diagnosticsStore = useDiagnosticsStore(pinia)
+
+window.addEventListener('error', (event) => {
+  diagnosticsStore.captureGlobalError(event.error || new Error(event.message), {
+    source: event.filename,
+    line: event.lineno,
+    column: event.colno
+  })
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  diagnosticsStore.captureUnhandledRejection(event.reason, { source: 'window.unhandledrejection' })
+})
 
 // Popular dados demo ao iniciar
 popularDadosDemo()
