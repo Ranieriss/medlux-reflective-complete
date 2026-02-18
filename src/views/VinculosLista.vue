@@ -462,7 +462,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { supabase } from '@/services/supabase'
+import { ensureSessionAndProfile, supabase } from '@/services/supabase'
 
 // State
 const vinculos = ref([])
@@ -683,6 +683,14 @@ const salvarVinculo = async () => {
         : {})
     }
 
+    const ctx = await ensureSessionAndProfile()
+    if (!ctx) {
+      throw new Error('Sessão expirada. Faça login novamente.')
+    }
+
+    console.log('[DEBUG] USER ID:', ctx.user.id)
+    console.log('[DEBUG] PERFIL:', ctx.perfil?.perfil)
+
     let error
     if (modoEdicao.value) {
       // Update
@@ -699,7 +707,10 @@ const salvarVinculo = async () => {
       error = result.error
     }
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ Erro completo ao salvar vínculo:', error)
+      throw error
+    }
 
     mostrarSnackbar(
       modoEdicao.value ? 'Vínculo atualizado com sucesso!' : 'Vínculo criado com sucesso!',
@@ -723,6 +734,11 @@ const visualizarVinculo = (vinculo) => {
 
 const finalizarVinculo = async (vinculo) => {
   try {
+    const ctx = await ensureSessionAndProfile()
+    if (!ctx) {
+      throw new Error('Sessão expirada. Faça login novamente.')
+    }
+
     const { error } = await supabase
       .from('vinculos')
       .update({
@@ -751,6 +767,11 @@ const excluirVinculo = async () => {
 
   try {
     excluindo.value = true
+
+    const ctx = await ensureSessionAndProfile()
+    if (!ctx) {
+      throw new Error('Sessão expirada. Faça login novamente.')
+    }
 
     const { error } = await supabase
       .from('vinculos')

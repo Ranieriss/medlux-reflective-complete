@@ -43,7 +43,8 @@ export const supabase = hasSupabaseEnv
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        flowType: 'pkce'
       },
       realtime: {
         params: {
@@ -102,30 +103,76 @@ export async function requireSession() {
   }
 }
 
-export async function getCurrentProfile() {
+export async function ensureSessionAndProfile() {
   try {
-    const sessionResult = await requireSession()
-    if (!sessionResult.success) {
-      return sessionResult
-    }
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession()
 
-    const { session } = sessionResult.data
+    if (sessionError) throw sessionError
+    if (!session) return null
 
-    const { data, error } = await supabase
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (userError) throw userError
+    if (!userData?.user) return null
+
+    const { data: perfil, error: perfilError } = await supabase
       .from('usuarios')
-      .select('id, perfil, nome, email, ativo')
-      .eq('id', session.user.id)
+      .select('*')
+      .eq('auth_user_id', userData.user.id)
       .maybeSingle()
 
-    if (error) throw error
+    if (perfilError) {
+      const isMissingAuthUserId = perfilError?.code === '42703' || (perfilError?.message || '').toLowerCase().includes('auth_user_id')
+      if (!isMissingAuthUserId) throw perfilError
 
-    if (!data) {
+      const { data: perfilFallback, error: perfilFallbackError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', userData.user.id)
+        .maybeSingle()
+
+      if (perfilFallbackError) throw perfilFallbackError
+
+      return {
+        session,
+        user: userData.user,
+        perfil: perfilFallback || null
+      }
+    }
+
+    return {
+      session,
+      user: userData.user,
+      perfil: perfil || null
+    }
+  } catch (error) {
+    console.error('❌ Falha ao garantir sessão e perfil:', {
+      message: error?.message || String(error),
+      code: error?.code || null,
+      status: error?.status || null
+    })
+    return null
+  }
+}
+
+export async function getCurrentProfile() {
+  try {
+    const ctx = await ensureSessionAndProfile()
+    if (!ctx) {
+      const sessionError = new Error('Sessão expirada, faça login novamente')
+      sessionError.code = 'SESSION_EXPIRED'
+      throw sessionError
+    }
+
+    if (!ctx.perfil) {
       const profileError = new Error('Perfil de usuário não encontrado')
       profileError.code = 'PROFILE_NOT_FOUND'
       throw profileError
     }
 
-    return { success: true, data: { ...data, session } }
+    return { success: true, data: { ...ctx.perfil, session: ctx.session } }
   } catch (error) {
     const info = formatarErroSupabase(error, 'Falha ao carregar perfil do usuário')
     return { success: false, error: info.message, details: info }
@@ -196,9 +243,8 @@ export async function signOut() {
 
 export async function getCurrentUser() {
   try {
-    const { data, error } = await supabase.auth.getUser()
-    if (error) throw error
-    return { success: true, data: data?.user || null }
+    const ctx = await ensureSessionAndProfile()
+    return { success: true, data: ctx?.user || null }
   } catch (error) {
     const info = formatarErroSupabase(error, 'Erro ao obter usuário')
     return { success: false, error: info.message, details: info }
@@ -462,11 +508,11 @@ export async function getDashboardStats() {
 
 export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteriores, dadosNovos) {
   try {
-    const { data } = await supabase.auth.getUser()
+    const ctx = await ensureSessionAndProfile()
 
     const { error } = await supabase.from('auditoria').insert([
       {
-        usuario_id: data?.user?.id || null,
+        usuario_id: ctx?.user?.id || null,
         entidade,
         entidade_id: entidadeId,
         acao,
@@ -479,7 +525,9 @@ export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteri
       throw error
     }
   } catch (error) {
-    console.error('❌ Erro ao registrar auditoria (best-effort):', {
+    const isPermissionError = error?.code === '42501' || error?.status === 403
+    const logger = isPermissionError ? console.warn : console.error
+    logger('⚠️ Erro ao registrar auditoria (best-effort):', {
       message: error?.message || String(error),
       code: error?.code || null,
       status: error?.status || null,

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { hasSupabaseEnv, supabase, supabaseEnvErrorMessage } from '@/services/supabase'
+import { ensureSessionAndProfile, hasSupabaseEnv, supabase, supabaseEnvErrorMessage } from '@/services/supabase'
 
 const STORAGE_KEY = 'medlux_auth'
 
@@ -97,21 +97,16 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const carregarPerfilUsuario = async () => {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      throw Object.assign(new Error('Falha ao obter sessão atual para carregar perfil.'), { cause: sessionError, details: formatErrorDetails(sessionError) })
-    }
-
-    const authId = sessionData?.session?.user?.id
-    if (!authId) {
+    const ctx = await ensureSessionAndProfile()
+    if (!ctx?.session?.user?.id) {
       throw new Error('Usuário autenticado não encontrado na sessão atual.')
     }
 
-    const { data: perfil, error } = await supabase
-      .from('usuarios')
-      .select('id, email, nome, perfil, ativo')
-      .eq('id', authId)
-      .maybeSingle()
+    const authId = ctx.session.user.id
+
+    const perfil = ctx.perfil
+
+    const error = !perfil ? { message: 'Perfil não encontrado', code: 'PROFILE_NOT_FOUND' } : null
 
     if (error) {
       const lowerMsg = getErrorMessage(error, '').toLowerCase()
@@ -193,6 +188,16 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
+      const ctx = await ensureSessionAndProfile()
+      if (!ctx) {
+        return {
+          sucesso: false,
+          etapa: 'Session',
+          mensagem: 'Sessão expirada. Faça login novamente.',
+          detalhes: { status: 401, message: 'Sessão não encontrada após login.', code: 'session_missing_after_login' }
+        }
+      }
+
       const usuarioPerfil = await carregarPerfilUsuario()
 
       const perfilNormalizado = normalizePerfil(usuarioPerfil.perfil)
@@ -224,9 +229,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      const { data: sessionData } = await supabase.auth.getSession()
       usuario.value = usuarioPerfil
-      session.value = sessionData?.session || null
+      session.value = ctx.session
       isAuthenticated.value = true
       salvarSessaoLocal(usuarioPerfil)
 
@@ -275,10 +279,8 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      const { data, error } = await supabase.auth.getSession()
-
-      if (error) {
-        console.warn('⚠️ Sessão indisponível ao restaurar autenticação:', getErrorMessage(error, 'erro desconhecido'))
+      const ctx = await ensureSessionAndProfile()
+      if (!ctx?.session?.user) {
         usuario.value = null
         session.value = null
         isAuthenticated.value = false
@@ -286,17 +288,7 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
 
-      const currentSession = data?.session
-      if (!currentSession?.user) {
-        usuario.value = null
-        session.value = null
-        isAuthenticated.value = false
-        limparSessaoLocal()
-        return false
-      }
-
-      session.value = currentSession
-
+      session.value = ctx.session
       const usuarioPerfil = await carregarPerfilUsuario()
 
       usuario.value = usuarioPerfil
