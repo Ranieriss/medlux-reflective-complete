@@ -1,3 +1,5 @@
+// src/main.js
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
@@ -15,9 +17,15 @@ import './styles/main.css'
 
 // Banco de dados
 import { popularDadosDemo } from './services/db'
+
+// Stores
 import { useDiagnosticsStore } from './stores/diagnostics'
 import { useAuthStore } from './stores/auth'
+
+// Supabase (usa as funções/vars IMPORTADAS — não redeclare aqui)
 import { supabase, hasSupabaseEnv, maskSupabaseKey, supabaseAnonKey, supabaseUrl } from './services/supabase'
+
+// Debug (usa as funções IMPORTADAS — não redeclare aqui)
 import { generateDiagnosticDump, isDebugEnabled, setupDebugHooks } from './debug'
 
 const capturedBootstrapErrors = []
@@ -62,6 +70,12 @@ const pushBootstrapError = (errorLike, context = {}) => {
   }
 }
 
+// ===============================
+// Diagnóstico (usa funções IMPORTADAS)
+// - isDebugEnabled (de ./debug)
+// - generateDiagnosticDump (de ./debug)
+// - maskSupabaseKey (de ./services/supabase)
+// ===============================
 const getAppVersion = () =>
   import.meta.env.VITE_APP_VERSION ||
   import.meta.env.VITE_COMMIT_SHA ||
@@ -94,14 +108,19 @@ const buildDiagnosticPayload = async () => {
     bootstrapErrors: capturedBootstrapErrors
   }
 
+  // Debug DESLIGADO => só o básico
   if (!isDebugEnabled()) return basePayload
 
+  // Debug LIGADO => tenta dump completo
   try {
     const debugPayload = await generateDiagnosticDump()
     return { ...basePayload, debug: debugPayload }
   } catch (error) {
     pushBootstrapError(error, { source: 'generateDiagnosticDump' })
-    return { ...basePayload, debug: { error: error?.message || 'Falha ao gerar diagnóstico debug.' } }
+    return {
+      ...basePayload,
+      debug: { error: error?.message || 'Falha ao gerar diagnóstico debug.' }
+    }
   }
 }
 
@@ -186,7 +205,8 @@ const registerGlobalErrorHandlers = (diagnosticsStore) => {
   }
 
   window.onunhandledrejection = (event) => {
-    const reason = event?.reason instanceof Error ? event.reason : new Error(String(event?.reason || 'Promise rejection sem detalhe'))
+    const reason =
+      event?.reason instanceof Error ? event.reason : new Error(String(event?.reason || 'Promise rejection sem detalhe'))
     pushBootstrapError(reason, { type: 'window.onunhandledrejection' })
     diagnosticsStore?.captureUnhandledRejection(reason, { source: 'window.unhandledrejection' })
   }
@@ -234,6 +254,7 @@ const initApp = () => {
 
   const diagnosticsStore = useDiagnosticsStore(pinia)
   const authStore = useAuthStore(pinia)
+
   registerGlobalErrorHandlers(diagnosticsStore)
 
   // Popular dados demo ao iniciar
@@ -241,6 +262,7 @@ const initApp = () => {
 
   app.mount('#app')
 
+  // Debug hooks (preferência: setupDebugHooks centralizado no ./debug)
   setupDebugHooks({
     router,
     pinia,
@@ -255,6 +277,7 @@ try {
   initApp()
 } catch (error) {
   pushBootstrapError(error, { type: 'bootstrap' })
+  // eslint-disable-next-line no-console
   console.error('[bootstrap] Falha ao inicializar aplicação', error)
   renderFatalOverlay(error)
 }
