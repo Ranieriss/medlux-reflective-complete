@@ -9,6 +9,7 @@ import { supabase } from './supabase'
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const ALLOWED_PDF_TYPES = ['application/pdf']
+const MEDICOES_BUCKET = 'medicoes-fotos'
 
 /**
  * Upload de foto com metadados de geolocalização
@@ -288,6 +289,82 @@ export async function comprimirImagem(file, maxWidth = 1920, quality = 0.85) {
 }
 
 /**
+ * Comprimir imagem buscando alvo de tamanho entre 300kb e 500kb
+ */
+export async function comprimirImagemParaFaixa(file, options = {}) {
+  const {
+    minBytes = 300 * 1024,
+    maxBytes = 500 * 1024,
+    maxWidth = 1600
+  } = options
+
+  let quality = 0.85
+  let result = await comprimirImagem(file, maxWidth, quality)
+  let attempts = 0
+
+  while (attempts < 6 && (result.size > maxBytes || result.size < minBytes)) {
+    if (result.size > maxBytes) {
+      quality = Math.max(0.45, quality - 0.1)
+    } else {
+      quality = Math.min(0.95, quality + 0.05)
+    }
+    result = await comprimirImagem(file, maxWidth, quality)
+    attempts += 1
+  }
+
+  return result
+}
+
+/**
+ * Upload especializado para fotos de medição normativa
+ */
+export async function uploadFotosMedicao(files, equipamentoCodigo) {
+  if (!Array.isArray(files) || files.length === 0) {
+    return []
+  }
+
+  if (files.length > 3) {
+    throw new Error('É permitido anexar no máximo 3 fotos por medição.')
+  }
+
+  const folder = `${equipamentoCodigo || 'EQ'}-${Date.now()}`
+  const uploads = []
+
+  for (const [index, file] of files.entries()) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      throw new Error(`Arquivo inválido: ${file.name}. Utilize JPG, PNG ou WEBP.`)
+    }
+
+    const compressedFile = await comprimirImagemParaFaixa(file)
+    const fileName = `${folder}/${index + 1}-${Date.now()}.jpg`
+
+    const { error } = await supabase.storage
+      .from(MEDICOES_BUCKET)
+      .upload(fileName, compressedFile, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: 'image/jpeg'
+      })
+
+    if (error) throw error
+
+    const { data: urlData } = supabase.storage
+      .from(MEDICOES_BUCKET)
+      .getPublicUrl(fileName)
+
+    uploads.push({
+      url: urlData.publicUrl,
+      nome_arquivo: fileName,
+      nome_original: file.name,
+      timestamp: new Date().toISOString(),
+      tamanho_bytes: compressedFile.size
+    })
+  }
+
+  return uploads
+}
+
+/**
  * Validar e preparar arquivo para upload
  */
 export async function prepararArquivo(file, opcoes = {}) {
@@ -320,5 +397,7 @@ export default {
   formatarCoordenadas,
   gerarLinkGoogleMaps,
   comprimirImagem,
-  prepararArquivo
+  prepararArquivo,
+  comprimirImagemParaFaixa,
+  uploadFotosMedicao
 }

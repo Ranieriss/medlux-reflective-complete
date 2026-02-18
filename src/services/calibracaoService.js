@@ -5,6 +5,7 @@
 
 import { supabase } from './supabase'
 import laudoPDFService from './laudoPDFService'
+import { NORMATIVE_REFERENCE } from '@/constants/normativeConfig'
 
 /**
  * Buscar critérios de retrorrefletância
@@ -80,36 +81,100 @@ export const buscarCriterioEspecifico = async (params) => {
 }
 
 /**
+ * Resolver valor mínimo pela regra normativa dinâmica
+ */
+const resolverValorMinimoNormativo = (params) => {
+  const { prefixo_equipamento, tipo_material, classe_pelicula } = params
+
+  if (prefixo_equipamento === 'RH') {
+    return NORMATIVE_REFERENCE.RH.byMaterial[tipo_material] || NORMATIVE_REFERENCE.RH.default
+  }
+
+  if (prefixo_equipamento === 'RV') {
+    return NORMATIVE_REFERENCE.RV.byClass[classe_pelicula] || NORMATIVE_REFERENCE.RV.default
+  }
+
+  return NORMATIVE_REFERENCE.RT.default
+}
+
+const validarParametrosObrigatorios = (params) => {
+  const faltantes = []
+  const {
+    prefixo_equipamento,
+    geometria,
+    tipo_sinalizacao,
+    tipo_material,
+    modo_medicao,
+    classe_pelicula,
+    tipo_pelicula,
+    marca_pelicula,
+    valores_medicoes
+  } = params
+
+  if (!prefixo_equipamento) faltantes.push('prefixo do equipamento (RH/RV/RT)')
+  if (!Array.isArray(valores_medicoes) || valores_medicoes.length === 0) faltantes.push('valores de medição')
+
+  if (prefixo_equipamento === 'RH') {
+    if (!geometria) faltantes.push('geometria (15m ou 30m)')
+    if (!tipo_sinalizacao) faltantes.push('tipo de sinalização')
+    if (!tipo_material) faltantes.push('tipo de material horizontal')
+  }
+
+  if (prefixo_equipamento === 'RV') {
+    if (!modo_medicao) faltantes.push('modo de medição vertical')
+    if (!geometria) faltantes.push('geometria conforme modo selecionado')
+    if (!classe_pelicula) faltantes.push('classe da película')
+    if (!tipo_pelicula) faltantes.push('tipo da película')
+    if (!marca_pelicula) faltantes.push('marca da película')
+  }
+
+  if (prefixo_equipamento === 'RT' && geometria !== '0,2°/0°') {
+    faltantes.push('geometria fixa 0,2°/0° para RT')
+  }
+
+  return faltantes
+}
+/**
  * Calcular validação de medições
  * Busca o critério e valida as medições
  */
 export const calcularValidacao = async (params) => {
   try {
-    const { tipo_equipamento, tipo_pelicula, tipo_material, cor, geometria, valores_medicoes } = params
-    
-    // Buscar critério específico
-    const criterioResult = await buscarCriterioEspecifico({
-      tipo_equipamento,
-      tipo_pelicula,
-      tipo_material,
-      cor,
-      geometria
-    })
-    
-    if (!criterioResult.success) {
-      throw new Error(criterioResult.error)
+    const faltantes = validarParametrosObrigatorios(params)
+    if (faltantes.length) {
+      throw new Error(`Preencha os campos obrigatórios antes da validação: ${faltantes.join(', ')}`)
     }
-    
-    const criterio = criterioResult.data
-    const valor_minimo_referencia = parseFloat(criterio.valor_minimo)
-    
-    // Validar medições
-    const resultado = validarMedicoes(tipo_equipamento, valores_medicoes, valor_minimo_referencia)
-    
+
+    const { prefixo_equipamento, valores_medicoes } = params
+
+    let valorMinimoReferencia = resolverValorMinimoNormativo(params)
+    let criterio = null
+
+    const criterioResult = await buscarCriterioEspecifico({
+      tipo_equipamento: params.tipo_equipamento,
+      tipo_pelicula: params.tipo_pelicula,
+      tipo_material: params.tipo_material,
+      cor: params.cor,
+      geometria: params.geometria
+    })
+
+    if (criterioResult.success) {
+      criterio = criterioResult.data
+      valorMinimoReferencia = parseFloat(criterio.valor_minimo)
+    }
+
+    const tipoRegra = prefixo_equipamento === 'RH'
+      ? 'horizontal'
+      : prefixo_equipamento === 'RV'
+        ? 'vertical'
+        : 'tachas'
+
+    const resultado = validarMedicoes(tipoRegra, valores_medicoes, valorMinimoReferencia)
+
     return {
       ...resultado,
-      criterio_id: criterio.id,
-      norma_referencia: criterio.norma_referencia
+      criterio_id: criterio?.id || null,
+      norma_referencia: criterio?.norma_referencia || 'Tabela normativa dinâmica local (fallback)'
     }
   } catch (error) {
     console.error('❌ Erro ao calcular validação:', error)

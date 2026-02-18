@@ -422,30 +422,30 @@
                 />
               </v-col>
 
-              <!-- Tipo de Película (apenas vertical) -->
-              <v-col v-if="mostrarCamposPelicula" cols="12" md="6">
-                <v-select
-                  v-model="formMedicaoData.tipo_pelicula"
-                  :items="tipoPeliculaOptions"
-                  label="Tipo de Película *"
-                  prepend-inner-icon="mdi-layers"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  hint="Para sinalização vertical (placas)"
-                />
+              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
+                <v-select v-model="formMedicaoData.tipo_sinalizacao" :items="tipoSinalizacaoOptions" label="Tipo de sinalização *" variant="outlined" :rules="[rules.required]" />
               </v-col>
-              
-              <!-- Tipo de Material (apenas horizontal) -->
-              <v-col v-if="mostrarCamposMaterial" cols="12" md="6">
-                <v-select
-                  v-model="formMedicaoData.tipo_material"
-                  :items="['Tinta Convencional', 'Termoplástico', 'Tinta à Base d\'Água', 'Tinta à Base Solvente', 'Plástico Pré-Fabricado Tipo I', 'Plástico Pré-Fabricado Tipo II']"
-                  label="Tipo de Material *"
-                  prepend-inner-icon="mdi-palette"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                  hint="Para sinalização horizontal (tintas)"
-                />
+              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_sinalizacao === 'Outro'">
+                <v-text-field v-model="formMedicaoData.tipo_sinalizacao_outro" label="Descreva o tipo de sinalização *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
+                <v-select v-model="formMedicaoData.tipo_material" :items="tipoMaterialHorizontalOptions" label="Tipo de material horizontal *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_material === 'Outro'">
+                <v-text-field v-model="formMedicaoData.tipo_material_outro" label="Descreva o material *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+
+              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
+                <v-select v-model="formMedicaoData.modo_medicao_vertical" :items="[{ title: 'Ângulo único', value: 'angulo-unico' }, { title: 'Multiângulo', value: 'multi-angulo' }]" label="Modo de medição *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
+                <v-select v-model="formMedicaoData.classe_pelicula" :items="classePeliculaOptions" item-title="title" item-value="value" label="Classe da película *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
+                <v-select v-model="formMedicaoData.tipo_pelicula" :items="tipoPeliculaOptions" item-title="title" item-value="value" label="Tipo da película *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="6" v-if="mostrarCamposPelicula">
+                <v-text-field v-model="formMedicaoData.marca_pelicula" label="Marca da película *" variant="outlined" :rules="[rules.required]" />
               </v-col>
 
               <v-col cols="12" md="6">
@@ -577,6 +577,46 @@
                 />
               </v-col>
 
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="formMedicaoData.modo_localizacao"
+                  :items="[{ title: 'GPS automático', value: 'gps' }, { title: 'Manual', value: 'manual' }]"
+                  label="Modo de Localização *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4" v-if="formMedicaoData.modo_localizacao === 'gps'">
+                <v-btn block color="info" variant="outlined" prepend-icon="mdi-crosshairs-gps" @click="capturarGPS">
+                  Capturar GPS automático
+                </v-btn>
+              </v-col>
+
+              <template v-if="formMedicaoData.modo_localizacao === 'manual'">
+                <v-col cols="12" md="4"><v-text-field v-model="formMedicaoData.local_rodovia" label="Rodovia *" variant="outlined" :rules="[rules.required]" /></v-col>
+                <v-col cols="12" md="2"><v-text-field v-model="formMedicaoData.local_km" label="KM *" variant="outlined" :rules="[rules.required]" /></v-col>
+                <v-col cols="12" md="3"><v-text-field v-model="formMedicaoData.local_municipio" label="Município *" variant="outlined" :rules="[rules.required]" /></v-col>
+                <v-col cols="12" md="3"><v-text-field v-model="formMedicaoData.local_sentido" label="Sentido *" variant="outlined" :rules="[rules.required]" /></v-col>
+                <v-col cols="12" md="4"><v-text-field v-model="formMedicaoData.local_faixa" label="Faixa *" variant="outlined" :rules="[rules.required]" /></v-col>
+                <v-col cols="12" md="8"><v-text-field v-model="formMedicaoData.local_observacoes" label="Observações da localização" variant="outlined" /></v-col>
+              </template>
+
+              <v-col cols="12">
+                <v-file-input
+                  v-model="formMedicaoData.fotos_input"
+                  label="Fotos da medição (máx. 3)"
+                  prepend-inner-icon="mdi-camera"
+                  variant="outlined"
+                  accept="image/*"
+                  multiple
+                  chips
+                  show-size
+                  :counter="3"
+                  :rules="[v => !v || v.length <= 3 || 'Máximo 3 fotos']"
+                />
+              </v-col>
+
               <!-- Observações -->
               <v-col cols="12">
                 <v-textarea
@@ -639,6 +679,14 @@
             Calcular Validação
           </v-btn>
           <v-btn
+            color="secondary"
+            variant="outlined"
+            prepend-icon="mdi-stethoscope"
+            @click="gerarDiagnosticoTecnico"
+          >
+            Gerar Diagnóstico Técnico Completo
+          </v-btn>
+          <v-btn
             color="success"
             prepend-icon="mdi-content-save"
             @click="salvarMedicao"
@@ -665,7 +713,9 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import calibracaoService from '@/services/calibracaoService'
-import { buscarEquipamentosDoUsuario, detectarTipoEquipamento } from '@/services/equipamentoService'
+import { buscarEquipamentosDoUsuario } from '@/services/equipamentoService'
+import { uploadFotosMedicao } from '@/services/uploadService'
+import { detectEquipmentPrefix, GEOMETRY_BY_PREFIX, HORIZONTAL_MATERIAL_OPTIONS, HORIZONTAL_SIGNAL_TYPES, VERTICAL_CLASSES, VERTICAL_TYPES } from '@/constants/normativeConfig'
 import supabase, { getCurrentProfile } from '@/services/supabase'
 
 // Ambiente
@@ -699,15 +749,36 @@ export default {
     
     // Resultado da validação
     const resultadoValidacao = ref(null)
+    const logsDiagnostico = ref([])
     
     // Formulário
     const formMedicaoInicial = {
       equipamento_id: null,
       data_calibracao: new Date().toISOString().split('T')[0],
       proxima_calibracao: '',
+      prefixo_equipamento: null,
+      modo_medicao_vertical: 'angulo-unico',
+      tipo_sinalizacao: null,
+      tipo_sinalizacao_outro: '',
+      metodo_coleta: '',
+      classe_pelicula: null,
       tipo_pelicula: null,
+      marca_pelicula: '',
+      tipo_material: null,
+      tipo_material_outro: '',
       cor_medicao: null,
       geometria_medicao: null,
+      modo_localizacao: 'gps',
+      latitude: null,
+      longitude: null,
+      local_rodovia: '',
+      local_km: '',
+      local_municipio: '',
+      local_sentido: '',
+      local_faixa: '',
+      local_observacoes: '',
+      fotos_input: [],
+      fotos_medicao: [],
       valores_medicoes: [0, 0, 0, 0, 0],
       tecnico_responsavel: '',
       temperatura_ambiente: null,
@@ -752,37 +823,15 @@ export default {
       { title: 'Tachões', value: 'tachoes' },
     ]
     
-    const tipoPeliculaOptions = [
-      'Tipo I', 'Tipo II', 'Tipo III', 'Tipo IV', 
-      'Tipo V', 'Tipo VII', 'Tipo VIII'
-    ]
+    const tipoPeliculaOptions = VERTICAL_TYPES
+    const classePeliculaOptions = VERTICAL_CLASSES
+    const tipoSinalizacaoOptions = HORIZONTAL_SIGNAL_TYPES
+    const tipoMaterialHorizontalOptions = HORIZONTAL_MATERIAL_OPTIONS
     
     const corOptions = [
       'Branco', 'Amarelo', 'Vermelho', 'Verde', 'Azul', 'Marrom'
     ]
     
-    // Geometrias por tipo de equipamento (conforme normas)
-    const geometriasPorTipo = {
-      vertical: [
-        { title: '0,2° / -4° (Padrão NBR 15426)', value: '0,2°/-4°' }
-      ],
-      horizontal: [
-        { title: '15m / 1,5° (NBR 14723)', value: '15m/1,5°' },
-        { title: '30m / 1,0° (NBR 16410)', value: '30m/1,0°' }
-      ],
-      tachas: [
-        { title: '0,2° / 0° (Frontal)', value: '0,2°/0°' },
-        { title: '0,2° / 20° (Inclinação)', value: '0,2°/20°' }
-      ],
-      tachoes: [
-        { title: '0,2° / 0° (Frontal)', value: '0,2°/0°' },
-        { title: '0,2° / 20° (Inclinação)', value: '0,2°/20°' }
-      ]
-    }
-    
-    const geometriaOptions = [
-      '0,2°/-4°', '15m/1,5°', '30m/1,0°', '0,2°/0°', '0,2°/20°'
-    ]
     
     // Headers da tabela
     const headers = [
@@ -897,84 +946,67 @@ export default {
         loadingEquipamentos.value = false
       }
     }
-    
     // Watch para mudanças no equipamento selecionado
     const onEquipamentoChange = async (equipamentoId) => {
-      console.log('🔄 Equipamento mudou:', equipamentoId)
-      
-      if (!equipamentoId) {
-        console.warn('⚠️ ID de equipamento inválido')
-        return
-      }
-      
+      if (!equipamentoId) return
+
       const equip = equipamentos.value.find(e => e.id === equipamentoId)
-      
-      if (!equip) {
-        console.error('❌ Equipamento não encontrado:', equipamentoId)
-        return
-      }
-      
-      console.log('✅ Equipamento encontrado:', equip.codigo)
+      if (!equip) return
+
       equipamentoSelecionado.value = equip
-      tipoEquipamentoDetectado.value = equip.tipoDetalhado
-      
-      // Ajustar formulário baseado no tipo
-      if (tipoEquipamentoDetectado.value) {
-        const tipo = tipoEquipamentoDetectado.value
-        
-        console.log('🔧 Ajustando formulário para tipo:', tipo.tipo)
-        
-        // Ajustar quantidade de medições
-        const qtd = tipo.quantidadeMedicoes || 5
-        formMedicaoData.value.valores_medicoes = Array(qtd).fill(0)
-        
-        // Definir geometria padrão
-        if (tipo.geometrias && tipo.geometrias.length > 0) {
-          formMedicaoData.value.geometria_medicao = tipo.geometrias[0]
-        }
-        
-        // Preencher nome do técnico automaticamente
-        formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario
-        
-        console.log(`📋 Formulário configurado:`, {
-          medicoes: qtd,
-          geometria: tipo.geometrias,
-          simuladorChuva: tipo.simuladorChuva
-        })
-      } else {
-        console.warn('⚠️ Tipo de equipamento não detectado')
+      const prefixo = detectEquipmentPrefix(equip.codigo)
+      formMedicaoData.value.prefixo_equipamento = prefixo
+
+      tipoEquipamentoDetectado.value = {
+        icon: prefixo === 'RH' ? 'mdi-road-variant' : prefixo === 'RV' ? 'mdi-sign-direction' : 'mdi-reflect-horizontal',
+        descricao: prefixo === 'RH'
+          ? 'RH — Retrorrefletância Horizontal'
+          : prefixo === 'RV'
+            ? 'RV — Retrorrefletância Vertical'
+            : 'RT — Tachas e Tachões',
+        geometrias: prefixo === 'RH'
+          ? GEOMETRY_BY_PREFIX.RH.map((g) => g.value)
+          : prefixo === 'RV'
+            ? GEOMETRY_BY_PREFIX.RV_MULTI.map((g) => g.value)
+            : GEOMETRY_BY_PREFIX.RT.map((g) => g.value),
+        quantidadeMedicoes: 5,
+        simuladorChuva: false
+      }
+
+      formMedicaoData.value.valores_medicoes = Array(5).fill(0)
+      formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario
+
+      if (prefixo === 'RH') {
+        formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RH[0].value
+      }
+      if (prefixo === 'RV') {
+        formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RV_SINGLE[0].value
+      }
+      if (prefixo === 'RT') {
+        formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RT[0].value
       }
     }
-    
-    // Computed para opções dinâmicas baseadas no equipamento
+
     const geometriasDisponiveis = computed(() => {
-      if (!tipoEquipamentoDetectado.value) return geometriaOptions
-      
-      const tipo = tipoEquipamentoDetectado.value.tipo
-      if (geometriasPorTipo[tipo]) {
-        console.log(`🔍 Geometrias disponíveis para ${tipo}:`, geometriasPorTipo[tipo])
-        return geometriasPorTipo[tipo]
+      const prefixo = formMedicaoData.value.prefixo_equipamento
+      if (prefixo === 'RH') return GEOMETRY_BY_PREFIX.RH
+      if (prefixo === 'RV') {
+        return formMedicaoData.value.modo_medicao_vertical === 'multi-angulo'
+          ? GEOMETRY_BY_PREFIX.RV_MULTI
+          : GEOMETRY_BY_PREFIX.RV_SINGLE
       }
-      
-      return geometriaOptions
+      if (prefixo === 'RT') return GEOMETRY_BY_PREFIX.RT
+      return []
     })
-    
-    const tipoMedicao = computed(() => {
-      if (!tipoEquipamentoDetectado.value) return null
-      return tipoEquipamentoDetectado.value.tipo
-    })
-    
-    const mostrarCamposPelicula = computed(() => {
-      return tipoMedicao.value === 'vertical'
-    })
-    
-    const mostrarCamposMaterial = computed(() => {
-      return tipoMedicao.value === 'horizontal'
-    })
-    
-    const mostrarSimuladorChuva = computed(() => {
-      return tipoEquipamentoDetectado.value?.simuladorChuva === true
-    })
+
+    const tipoMedicao = computed(() => formMedicaoData.value.prefixo_equipamento)
+
+    const mostrarCamposPelicula = computed(() => tipoMedicao.value === 'RV')
+
+    const mostrarCamposMaterial = computed(() => tipoMedicao.value === 'RH')
+
+    const mostrarSimuladorChuva = computed(() => false)
+
     
     // Filtrar medições baseado nos filtros selecionados
     const medicoesFiltradas = computed(() => {
@@ -1065,48 +1097,125 @@ export default {
       formMedicaoData.value.valores_medicoes.splice(index, 1)
     }
     
+    const capturarGPS = async () => {
+      if (!navigator.geolocation) {
+        mostrarNotificacao('Geolocalização não suportada neste dispositivo.', 'warning')
+        return
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          formMedicaoData.value.latitude = position.coords.latitude
+          formMedicaoData.value.longitude = position.coords.longitude
+          mostrarNotificacao('GPS capturado com sucesso.', 'success')
+        },
+        (error) => mostrarNotificacao(`Falha no GPS: ${error.message}`, 'warning'),
+        { enableHighAccuracy: true, timeout: 10000 }
+      )
+    }
+
     const calcularValidacao = async () => {
       calculando.value = true
+      logsDiagnostico.value = []
       try {
-        const equipamentoSelecionado = equipamentos.value.find(
-          eq => eq.id === formMedicaoData.value.equipamento_id
-        )
-        
-        if (!equipamentoSelecionado) {
-          throw new Error('Selecione um equipamento')
+        const equipamento = equipamentos.value.find((eq) => eq.id === formMedicaoData.value.equipamento_id)
+        if (!equipamento) throw new Error('Selecione um equipamento')
+
+        if (formMedicaoData.value.prefixo_equipamento === 'RH') {
+          formMedicaoData.value.metodo_coleta = ['Marca longitudinal', 'Linha de bordo', 'Eixo'].includes(formMedicaoData.value.tipo_sinalizacao)
+            ? 'Método por extensão da pintura'
+            : ['Legenda', 'Pictograma'].includes(formMedicaoData.value.tipo_sinalizacao)
+              ? 'Método por área/pontos distribuídos'
+              : 'Método técnico padrão horizontal'
         }
-        
+
         const resultado = await calibracaoService.calcularValidacao({
-          tipo_equipamento: equipamentoSelecionado.tipo,
+          tipo_equipamento: equipamento.tipo,
+          prefixo_equipamento: formMedicaoData.value.prefixo_equipamento,
+          tipo_sinalizacao: formMedicaoData.value.tipo_sinalizacao,
+          tipo_material: formMedicaoData.value.tipo_material === 'Outro' ? formMedicaoData.value.tipo_material_outro : formMedicaoData.value.tipo_material,
+          modo_medicao: formMedicaoData.value.modo_medicao_vertical,
+          classe_pelicula: formMedicaoData.value.classe_pelicula,
           tipo_pelicula: formMedicaoData.value.tipo_pelicula,
-          tipo_material: null,
+          marca_pelicula: formMedicaoData.value.marca_pelicula,
           cor: formMedicaoData.value.cor_medicao,
           geometria: formMedicaoData.value.geometria_medicao,
           valores_medicoes: formMedicaoData.value.valores_medicoes,
         })
-        
-        resultadoValidacao.value = resultado
+
+        logsDiagnostico.value.push('Validação executada com sucesso no motor dinâmico.')
+        resultadoValidacao.value = { ...resultado, status_validacao: resultado.status }
         mostrarNotificacao('Validação calculada com sucesso!', 'success')
       } catch (error) {
+        logsDiagnostico.value.push(`Falha de validação: ${error.message}`)
         mostrarNotificacao('Erro ao calcular validação: ' + error.message, 'error')
       } finally {
         calculando.value = false
       }
     }
-    
+
+    const gerarDiagnosticoTecnico = async () => {
+      const payload = {
+        app_version: import.meta.env.VITE_APP_VERSION || 'dev',
+        commit_hash: import.meta.env.VITE_COMMIT_HASH || 'local',
+        ambiente: import.meta.env.PROD ? 'Production' : 'Preview',
+        equipamento: equipamentoSelecionado.value?.nome,
+        codigo_equipamento: equipamentoSelecionado.value?.codigo,
+        prefixo: formMedicaoData.value.prefixo_equipamento,
+        geometria: formMedicaoData.value.geometria_medicao,
+        tipo_sinalizacao: formMedicaoData.value.tipo_sinalizacao,
+        tipo_material: formMedicaoData.value.tipo_material,
+        classe_pelicula: formMedicaoData.value.classe_pelicula,
+        tipo_pelicula: formMedicaoData.value.tipo_pelicula,
+        marca_pelicula: formMedicaoData.value.marca_pelicula,
+        dados_inseridos: formMedicaoData.value,
+        resultado_validacao: resultadoValidacao.value,
+        logs_capturados: logsDiagnostico.value,
+        status_supabase: 'online',
+        usuario_logado: authStore.usuario,
+        timestamp: new Date().toISOString(),
+        dispositivo: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language
+        }
+      }
+
+      const asJson = JSON.stringify(payload, null, 2)
+      await navigator.clipboard.writeText(asJson)
+      const blob = new Blob([asJson], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `diagnostico-tecnico-${Date.now()}.json`
+      link.click()
+      window.print()
+      URL.revokeObjectURL(url)
+      mostrarNotificacao('Diagnóstico técnico gerado (JSON/PDF/clipboard).', 'success')
+    }
+
     const salvarMedicao = async () => {
       if (!formValido.value || !resultadoValidacao.value) {
         mostrarNotificacao('Preencha todos os campos e calcule a validação', 'warning')
         return
       }
-      
+
       salvando.value = true
       try {
+        let fotosUpload = []
+        if (formMedicaoData.value.fotos_input?.length) {
+          fotosUpload = await uploadFotosMedicao(
+            formMedicaoData.value.fotos_input,
+            equipamentoSelecionado.value?.codigo || 'EQ'
+          )
+        }
+
         const dados = {
           ...formMedicaoData.value,
           ...resultadoValidacao.value,
+          fotos_medicao: fotosUpload
         }
-        
+
         await calibracaoService.registrarCalibracao(dados)
         mostrarNotificacao('Medição salva com sucesso!', 'success')
         fecharDialog()
@@ -1118,7 +1227,7 @@ export default {
         salvando.value = false
       }
     }
-    
+
     const gerarLaudoPDF = async (item) => {
       try {
         mostrarNotificacao('Gerando laudo em PDF...', 'info')
@@ -1240,8 +1349,10 @@ export default {
       
       // Opções Dinâmicas
       tipoPeliculaOptions,
+      classePeliculaOptions,
+      tipoSinalizacaoOptions,
+      tipoMaterialHorizontalOptions,
       corOptions,
-      geometriaOptions,
       geometriasDisponiveis,
       tipoMedicao,
       mostrarCamposPelicula,
@@ -1263,6 +1374,8 @@ export default {
       adicionarMedicao,
       removerMedicao,
       calcularValidacao,
+      capturarGPS,
+      gerarDiagnosticoTecnico,
       salvarMedicao,
       gerarLaudoPDF,
       aplicarFiltros,
