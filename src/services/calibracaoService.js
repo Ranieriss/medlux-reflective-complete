@@ -38,7 +38,7 @@ export const buscarCriterios = async (filtros = {}) => {
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao buscar critérios:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 
@@ -77,7 +77,7 @@ export const buscarCriterioEspecifico = async (params) => {
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao buscar critério específico:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 
@@ -340,6 +340,14 @@ export const registrarCalibracao = async (dados) => {
 
     const tipo_equipamento = equipamento.tipo.toLowerCase()
 
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+    const uid = sessionData?.session?.user?.id || null
+    if (sessionError || !uid) {
+      const authError = new Error('Sessão inválida. Faça login novamente.')
+      authError.code = 'SESSION_INVALID'
+      throw authError
+    }
+
     // 2. Buscar critério de referência
     const { success: critSuccess, data: criterio, error: critError } = await buscarCriterioEspecifico({
       tipo_equipamento,
@@ -394,7 +402,8 @@ export const registrarCalibracao = async (dados) => {
         umidade_relativa,
         fotos_medicao: fotos_medicao ? JSON.stringify(fotos_medicao) : null,
         observacoes: observacoes || validacao.mensagem,
-        resultado: validacao.status
+        resultado: validacao.status,
+        created_by: uid
       }])
       .select()
 
@@ -419,7 +428,7 @@ export const registrarCalibracao = async (dados) => {
     }
   } catch (error) {
     console.error('❌ Erro ao registrar calibração:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 
@@ -439,7 +448,7 @@ export const buscarHistoricoCalibracao = async (equipamento_id) => {
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao buscar histórico:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 
@@ -458,7 +467,7 @@ export const buscarStatusCalibracao = async () => {
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao buscar status de calibração:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 
@@ -477,7 +486,7 @@ export const buscarEstatisticasCalibracao = async () => {
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao buscar estatísticas:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 
@@ -585,7 +594,7 @@ export const gerarLaudoPDF = async (calibracaoId) => {
     return { success: true, ...resultado }
   } catch (error) {
     console.error('❌ Erro ao gerar laudo PDF:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 
@@ -716,7 +725,7 @@ export const obterCalibracao = async (calibracaoId) => {
     return { success: true, data }
   } catch (error) {
     console.error('❌ Erro ao obter calibração:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error.message, code: error?.code || null }
   }
 }
 

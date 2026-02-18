@@ -19,11 +19,16 @@ function formatSupabaseError(error, fallback) {
 
 async function ensureAuthenticatedSession() {
   const { data, error } = await supabase.auth.getSession()
-  if (error || !data?.session?.user?.id) {
-    throw Object.assign(new Error('Sessão inválida ou ausente. Faça login novamente para salvar leituras.'), {
-      diagnostic: formatSupabaseError(error, 'Sessão não encontrada para a operação de escrita.')
+  const uid = data?.session?.user?.id || null
+
+  if (error || !uid) {
+    throw Object.assign(new Error('Sessão inválida. Faça login novamente.'), {
+      diagnostic: formatSupabaseError(error, 'Sessão não encontrada para a operação de escrita.'),
+      code: 'SESSION_INVALID'
     })
   }
+
+  return uid
 }
 
 /**
@@ -123,7 +128,7 @@ export async function criarEstacao(dados) {
  */
 export async function adicionarLeitura(dados) {
   try {
-    await ensureAuthenticatedSession()
+    const uid = await ensureAuthenticatedSession()
 
     const { data, error } = await supabase
       .from('leituras_medicao')
@@ -134,7 +139,7 @@ export async function adicionarLeitura(dados) {
         espacamento_metros: dados.espacamento_metros || 0.5,
         excluida_calculo: dados.excluida_calculo ?? false,
         observacoes: dados.observacoes || null,
-        usuario_id: null
+        usuario_id: uid
       })
       .select()
       .single()
@@ -161,7 +166,7 @@ export async function adicionarLeitura(dados) {
  */
 export async function adicionarLeituras(estacaoId, valores) {
   try {
-    await ensureAuthenticatedSession()
+    const uid = await ensureAuthenticatedSession()
 
     const leituras = valores.map((valor, index) => ({
       estacao_id: estacaoId,
@@ -170,7 +175,7 @@ export async function adicionarLeituras(estacaoId, valores) {
       espacamento_metros: 0.5,
       excluida_calculo: false,
       observacoes: null,
-      usuario_id: null
+      usuario_id: uid
     }))
 
     const { data, error } = await supabase

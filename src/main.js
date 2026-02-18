@@ -19,12 +19,22 @@ import { useDiagnosticsStore } from './stores/diagnostics'
 import { supabase, hasSupabaseEnv, maskSupabaseKey, supabaseAnonKey, supabaseUrl } from './services/supabase'
 
 const capturedBootstrapErrors = []
+const MEDLUX_DEBUG_KEY = 'MEDLUX_DEBUG'
 
 const isDebugEnabled = () => {
   if (typeof window === 'undefined') return false
   const params = new URLSearchParams(window.location.search)
-  return import.meta.env.DEV || params.get('debug') === '1'
+  const queryEnabled = params.get('debug') === '1'
+  const storageEnabled = window.localStorage?.getItem(MEDLUX_DEBUG_KEY) === '1'
+  return import.meta.env.DEV || queryEnabled || storageEnabled
 }
+
+const getBuildSha = () =>
+  import.meta.env.VITE_COMMIT_SHA ||
+  import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA ||
+  import.meta.env.VITE_COMMIT_HASH ||
+  import.meta.env.VITE_APP_VERSION ||
+  'indisponível'
 
 const escapeHtml = (value = '') =>
   String(value)
@@ -66,11 +76,7 @@ const pushBootstrapError = (errorLike, context = {}) => {
   }
 }
 
-const getAppVersion = () =>
-  import.meta.env.VITE_APP_VERSION ||
-  import.meta.env.VITE_COMMIT_SHA ||
-  import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA ||
-  'indisponível'
+const getAppVersion = () => getBuildSha()
 
 const buildDiagnosticPayload = () => ({
   generatedAt: new Date().toISOString(),
@@ -184,6 +190,47 @@ const registerGlobalErrorHandlers = (diagnosticsStore) => {
   }
 }
 
+const registerFetchFailureInterceptor = (diagnosticsStore) => {
+  if (typeof window === 'undefined' || typeof window.fetch !== 'function') return
+
+  const originalFetch = window.fetch.bind(window)
+  if (window.__MEDLUX_FETCH_INTERCEPTED__) return
+
+  window.fetch = async (...args) => {
+    const [resource, config] = args
+    const url = typeof resource === 'string' ? resource : resource?.url || 'unknown'
+    const method = config?.method || (typeof resource !== 'string' ? resource?.method : null) || 'GET'
+
+    try {
+      const response = await originalFetch(...args)
+      if (!response.ok) {
+        diagnosticsStore?.pushRequest({
+          type: 'fetch',
+          url,
+          method,
+          status: response.status,
+          statusText: response.statusText,
+          failed: true
+        })
+      }
+      return response
+    } catch (error) {
+      diagnosticsStore?.pushRequest({
+        type: 'fetch',
+        url,
+        method,
+        status: null,
+        statusText: 'network_error',
+        failed: true,
+        error: normalizeError(error)
+      })
+      throw error
+    }
+  }
+
+  window.__MEDLUX_FETCH_INTERCEPTED__ = true
+}
+
 const initApp = () => {
   const vuetify = createVuetify({
     components,
@@ -226,6 +273,20 @@ const initApp = () => {
 
   const diagnosticsStore = useDiagnosticsStore(pinia)
   registerGlobalErrorHandlers(diagnosticsStore)
+  registerFetchFailureInterceptor(diagnosticsStore)
+
+  app.config.errorHandler = (error, instance, info) => {
+    diagnosticsStore.pushEvent({
+      type: 'vue-error',
+      message: error?.message || `Erro Vue: ${info}`,
+      stack: error?.stack || null,
+      component: instance?.type?.name || instance?.type?.__name || 'Componente desconhecido',
+      route: router.currentRoute.value?.fullPath || null,
+      info,
+      error
+    })
+    console.error('[vue:errorHandler]', error, info)
+  }
 
   // Popular dados demo ao iniciar
   popularDadosDemo()
@@ -233,8 +294,18 @@ const initApp = () => {
   app.mount('#app')
 
   if (isDebugEnabled()) {
+    const runtimeMeta = {
+      buildSha: getBuildSha(),
+      env: import.meta.env.MODE,
+      timestamp: new Date().toISOString()
+    }
+
     window.__app__ = app
     window.supabase = supabase
+    window.supabaseClient = supabase
+    window.__MEDLUX_DEBUG__ = runtimeMeta
+
+    console.log('[MEDLUX DIAG] Debug runtime habilitado', runtimeMeta)
   }
 
   return app

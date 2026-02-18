@@ -19,11 +19,16 @@ function formatSupabaseError(error, fallback) {
 
 async function ensureAuthenticatedSession() {
   const { data, error } = await supabase.auth.getSession()
-  if (error || !data?.session?.user?.id) {
-    throw Object.assign(new Error('Sessão inválida ou ausente. Faça login novamente para salvar leituras.'), {
-      diagnostic: formatSupabaseError(error, 'Sessão não encontrada para a operação de escrita.')
+  const uid = data?.session?.user?.id || null
+
+  if (error || !uid) {
+    throw Object.assign(new Error('Sessão inválida. Faça login novamente.'), {
+      diagnostic: formatSupabaseError(error, 'Sessão não encontrada para a operação de escrita.'),
+      code: 'SESSION_INVALID'
     })
   }
+
+  return uid
 }
 
 /**
@@ -128,14 +133,14 @@ export async function adicionarGeometria(dados) {
  */
 export async function adicionarLeituras(geometriaId, valores) {
   try {
-    await ensureAuthenticatedSession()
+    const uid = await ensureAuthenticatedSession()
 
     const leituras = valores.map((valor, index) => ({
       geometria_id: geometriaId,
       numero_leitura: index + 1,
       valor_cd_lx_m2: parseFloat(valor),
       observacoes: null,
-      usuario_id: null
+      usuario_id: uid
     }))
 
     const { data, error } = await supabase
