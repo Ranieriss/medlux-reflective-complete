@@ -6,28 +6,24 @@ export const EQUIPMENT_PREFIX = {
 
 export const HORIZONTAL_SIGNAL_TYPES = [
   'Marca longitudinal',
-  'Linha de bordo',
-  'Eixo',
-  'Faixa de pedestre',
   'Legenda',
   'Pictograma',
-  'Símbolo',
-  'Outro'
+  'Faixa de pedestre',
+  'Outros...'
 ]
 
 export const HORIZONTAL_MATERIAL_OPTIONS = [
   'Tinta acrílica solvente',
   'Tinta acrílica base água',
-  'Plástico frio - Tipo I',
-  'Plástico frio - Tipo II',
-  'Plástico frio - Tipo III',
-  'Plástico frio - Tipo IV',
-  'Termoplástico - Extrudado',
-  'Termoplástico - Hot-spray',
-  'Termoplástico - Alto relevo',
-  'Termoplástico - Pré-formado',
-  'Outro'
+  'Plástico Frio',
+  'Termoplástico',
+  'Outro...'
 ]
+
+export const HORIZONTAL_MATERIAL_DETAILS = {
+  'Plástico Frio': ['Tipo I', 'Tipo II', 'Tipo III', 'Tipo IV'],
+  'Termoplástico': ['Extrudado', 'Hot-spray', 'Alto relevo', 'Pré-formado', 'Outro...']
+}
 
 export const VERTICAL_CLASSES = Array.from({ length: 13 }, (_, idx) => ({
   title: `Classe ${String.fromCharCode(76 + idx)}`,
@@ -61,10 +57,8 @@ export const NORMATIVE_REFERENCE = {
     byMaterial: {
       'Tinta acrílica solvente': 120,
       'Tinta acrílica base água': 110,
-      'Termoplástico - Extrudado': 150,
-      'Termoplástico - Hot-spray': 150,
-      'Termoplástico - Alto relevo': 180,
-      'Termoplástico - Pré-formado': 160
+      'Plástico Frio': 150,
+      'Termoplástico': 160
     }
   },
   RV: {

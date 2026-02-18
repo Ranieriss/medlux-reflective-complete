@@ -6,6 +6,7 @@
 import { supabase } from './supabase'
 import laudoPDFService from './laudoPDFService'
 import { NORMATIVE_REFERENCE } from '@/constants/normativeConfig'
+import { buscarCriterioNormativo, calcularValidacao as calcularValidacaoNormativa, mensagensNormas } from './normasService'
 
 /**
  * Buscar critérios de retrorrefletância
@@ -145,36 +146,60 @@ export const calcularValidacao = async (params) => {
       throw new Error(`Preencha os campos obrigatórios antes da validação: ${faltantes.join(', ')}`)
     }
 
-    const { prefixo_equipamento, valores_medicoes } = params
-
-    let valorMinimoReferencia = resolverValorMinimoNormativo(params)
-    let criterio = null
-
-    const criterioResult = await buscarCriterioEspecifico({
-      tipo_equipamento: params.tipo_equipamento,
-      tipo_pelicula: params.tipo_pelicula,
+    const criterioResult = await buscarCriterioNormativo({
+      tipo_equipamento: params.prefixo_equipamento,
+      geometria: params.geometria,
       tipo_material: params.tipo_material,
+      classe_pelicula: params.classe_pelicula,
+      tipo_pelicula: params.tipo_pelicula,
+      marca: params.marca_pelicula,
+      tipo_sinalizacao: params.tipo_sinalizacao,
       cor: params.cor,
-      geometria: params.geometria
+      norma: params.norma,
+      ativo: true
     })
 
-    if (criterioResult.success) {
-      criterio = criterioResult.data
-      valorMinimoReferencia = parseFloat(criterio.valor_minimo)
+    if (!criterioResult.success || !criterioResult.data) {
+      const fallbackMinimo = resolverValorMinimoNormativo(params)
+      if (!fallbackMinimo) {
+        throw new Error(criterioResult.error || mensagensNormas.criterioNaoEncontrado)
+      }
+
+      const tipoRegraFallback = params.prefixo_equipamento === 'RH'
+        ? 'horizontal'
+        : params.prefixo_equipamento === 'RV'
+          ? 'vertical'
+          : 'tachas'
+      const fallback = validarMedicoes(tipoRegraFallback, params.valores_medicoes, fallbackMinimo)
+
+      return {
+        ...fallback,
+        criterio_id: null,
+        norma_referencia: 'Fallback local (sem critério cadastrado)',
+        status: fallback.status,
+        criterio_nao_encontrado: true,
+        alerta: criterioResult.error || mensagensNormas.criterioNaoEncontrado
+      }
     }
 
-    const tipoRegra = prefixo_equipamento === 'RH'
+    const criterio = criterioResult.data
+    const resultadoNormativo = calcularValidacaoNormativa({ valores_medicoes: params.valores_medicoes }, criterio)
+
+    const tipoRegra = params.prefixo_equipamento === 'RH'
       ? 'horizontal'
-      : prefixo_equipamento === 'RV'
+      : params.prefixo_equipamento === 'RV'
         ? 'vertical'
         : 'tachas'
 
-    const resultado = validarMedicoes(tipoRegra, valores_medicoes, valorMinimoReferencia)
+    const resultado = validarMedicoes(tipoRegra, params.valores_medicoes, criterio.valor_minimo)
 
     return {
       ...resultado,
-      criterio_id: criterio?.id || null,
-      norma_referencia: criterio?.norma_referencia || 'Tabela normativa dinâmica local (fallback)'
+      status: resultado.status,
+      criterio_id: criterio.id,
+      norma_referencia: criterio.norma,
+      criterio_metadata: criterio.metadata,
+      resultado_normativo: resultadoNormativo
     }
   } catch (error) {
     console.error('❌ Erro ao calcular validação:', error)

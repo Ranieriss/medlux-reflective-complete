@@ -425,13 +425,13 @@
               <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
                 <v-select v-model="formMedicaoData.tipo_sinalizacao" :items="tipoSinalizacaoOptions" label="Tipo de sinalização *" variant="outlined" :rules="[rules.required]" />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_sinalizacao === 'Outro'">
+              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_sinalizacao === 'Outro...'">
                 <v-text-field v-model="formMedicaoData.tipo_sinalizacao_outro" label="Descreva o tipo de sinalização *" variant="outlined" :rules="[rules.required]" />
               </v-col>
               <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
                 <v-select v-model="formMedicaoData.tipo_material" :items="tipoMaterialHorizontalOptions" label="Tipo de material horizontal *" variant="outlined" :rules="[rules.required]" />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_material === 'Outro'">
+              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_material === 'Outro...'">
                 <v-text-field v-model="formMedicaoData.tipo_material_outro" label="Descreva o material *" variant="outlined" :rules="[rules.required]" />
               </v-col>
 
@@ -592,6 +592,11 @@
                   Capturar GPS automático
                 </v-btn>
               </v-col>
+              <v-col cols="12" md="8" v-if="formMedicaoData.modo_localizacao === 'gps'">
+                <div class="text-caption">
+                  Latitude: {{ formMedicaoData.latitude || '-' }} • Longitude: {{ formMedicaoData.longitude || '-' }} • Precisão: {{ formMedicaoData.precisao_gps ? `${Math.round(formMedicaoData.precisao_gps)}m` : '-' }}
+                </div>
+              </v-col>
 
               <template v-if="formMedicaoData.modo_localizacao === 'manual'">
                 <v-col cols="12" md="4"><v-text-field v-model="formMedicaoData.local_rodovia" label="Rodovia *" variant="outlined" :rules="[rules.required]" /></v-col>
@@ -699,6 +704,27 @@
       </v-card>
     </v-dialog>
 
+
+    <v-dialog v-model="dialogDiagnostico" max-width="900px" scrollable>
+      <v-card>
+        <v-card-title>Diagnóstico do Sistema</v-card-title>
+        <v-card-text>
+          <v-textarea
+            v-model="diagnosticoJson"
+            rows="18"
+            auto-grow
+            variant="outlined"
+            label="JSON do diagnóstico"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="outlined" prepend-icon="mdi-content-copy" @click="copiarDiagnostico">Copiar JSON</v-btn>
+          <v-btn color="primary" prepend-icon="mdi-download" @click="baixarDiagnostico">Baixar JSON</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Snackbar de notificações -->
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
       {{ snackbar.text }}
@@ -711,12 +737,14 @@
 
 <script>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import calibracaoService from '@/services/calibracaoService'
 import { buscarEquipamentosDoUsuario } from '@/services/equipamentoService'
 import { uploadFotosMedicao } from '@/services/uploadService'
 import { detectEquipmentPrefix, GEOMETRY_BY_PREFIX, HORIZONTAL_MATERIAL_OPTIONS, HORIZONTAL_SIGNAL_TYPES, VERTICAL_CLASSES, VERTICAL_TYPES } from '@/constants/normativeConfig'
-import supabase, { getCurrentProfile } from '@/services/supabase'
+import supabase, { getCurrentProfile, maskSupabaseKey, supabaseUrl } from '@/services/supabase'
+import { useDiagnosticsStore } from '@/stores/diagnostics'
 
 // Ambiente
 const IS_DEV = import.meta.env.DEV
@@ -727,6 +755,8 @@ export default {
   setup() {
     // Auth store
     const authStore = useAuthStore()
+    const diagnosticsStore = useDiagnosticsStore()
+    const route = useRoute()
     
     // Estados
     const loading = ref(false)
@@ -750,6 +780,8 @@ export default {
     // Resultado da validação
     const resultadoValidacao = ref(null)
     const logsDiagnostico = ref([])
+    const dialogDiagnostico = ref(false)
+    const diagnosticoJson = ref('')
     
     // Formulário
     const formMedicaoInicial = {
@@ -771,6 +803,7 @@ export default {
       modo_localizacao: 'gps',
       latitude: null,
       longitude: null,
+      precisao_gps: null,
       local_rodovia: '',
       local_km: '',
       local_municipio: '',
@@ -1107,6 +1140,7 @@ export default {
         (position) => {
           formMedicaoData.value.latitude = position.coords.latitude
           formMedicaoData.value.longitude = position.coords.longitude
+          formMedicaoData.value.precisao_gps = position.coords.accuracy
           mostrarNotificacao('GPS capturado com sucesso.', 'success')
         },
         (error) => mostrarNotificacao(`Falha no GPS: ${error.message}`, 'warning'),
@@ -1129,11 +1163,13 @@ export default {
               : 'Método técnico padrão horizontal'
         }
 
+        diagnosticsStore.pushRequest({ service: 'calcularValidacao', payload: { prefixo: formMedicaoData.value.prefixo_equipamento, geometria: formMedicaoData.value.geometria_medicao } })
+
         const resultado = await calibracaoService.calcularValidacao({
           tipo_equipamento: equipamento.tipo,
           prefixo_equipamento: formMedicaoData.value.prefixo_equipamento,
           tipo_sinalizacao: formMedicaoData.value.tipo_sinalizacao,
-          tipo_material: formMedicaoData.value.tipo_material === 'Outro' ? formMedicaoData.value.tipo_material_outro : formMedicaoData.value.tipo_material,
+          tipo_material: formMedicaoData.value.tipo_material === 'Outro...' ? formMedicaoData.value.tipo_material_outro : formMedicaoData.value.tipo_material,
           modo_medicao: formMedicaoData.value.modo_medicao_vertical,
           classe_pelicula: formMedicaoData.value.classe_pelicula,
           tipo_pelicula: formMedicaoData.value.tipo_pelicula,
@@ -1145,7 +1181,12 @@ export default {
 
         logsDiagnostico.value.push('Validação executada com sucesso no motor dinâmico.')
         resultadoValidacao.value = { ...resultado, status_validacao: resultado.status }
-        mostrarNotificacao('Validação calculada com sucesso!', 'success')
+
+        if (resultado.criterio_nao_encontrado) {
+          mostrarNotificacao('Critério normativo não cadastrado para esta combinação. Solicite cadastro na tabela de normas.', 'warning')
+        } else {
+          mostrarNotificacao('Validação calculada com sucesso!', 'success')
+        }
       } catch (error) {
         logsDiagnostico.value.push(`Falha de validação: ${error.message}`)
         mostrarNotificacao('Erro ao calcular validação: ' + error.message, 'error')
@@ -1156,9 +1197,11 @@ export default {
 
     const gerarDiagnosticoTecnico = async () => {
       const payload = {
-        app_version: import.meta.env.VITE_APP_VERSION || 'dev',
+        versao_app: import.meta.env.VITE_APP_VERSION || 'dev',
+        build_time: import.meta.env.VITE_BUILD_TIME || null,
         commit_hash: import.meta.env.VITE_COMMIT_HASH || 'local',
-        ambiente: import.meta.env.PROD ? 'Production' : 'Preview',
+        ambiente: import.meta.env.PROD ? 'production' : 'preview/local',
+        rota_atual: route.fullPath,
         equipamento: equipamentoSelecionado.value?.nome,
         codigo_equipamento: equipamentoSelecionado.value?.codigo,
         prefixo: formMedicaoData.value.prefixo_equipamento,
@@ -1168,10 +1211,16 @@ export default {
         classe_pelicula: formMedicaoData.value.classe_pelicula,
         tipo_pelicula: formMedicaoData.value.tipo_pelicula,
         marca_pelicula: formMedicaoData.value.marca_pelicula,
-        dados_inseridos: formMedicaoData.value,
+        parametros_atuais: formMedicaoData.value,
         resultado_validacao: resultadoValidacao.value,
-        logs_capturados: logsDiagnostico.value,
-        status_supabase: 'online',
+        logs_locais: logsDiagnostico.value,
+        ultimos_erros: diagnosticsStore.events,
+        ultimas_requests: diagnosticsStore.requests,
+        status_supabase: {
+          url_mascarada: supabaseUrl ? `${new URL(supabaseUrl).origin}/***` : 'não configurada',
+          anon_key_mascarada: maskSupabaseKey(import.meta.env.VITE_SUPABASE_ANON_KEY || ''),
+          conectado: !!supabase
+        },
         usuario_logado: authStore.usuario,
         timestamp: new Date().toISOString(),
         dispositivo: {
@@ -1181,18 +1230,28 @@ export default {
         }
       }
 
-      const asJson = JSON.stringify(payload, null, 2)
-      await navigator.clipboard.writeText(asJson)
-      const blob = new Blob([asJson], { type: 'application/json' })
+      diagnosticoJson.value = JSON.stringify(payload, null, 2)
+      dialogDiagnostico.value = true
+      mostrarNotificacao('Diagnóstico completo gerado.', 'success')
+    }
+
+    const copiarDiagnostico = async () => {
+      if (!diagnosticoJson.value) return
+      await navigator.clipboard.writeText(diagnosticoJson.value)
+      mostrarNotificacao('JSON copiado para a área de transferência.', 'success')
+    }
+
+    const baixarDiagnostico = () => {
+      if (!diagnosticoJson.value) return
+      const blob = new Blob([diagnosticoJson.value], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = `diagnostico-tecnico-${Date.now()}.json`
       link.click()
-      window.print()
       URL.revokeObjectURL(url)
-      mostrarNotificacao('Diagnóstico técnico gerado (JSON/PDF/clipboard).', 'success')
     }
+
 
     const salvarMedicao = async () => {
       if (!formValido.value || !resultadoValidacao.value) {
@@ -1204,10 +1263,11 @@ export default {
       try {
         let fotosUpload = []
         if (formMedicaoData.value.fotos_input?.length) {
-          fotosUpload = await uploadFotosMedicao(
-            formMedicaoData.value.fotos_input,
-            equipamentoSelecionado.value?.codigo || 'EQ'
-          )
+          fotosUpload = await uploadFotosMedicao(formMedicaoData.value.fotos_input, {
+            tipoEquipamento: formMedicaoData.value.prefixo_equipamento || 'SEM_PREFIXO',
+            equipamentoId: formMedicaoData.value.equipamento_id || 'SEM_EQUIPAMENTO',
+            medicaoId: `medicao-${Date.now()}`
+          })
         }
 
         const dados = {
@@ -1216,6 +1276,7 @@ export default {
           fotos_medicao: fotosUpload
         }
 
+        diagnosticsStore.pushRequest({ service: 'registrarCalibracao', payload: { equipamento_id: dados.equipamento_id } })
         await calibracaoService.registrarCalibracao(dados)
         mostrarNotificacao('Medição salva com sucesso!', 'success')
         fecharDialog()
@@ -1340,6 +1401,8 @@ export default {
       // Form
       formMedicaoData: formMedicaoData,
       resultadoValidacao,
+      dialogDiagnostico,
+      diagnosticoJson,
       
       // Filtros
       filtros,
@@ -1376,6 +1439,8 @@ export default {
       calcularValidacao,
       capturarGPS,
       gerarDiagnosticoTecnico,
+      copiarDiagnostico,
+      baixarDiagnostico,
       salvarMedicao,
       gerarLaudoPDF,
       aplicarFiltros,

@@ -298,7 +298,7 @@ export async function comprimirImagemParaFaixa(file, options = {}) {
     maxWidth = 1600
   } = options
 
-  let quality = 0.85
+  let quality = 0.7
   let result = await comprimirImagem(file, maxWidth, quality)
   let attempts = 0
 
@@ -318,7 +318,7 @@ export async function comprimirImagemParaFaixa(file, options = {}) {
 /**
  * Upload especializado para fotos de medição normativa
  */
-export async function uploadFotosMedicao(files, equipamentoCodigo) {
+export async function uploadFotosMedicao(files, options = {}) {
   if (!Array.isArray(files) || files.length === 0) {
     return []
   }
@@ -327,7 +327,13 @@ export async function uploadFotosMedicao(files, equipamentoCodigo) {
     throw new Error('É permitido anexar no máximo 3 fotos por medição.')
   }
 
-  const folder = `${equipamentoCodigo || 'EQ'}-${Date.now()}`
+  const {
+    tipoEquipamento = 'SEM_PREFIXO',
+    equipamentoId = 'SEM_EQUIPAMENTO',
+    medicaoId = `medicao-${Date.now()}`
+  } = options
+
+  const folder = `${tipoEquipamento}/${equipamentoId}/${medicaoId}`
   const uploads = []
 
   for (const [index, file] of files.entries()) {
@@ -335,14 +341,14 @@ export async function uploadFotosMedicao(files, equipamentoCodigo) {
       throw new Error(`Arquivo inválido: ${file.name}. Utilize JPG, PNG ou WEBP.`)
     }
 
-    const compressedFile = await comprimirImagemParaFaixa(file)
-    const fileName = `${folder}/${index + 1}-${Date.now()}.jpg`
+    const compressedFile = await comprimirImagemParaFaixa(file, { maxWidth: 1600, maxBytes: 500 * 1024 })
+    const fileName = `${folder}/foto${index + 1}.jpg`
 
     const { error } = await supabase.storage
       .from(MEDICOES_BUCKET)
       .upload(fileName, compressedFile, {
         cacheControl: '3600',
-        upsert: false,
+        upsert: true,
         contentType: 'image/jpeg'
       })
 
@@ -354,8 +360,9 @@ export async function uploadFotosMedicao(files, equipamentoCodigo) {
 
     uploads.push({
       url: urlData.publicUrl,
-      nome_arquivo: fileName,
+      path: fileName,
       nome_original: file.name,
+      tipo: 'image/jpeg',
       timestamp: new Date().toISOString(),
       tamanho_bytes: compressedFile.size
     })
