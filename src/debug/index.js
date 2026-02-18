@@ -369,49 +369,82 @@ const runSupabaseChecks = async ({ session } = {}) => {
     }
   }
 
+  const bucket = supabase.storage.from('medicoes')
+
   try {
-    const { data, error } = await supabase.storage.from('medicoes').list('', { limit: 1 })
+    const { data, error } = await bucket.list('debug', { limit: 1 })
     if (error) {
       recordRlsHint(error, 'storage:list')
-      checks.storage.push({ action: 'list', bucket: 'medicoes', ok: false, error: sanitizeByKey('error', error) })
+      checks.storage.push({
+        action: 'list',
+        bucket: 'medicoes',
+        path: 'debug',
+        ok: false,
+        status: error?.status || null,
+        message: error?.message || null,
+        error: sanitizeByKey('error', error)
+      })
     } else {
-      checks.storage.push({ action: 'list', bucket: 'medicoes', ok: true, entries: data?.length || 0 })
+      checks.storage.push({
+        action: 'list',
+        bucket: 'medicoes',
+        path: 'debug',
+        ok: true,
+        status: 200,
+        entries: data?.length || 0,
+        message: 'list_ok'
+      })
     }
   } catch (error) {
     recordRlsHint(error, 'storage:list:catch')
-    checks.storage.push({ action: 'list', bucket: 'medicoes', ok: false, error: sanitizeByKey('error', error) })
+    checks.storage.push({
+      action: 'list',
+      bucket: 'medicoes',
+      path: 'debug',
+      ok: false,
+      status: error?.status || null,
+      message: error?.message || String(error),
+      error: sanitizeByKey('error', error)
+    })
   }
 
   try {
-    const { data, error, status } = await supabase.storage.from('medicoes').createSignedUrl('debug/dummy.txt', 60)
+    const { data, error } = await bucket.createSignedUploadUrl('debug/dummy.txt')
     if (error) {
-      recordRlsHint(error, 'storage:signed-url')
+      recordRlsHint(error, 'storage:signed-upload-url')
       checks.storage.push({
-        action: 'signedUrlDummy',
+        action: 'signedUploadUrlDummy',
         bucket: 'medicoes',
         ok: false,
+        status: error?.status || null,
+        message: error?.message || null,
         error: sanitizeByKey('error', error),
         storageError: {
-          status: status || error?.status || null,
+          status: error?.status || null,
           code: error?.code || null,
           body: error?.message || null
         }
       })
     } else {
       checks.storage.push({
-        action: 'signedUrlDummy',
+        action: 'signedUploadUrlDummy',
         bucket: 'medicoes',
         ok: true,
+        status: 200,
         hasSignedUrl: Boolean(data?.signedUrl),
-        signedUrlMasked: data?.signedUrl ? sanitizeUrl(data.signedUrl) : null
+        hasToken: Boolean(data?.token),
+        signedUrlMasked: data?.signedUrl ? sanitizeUrl(data.signedUrl) : null,
+        message: 'signed_upload_url_ok'
       })
     }
   } catch (error) {
-    recordRlsHint(error, 'storage:signed-url:catch')
+    recordRlsHint(error, 'storage:signed-upload-url:catch')
     checks.storage.push({
-      action: 'signedUrlDummy',
+      action: 'signedUploadUrlDummy',
       bucket: 'medicoes',
       ok: false,
+      status: error?.status || null,
+      message: error?.message || String(error),
       error: sanitizeByKey('error', error),
       storageError: {
         status: error?.status || null,
