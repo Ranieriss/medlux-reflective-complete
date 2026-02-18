@@ -69,6 +69,14 @@ Esse script é idempotente e configura:
 - Policies ADMIN/USER finais
 - ownership (`usuario_id`) e trigger nas tabelas de leituras
 
+
+### Diagnóstico de bootstrap (tela preta/erro inicial)
+
+- Em caso de falha crítica de inicialização, o app exibe um overlay com o botão **"Gerar Diagnóstico Completo"**, que baixa um JSON e tenta copiar para o clipboard.
+- Para habilitar exposição de debug no navegador, abra a aplicação com `?debug=1` (ou em ambiente DEV):
+  - `window.supabase` → cliente Supabase (somente anon key)
+  - `window.__app__` → instância Vue montada
+
 ### Troubleshooting rápido de login
 
 - Botão de login habilitado, mas erro de configuração: revisar as env vars acima.
