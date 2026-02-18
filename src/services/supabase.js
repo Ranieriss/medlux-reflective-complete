@@ -13,6 +13,7 @@ import {
   supabaseUrl
 } from '@/config/env'
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
+import { formatSupabaseError } from '@/utils/formatSupabaseError'
 
 if (!hasSupabaseEnv) {
   if (missingSupabaseEnvVars.length > 0) {
@@ -54,6 +55,14 @@ export const supabase = hasSupabaseEnv
     })
   : buildMissingEnvProxy()
 
+if (hasSupabaseEnv && import.meta.env.DEV) {
+  console.info('[supabase] health-check', {
+    url: supabaseUrl,
+    key: maskSupabaseKey(supabaseAnonKey),
+    source: supabaseKeySource || 'VITE_SUPABASE_ANON_KEY'
+  })
+}
+
 export {
   hasSupabaseEnv,
   maskSupabaseKey,
@@ -64,14 +73,92 @@ export {
   supabaseUrl
 }
 
+const PERFIL_DUPLICADO_CODES = new Set(['PGRST116'])
+
+const isMissingColumnError = (error, columnName) => {
+  const message = (error?.message || '').toLowerCase()
+  return error?.code === '42703' || message.includes(columnName.toLowerCase())
+}
+
 function formatarErroSupabase(error, fallback = 'Erro inesperado no Supabase.') {
-  return {
-    message: error?.message || fallback,
-    code: error?.code || null,
-    status: error?.status || null,
-    hint: error?.hint || null,
-    details: error?.details || null
+  return formatSupabaseError(error, fallback)
+}
+
+async function obterPerfilPorUsuarioId(userId) {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) {
+    if (isMissingColumnError(error, 'user_id')) {
+      return { data: null, error: null, nextFallback: 'auth_user_id' }
+    }
+
+    if (PERFIL_DUPLICADO_CODES.has(error.code) || (error.message || '').toLowerCase().includes('multiple')) {
+      const duplicated = new Error('Perfil duplicado detectado em public.usuarios para este usuário. Contate o suporte para remover duplicidades e aplique UNIQUE(user_id).')
+      duplicated.code = 'PROFILE_DUPLICATED'
+      duplicated.status = 409
+      throw duplicated
+    }
+
+    throw error
   }
+
+  return { data, error: null, nextFallback: data ? null : 'auth_user_id' }
+}
+
+async function criarPerfilAusente(user) {
+  const email = user?.email || ''
+  const nomeFallback = (user?.user_metadata?.nome || email.split('@')[0] || 'Usuário').toString().slice(0, 120)
+
+  const payloads = [
+    {
+      user_id: user.id,
+      auth_user_id: user.id,
+      email,
+      nome: nomeFallback,
+      perfil: 'USER',
+      ativo: true,
+      senha_hash: 'managed_by_supabase_auth'
+    },
+    {
+      auth_user_id: user.id,
+      email,
+      nome: nomeFallback,
+      perfil: 'USER',
+      ativo: true,
+      senha_hash: 'managed_by_supabase_auth'
+    },
+    {
+      id: user.id,
+      email,
+      nome: nomeFallback,
+      perfil: 'USER',
+      ativo: true,
+      senha_hash: 'managed_by_supabase_auth'
+    }
+  ]
+
+  let lastError = null
+  for (const payload of payloads) {
+    const { data, error } = await supabase.from('usuarios').insert([payload]).select('*').maybeSingle()
+    if (!error) return data
+
+    lastError = error
+
+    if (error?.code === '23505') {
+      return null
+    }
+
+    if (!isMissingColumnError(error, 'user_id') && !isMissingColumnError(error, 'auth_user_id')) {
+      throw error
+    }
+  }
+
+  if (lastError) throw lastError
+  return null
 }
 
 function getMensagemPermissao(error) {
@@ -117,35 +204,54 @@ export async function ensureSessionAndProfile() {
     if (userError) throw userError
     if (!userData?.user) return null
 
-    const { data: perfil, error: perfilError } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('auth_user_id', userData.user.id)
-      .maybeSingle()
+    let perfil = null
+    const perfilByUserId = await obterPerfilPorUsuarioId(userData.user.id)
+    perfil = perfilByUserId.data
 
-    if (perfilError) {
-      const isMissingAuthUserId = perfilError?.code === '42703' || (perfilError?.message || '').toLowerCase().includes('auth_user_id')
-      if (!isMissingAuthUserId) throw perfilError
+    if (!perfil && perfilByUserId.nextFallback === 'auth_user_id') {
+      const { data: perfilAuthId, error: perfilAuthError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('auth_user_id', userData.user.id)
+        .maybeSingle()
 
-      const { data: perfilFallback, error: perfilFallbackError } = await supabase
+      if (perfilAuthError && !isMissingColumnError(perfilAuthError, 'auth_user_id')) {
+        throw perfilAuthError
+      }
+
+      perfil = perfilAuthId || null
+    }
+
+    if (!perfil) {
+      const { data: perfilById, error: perfilByIdError } = await supabase
         .from('usuarios')
         .select('*')
         .eq('id', userData.user.id)
         .maybeSingle()
 
-      if (perfilFallbackError) throw perfilFallbackError
+      if (perfilByIdError) throw perfilByIdError
+      perfil = perfilById || null
+    }
 
-      return {
-        session,
-        user: userData.user,
-        perfil: perfilFallback || null
+    if (!perfil) {
+      perfil = await criarPerfilAusente(userData.user)
+
+      if (!perfil) {
+        const { data: perfilRecuperado, error: perfilRecuperadoError } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', userData.user.id)
+          .maybeSingle()
+
+        if (perfilRecuperadoError) throw perfilRecuperadoError
+        perfil = perfilRecuperado || null
       }
     }
 
     return {
       session,
       user: userData.user,
-      perfil: perfil || null
+      perfil
     }
   } catch (error) {
     console.error('❌ Falha ao garantir sessão e perfil:', {
@@ -285,7 +391,7 @@ export async function signUp(email, password, nome, perfil = 'TECNICO') {
       .from('usuarios')
       .insert([payloadComAuthUserId])
       .select()
-      .single()
+      .maybeSingle()
 
     if (insertWithAuthUserIdError) {
       const mensagem = (insertWithAuthUserIdError.message || '').toLowerCase()
@@ -298,7 +404,7 @@ export async function signUp(email, password, nome, perfil = 'TECNICO') {
           .from('usuarios')
           .insert([payloadComId])
           .select()
-          .single()
+          .maybeSingle()
 
         if (insertWithIdError) {
           userError = insertWithIdError
