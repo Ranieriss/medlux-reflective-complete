@@ -39,19 +39,74 @@ export async function buscarCriterioNormativo(params = {}) {
     ativo: params.ativo ?? true
   }
 
-  let query = supabase
-    .from('criterios_retrorrefletancia')
-    .select('*')
-    .eq('tipo_equipamento', filtros.tipo_equipamento)
-    .eq('ativo', filtros.ativo)
+  const queryCriteria = async ({ table, fields, normaField }) => {
+    let query = supabase
+      .from(table)
+      .select('*')
+      .eq(fields.tipoEquipamento, filtros.tipo_equipamento)
+      .eq(fields.ativo, filtros.ativo)
 
-  if (filtros.cor) query = query.eq('cor', filtros.cor)
-  if (filtros.geometria) query = query.eq('geometria', filtros.geometria)
-  if (filtros.tipo_material) query = query.eq('tipo_material', filtros.tipo_material)
-  if (filtros.tipo_pelicula) query = query.eq('tipo_pelicula', filtros.tipo_pelicula)
-  if (filtros.norma) query = query.eq('norma_referencia', filtros.norma)
+    if (filtros.cor) query = query.eq(fields.cor, filtros.cor)
+    if (filtros.geometria) query = query.eq(fields.geometria, filtros.geometria)
+    if (filtros.tipo_material) query = query.eq(fields.tipoMaterial, filtros.tipo_material)
+    if (filtros.tipo_pelicula) query = query.eq(fields.tipoPelicula, filtros.tipo_pelicula)
+    if (filtros.norma) query = query.eq(normaField, filtros.norma)
 
-  const { data, error } = await query.limit(1).maybeSingle()
+    return query.limit(1).maybeSingle()
+  }
+
+  const mapRecord = ({ data, table }) => {
+    if (!data) return null
+    if (table === 'norma_criterios_validacao') {
+      return {
+        ...data,
+        norma_referencia: data.norma_referencia ?? data.norma,
+        valor_minimo: data.valor_minimo,
+        tipo_equipamento: data.tipo_equipamento,
+        tipo_material: data.tipo_material,
+        tipo_pelicula: data.tipo_pelicula
+      }
+    }
+    return data
+  }
+
+  const primary = await queryCriteria({
+    table: 'criterios_retrorrefletancia',
+    fields: {
+      tipoEquipamento: 'tipo_equipamento',
+      ativo: 'ativo',
+      cor: 'cor',
+      geometria: 'geometria',
+      tipoMaterial: 'tipo_material',
+      tipoPelicula: 'tipo_pelicula'
+    },
+    normaField: 'norma_referencia'
+  })
+
+  let data = mapRecord({ data: primary.data, table: 'criterios_retrorrefletancia' })
+  let error = primary.error
+
+  if (!data) {
+    const fallback = await queryCriteria({
+      table: 'norma_criterios_validacao',
+      fields: {
+        tipoEquipamento: 'tipo_equipamento',
+        ativo: 'ativo',
+        cor: 'cor',
+        geometria: 'geometria',
+        tipoMaterial: 'tipo_material',
+        tipoPelicula: 'tipo_pelicula'
+      },
+      normaField: 'norma_referencia'
+    })
+
+    if (fallback.data) {
+      data = mapRecord({ data: fallback.data, table: 'norma_criterios_validacao' })
+      error = null
+    } else if (!error) {
+      error = fallback.error
+    }
+  }
 
   if (error) {
     return { success: false, error: error.message, details: error }
