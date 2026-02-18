@@ -177,3 +177,8 @@ a:hover, .v-btn--variant-text:hover {
   color: #6B7280 !important;
   opacity: 1;
 }
+
+/* Destaque visual para títulos de cards no Dashboard */
+.dashboard-highlight {
+  color: #FACC15 !important;
+}
