@@ -377,6 +377,33 @@
             Últimos 50 erros registrados no sistema
           </v-alert>
 
+          <div class="d-flex flex-wrap ga-2 mb-4">
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-stethoscope"
+              :loading="gerandoDiagnostico"
+              @click="gerarDiagnosticoCompleto"
+            >
+              Diagnóstico Completo
+            </v-btn>
+            <v-btn
+              variant="outlined"
+              prepend-icon="mdi-content-copy"
+              :disabled="!diagnosticoJson"
+              @click="copiarDiagnostico"
+            >
+              Copiar JSON
+            </v-btn>
+            <v-btn
+              variant="outlined"
+              prepend-icon="mdi-download"
+              :disabled="!diagnosticoJson"
+              @click="baixarDiagnostico"
+            >
+              Baixar JSON
+            </v-btn>
+          </div>
+
           <div v-if="logs.length === 0" class="text-center py-8">
             <v-icon size="64" color="success" class="mb-4">mdi-check-circle</v-icon>
             <p class="text-h6">Nenhum erro registrado</p>
@@ -407,6 +434,17 @@
               </v-card>
             </v-timeline-item>
           </v-timeline>
+
+          <v-textarea
+            v-if="diagnosticoJson"
+            v-model="diagnosticoJson"
+            rows="10"
+            readonly
+            auto-grow
+            variant="outlined"
+            label="Diagnóstico completo (JSON)"
+            class="mt-4"
+          />
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -424,7 +462,11 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useDiagnosticsStore } from '@/stores/diagnostics'
+import { generateDiagnosticDump } from '@/debug'
+
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
@@ -446,9 +488,12 @@ const limpandoCache = ref(false)
 const arquivoBackup = ref(null)
 const previewImportacao = ref(null)
 const dialogLogs = ref(false)
+const logs = ref([])
+const gerandoDiagnostico = ref(false)
+const diagnosticoJson = ref('')
+const authStore = useAuthStore()
 const diagnosticsStore = useDiagnosticsStore()
-const route = useRoute()
-const logs = computed(() => diagnosticsStore.events.slice(0, 50))
+
 
 // Stats
 const stats = ref({
@@ -961,7 +1006,51 @@ const gerarDiagnosticoCompleto = async () => {
 }
 
 const verLogsErro = () => {
+logs.value = diagnosticsStore?.events?.slice(0, 50) || []
+
   dialogLogs.value = true
+}
+
+const baixarDiagnostico = () => {
+  if (!diagnosticoJson.value) return
+  const stamp = format(new Date(), 'yyyyMMdd_HHmmss')
+  const blob = new Blob([diagnosticoJson.value], { type: 'application/json;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `medlux-diagnostico-completo-${stamp}.json`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+const copiarDiagnostico = async () => {
+  if (!diagnosticoJson.value) return
+  try {
+    await navigator.clipboard.writeText(diagnosticoJson.value)
+    mostrarSnackbar('Diagnóstico copiado para a área de transferência.', 'success')
+  } catch (error) {
+    mostrarSnackbar('Não foi possível copiar o diagnóstico.', 'warning')
+  }
+}
+
+const gerarDiagnosticoCompleto = async () => {
+  try {
+    gerandoDiagnostico.value = true
+
+    const dump = window.__medlux_debug_dump
+      ? await window.__medlux_debug_dump()
+      : await generateDiagnosticDump({ authStore, diagnosticsStore })
+
+    diagnosticoJson.value = JSON.stringify(dump, null, 2)
+    baixarDiagnostico()
+    await copiarDiagnostico()
+    mostrarSnackbar('Diagnóstico completo gerado com sucesso.', 'success')
+  } catch (error) {
+    console.error('❌ Erro ao gerar diagnóstico completo:', error)
+    mostrarSnackbar('Falha ao gerar diagnóstico completo.', 'error')
+  } finally {
+    gerandoDiagnostico.value = false
+  }
 }
 
 const formatarDataHora = (data) => {

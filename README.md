@@ -70,26 +70,16 @@ Esse script é idempotente e configura:
 - ownership (`usuario_id`) e trigger nas tabelas de leituras
 
 
-### Debug / Diagnóstico
+### Diagnóstico de bootstrap + modo debug completo
 
-- Ative debug em produção com `?debug=1` na URL **ou** `localStorage.setItem('MEDLUX_DEBUG', '1')`.
-- Com debug ativo, ficam disponíveis no runtime:
-  - `window.supabaseClient` → cliente Supabase real (somente anon key).
-  - `window.__MEDLUX_DEBUG__` → metadados `{ buildSha, env, timestamp }`.
-  - `window.__app__` e `window.supabase` para inspeção rápida.
-- Na tela **Sistema → Logs de Erro**, use o botão **Diagnóstico Completo** para:
-  - baixar um `.json`;
-  - copiar o conteúdo para clipboard;
-  - emitir log no console com prefixo `[MEDLUX DIAG]`.
-- O diagnóstico coleta:
-  - versão/commit e ambiente;
-  - URL atual e `userAgent`;
-  - status online/offline;
-  - status do IndexedDB e contagem de registros locais;
-  - dados Supabase (URL, projeto, chave anon mascarada/prefixo);
-  - sessão e usuário (`supabase.auth.getSession()`);
-  - últimos erros capturados (globais/Vue);
-  - até 50 requests com falha capturadas via interceptor de `fetch`.
+- Em caso de falha crítica de inicialização, o app exibe um overlay com o botão **"Gerar Diagnóstico Completo"** (download `.json` + tentativa de cópia para clipboard).
+- Para ativar o modo debug:
+  - `?debug=1` na URL.
+  - `localStorage.setItem('MEDLUX_DEBUG', '1')` e recarregue.
+- Quando o debug está ativo:
+  - `window.supabase`
+  - `window.__app__`
+  - `window.__medlux_debug_dump()`
 
 ### Troubleshooting rápido de login
 

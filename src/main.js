@@ -16,7 +16,9 @@ import './styles/main.css'
 // Banco de dados
 import { popularDadosDemo } from './services/db'
 import { useDiagnosticsStore } from './stores/diagnostics'
+import { useAuthStore } from './stores/auth'
 import { supabase, hasSupabaseEnv, maskSupabaseKey, supabaseAnonKey, supabaseUrl } from './services/supabase'
+import { generateDiagnosticDump, isDebugEnabled, setupDebugHooks } from './debug'
 
 const capturedBootstrapErrors = []
 const MEDLUX_DEBUG_KEY = 'MEDLUX_DEBUG'
@@ -78,30 +80,42 @@ const pushBootstrapError = (errorLike, context = {}) => {
 
 const getAppVersion = () => getBuildSha()
 
-const buildDiagnosticPayload = () => ({
-  generatedAt: new Date().toISOString(),
-  appVersion: getAppVersion(),
-  url: typeof window !== 'undefined' ? window.location.href : 'indisponível',
-  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'indisponível',
-  runtime: {
-    mode: import.meta.env.MODE,
-    dev: import.meta.env.DEV,
-    prod: import.meta.env.PROD,
-    debugEnabled: isDebugEnabled()
-  },
-  env: {
-    VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION || null,
-    VITE_SUPABASE_URL: supabaseUrl || null,
-    VITE_SUPABASE_ANON_KEY: maskSupabaseKey(supabaseAnonKey),
-    hasSupabaseEnv
-  },
-  supabase: {
-    clientCreated: Boolean(supabase),
-    hasAuthApi: Boolean(supabase?.auth),
-    url: supabaseUrl || null
-  },
-  bootstrapErrors: capturedBootstrapErrors
-})
+const buildDiagnosticPayload = async () => {
+  const basePayload = {
+    generatedAt: new Date().toISOString(),
+    appVersion: getAppVersion(),
+    url: typeof window !== 'undefined' ? window.location.href : 'indisponível',
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'indisponível',
+    runtime: {
+      mode: import.meta.env.MODE,
+      dev: import.meta.env.DEV,
+      prod: import.meta.env.PROD,
+      debugEnabled: isDebugEnabled()
+    },
+    env: {
+      VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION || null,
+      VITE_SUPABASE_URL: supabaseUrl || null,
+      VITE_SUPABASE_ANON_KEY: maskSupabaseKey(supabaseAnonKey),
+      hasSupabaseEnv
+    },
+    supabase: {
+      clientCreated: Boolean(supabase),
+      hasAuthApi: Boolean(supabase?.auth),
+      url: supabaseUrl || null
+    },
+    bootstrapErrors: capturedBootstrapErrors
+  }
+
+  if (!isDebugEnabled()) return basePayload
+
+  try {
+    const debugPayload = await generateDiagnosticDump()
+    return { ...basePayload, debug: debugPayload }
+  } catch (error) {
+    pushBootstrapError(error, { source: 'generateDiagnosticDump' })
+    return { ...basePayload, debug: { error: error?.message || 'Falha ao gerar diagnóstico debug.' } }
+  }
+}
 
 const downloadDiagnosticFile = (payload) => {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 13).replace('T', '_')
@@ -140,7 +154,7 @@ const attachDiagnosticButtonHandler = () => {
   if (!button) return
 
   button.addEventListener('click', async () => {
-    const payload = buildDiagnosticPayload()
+    const payload = await buildDiagnosticPayload()
     const json = downloadDiagnosticFile(payload)
     const clipboard = await copyDiagnosticToClipboard(json)
 
@@ -272,6 +286,7 @@ const initApp = () => {
   app.use(vuetify)
 
   const diagnosticsStore = useDiagnosticsStore(pinia)
+  const authStore = useAuthStore(pinia)
   registerGlobalErrorHandlers(diagnosticsStore)
   registerFetchFailureInterceptor(diagnosticsStore)
 
@@ -293,20 +308,27 @@ const initApp = () => {
 
   app.mount('#app')
 
-  if (isDebugEnabled()) {
-    const runtimeMeta = {
-      buildSha: getBuildSha(),
-      env: import.meta.env.MODE,
-      timestamp: new Date().toISOString()
-    }
+setupDebugHooks({
+  router,
+  pinia,
+  authStore,
+  diagnosticsStore
+})
 
-    window.__app__ = app
-    window.supabase = supabase
-    window.supabaseClient = supabase
-    window.__MEDLUX_DEBUG__ = runtimeMeta
-
-    console.log('[MEDLUX DIAG] Debug runtime habilitado', runtimeMeta)
+if (isDebugEnabled()) {
+  const runtimeMeta = {
+    buildSha: getBuildSha(),
+    env: import.meta.env.MODE,
+    timestamp: new Date().toISOString()
   }
+
+  window.supabase = supabase
+  window.supabaseClient = supabase
+  window.__MEDLUX_DEBUG__ = runtimeMeta
+
+  console.log('[MEDLUX DIAG] Debug runtime habilitado', runtimeMeta)
+}
+
 
   return app
 }
