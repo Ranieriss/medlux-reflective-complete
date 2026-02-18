@@ -527,7 +527,7 @@ const exportarBackup = async () => {
 
     // Buscar todos os dados
     const [equipamentos, usuarios, vinculos, auditoria] = await Promise.all([
-      supabase.from('equipamentos').select('*').order('codigo'),
+      supabase.from('equipamentos').select('*').order('codigo', { ascending: true }),
       supabase.from('usuarios').select('*').order('nome'),
       supabase.from('vinculos').select('*').order('created_at'),
       supabase.from('auditoria').select('*').order('created_at').limit(1000)

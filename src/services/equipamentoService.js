@@ -149,6 +149,9 @@ export async function buscarEquipamentosDoUsuario(usuarioId, perfil) {
         ...eq,
         tipoDetalhado: detectarTipoEquipamento(eq.codigo)
       }))
+      .sort((a, b) =>
+        (a.codigo || '').localeCompare((b.codigo || ''), 'pt-BR', { sensitivity: 'base' })
+      )
     
     console.log(`✅ Equipamentos do usuário:`, equipamentos.length)
     return equipamentos

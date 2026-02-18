@@ -378,7 +378,7 @@ const gerarRelatorioEquipamentos = async (formato) => {
       query = query.eq('status', filtrosEquipamentos.value.status.toLowerCase())
     }
 
-    const { data, error } = await query.order('codigo')
+    const { data, error } = await query.order('codigo', { ascending: true })
     if (error) throw error
 
     if (formato === 'pdf') {
@@ -449,7 +449,7 @@ const gerarRelatorioCalibracao = async (formato) => {
       query = query.lte('proxima_calibracao', filtrosCalibracao.value.dataFim)
     }
 
-    const { data, error } = await query.order('proxima_calibracao')
+    const { data, error } = await query.order('codigo', { ascending: true })
     if (error) throw error
 
     if (formato === 'pdf') {
