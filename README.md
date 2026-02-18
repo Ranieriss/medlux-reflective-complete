@@ -70,12 +70,24 @@ Esse script é idempotente e configura:
 - ownership (`usuario_id`) e trigger nas tabelas de leituras
 
 
-### Diagnóstico de bootstrap (tela preta/erro inicial)
+### Diagnóstico de bootstrap + modo debug completo
 
-- Em caso de falha crítica de inicialização, o app exibe um overlay com o botão **"Gerar Diagnóstico Completo"**, que baixa um JSON e tenta copiar para o clipboard.
-- Para habilitar exposição de debug no navegador, abra a aplicação com `?debug=1` (ou em ambiente DEV):
-  - `window.supabase` → cliente Supabase (somente anon key)
-  - `window.__app__` → instância Vue montada
+- Em caso de falha crítica de inicialização, o app exibe um overlay com o botão **"Gerar Diagnóstico Completo"** (download `.json` + tentativa de cópia para clipboard).
+- Para ativar o modo debug em **produção ou dev**, use uma das opções:
+  - `?debug=1` na URL.
+  - `localStorage.setItem('MEDLUX_DEBUG', '1')` e recarregue a página.
+- Quando o debug está ativo, os hooks globais ficam disponíveis no DevTools:
+  - `window.supabase` → client Supabase exposto para inspeção.
+  - `window.__app__` → objeto com `version`, `env`, `routes`, `stores`, `currentUser`, `session`, `isAdmin`, `lastErrors`, `lastNetwork`, `lastStorageOps`.
+  - `window.__medlux_debug_dump()` → gera o dump completo (JSON) do diagnóstico.
+- Na tela **Sistema → Logs de Erro**, o botão **"Diagnóstico Completo"** gera o relatório completo e permite copiar/baixar o JSON.
+
+#### Testes rápidos no Console
+
+```js
+window.supabase
+window.supabase.auth.getSession().then(console.log)
+```
 
 ### Troubleshooting rápido de login
 
