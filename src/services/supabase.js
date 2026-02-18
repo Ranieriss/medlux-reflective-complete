@@ -215,15 +215,50 @@ export async function signUp(email, password, nome, perfil = 'TECNICO') {
     if (!authData?.user?.id) throw new Error('Usuário não retornado pelo Supabase Auth')
 
     const perfilPadrao = (perfil || 'TECNICO').toString().trim().toUpperCase()
-    const { error: userError } = await supabase.from('usuarios').upsert(
-      {
-        id: authData.user.id,
-        email,
-        nome,
-        perfil: perfilPadrao
-      },
-      { onConflict: 'id' }
-    )
+
+    const payloadComAuthUserId = {
+      auth_user_id: authData.user.id,
+      email,
+      nome,
+      perfil: perfilPadrao,
+      ativo: true,
+      senha_hash: 'managed_by_supabase_auth'
+    }
+
+    const payloadComId = {
+      id: authData.user.id,
+      email,
+      nome,
+      perfil: perfilPadrao,
+      ativo: true,
+      senha_hash: 'managed_by_supabase_auth'
+    }
+
+    let userError = null
+    const { error: insertWithAuthUserIdError } = await supabase
+      .from('usuarios')
+      .insert([payloadComAuthUserId])
+      .select()
+      .single()
+
+    if (insertWithAuthUserIdError) {
+      const mensagem = (insertWithAuthUserIdError.message || '').toLowerCase()
+      const authUserIdNaoExiste = insertWithAuthUserIdError?.code === '42703' || mensagem.includes('auth_user_id')
+
+      if (!authUserIdNaoExiste) {
+        userError = insertWithAuthUserIdError
+      } else {
+        const { error: insertWithIdError } = await supabase
+          .from('usuarios')
+          .insert([payloadComId])
+          .select()
+          .single()
+
+        if (insertWithIdError) {
+          userError = insertWithIdError
+        }
+      }
+    }
 
     if (userError) throw userError
 
