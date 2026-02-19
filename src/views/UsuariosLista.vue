@@ -591,6 +591,9 @@ import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
 import { formatCPF, formatTelefone, unformatCPF, unformatTelefone, validarCPF, validarTelefone } from '@/utils/formatters'
+import { useDiagnosticsStore } from '@/stores/diagnostics'
+
+const diagnosticsStore = useDiagnosticsStore()
 
 // State
 const usuarios = ref([])
@@ -613,6 +616,7 @@ const mostrarNovaSenha = ref(false)
 const novaSenha = ref('')
 const realtimeSubscription = ref(null)
 const senhaVisivel = ref({}) // Controla visibilidade por usuário
+const erroCarregamento = ref('')
 
 // Filtros
 const filtros = ref({
@@ -717,6 +721,7 @@ const usuariosFiltrados = computed(() => {
 const carregarUsuarios = async () => {
   try {
     carregando.value = true
+    erroCarregamento.value = ''
     const { data, error } = await supabase
       .from('usuarios')
       .select('id, nome, email, cpf, telefone, senha_hash, perfil, ativo, foto_url, cautela_url, ultimo_acesso, created_at, updated_at')
@@ -728,7 +733,10 @@ const carregarUsuarios = async () => {
     console.log('✅ Usuários carregados:', usuarios.value.length)
   } catch (error) {
     console.error('❌ Erro ao carregar usuários:', error)
-    mostrarSnackbar(formatarErroSupabase(error), 'error')
+    const mensagem = formatarErroSupabase(error)
+    erroCarregamento.value = `Não foi possível carregar a lista de usuários. ${mensagem}`
+    diagnosticsStore.pushEvent({ type: 'api_error', source: 'UsuariosLista:carregarUsuarios', message: mensagem, context: { table: 'usuarios' }, error })
+    mostrarSnackbar(mensagem, 'error')
   } finally {
     carregando.value = false
   }

@@ -130,7 +130,7 @@ body {
 /* Textos primários em fundos escuros */
 .text-primary,
 .v-icon.text-primary {
-  color: #60A5FA !important; /* Azul claro */
+  color: #FCD34D !important; /* Amarelo para contraste em fundo azul */
 }
 
 /* Títulos e headers */
