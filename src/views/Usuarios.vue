@@ -15,7 +15,7 @@
       <v-col cols="12" sm="4">
         <v-card class="glass">
           <v-card-text>
-            <div class="text-h6 text-primary mb-2">Total</div>
+            <div class="text-h6 text-main mb-2">Total</div>
             <div class="text-h3 font-weight-bold">{{ usuarios.length }}</div>
           </v-card-text>
         </v-card>

@@ -21,19 +21,21 @@ const vuetify = createVuetify({
   components,
   directives,
   theme: {
-    defaultTheme: 'dark',
+    defaultTheme: 'premiumDark',
     themes: {
-      dark: {
+      premiumDark: {
         dark: true,
         colors: {
           primary: '#60A5FA',
-          secondary: '#001F3F',
-          accent: '#7DD3FC',
-          success: '#4ADE80',
+          secondary: '#7DD3FC',
+          background: '#070B1A',
+          surface: '#0B122A',
+          'surface-variant': '#0F1B3D',
+          'on-background': '#F8FAFC',
+          'on-surface': '#F8FAFC',
+          success: '#22C55E',
           warning: '#FCD34D',
           error: '#F87171',
-          background: '#0a0e27',
-          surface: '#111827',
           info: '#38BDF8'
         }
       }
@@ -41,10 +43,27 @@ const vuetify = createVuetify({
   },
   defaults: {
     VBtn: {
-      style: 'text-transform: none; letter-spacing: normal;'
+      rounded: 'lg',
+      height: 40,
+      variant: 'flat',
+      style: 'text-transform: none; letter-spacing: 0; font-weight: 600;'
     },
     VCard: {
-      elevation: 0
+      elevation: 0,
+      rounded: 'xl'
+    },
+    VTextField: {
+      variant: 'outlined',
+      density: 'comfortable',
+      color: 'primary'
+    },
+    VSelect: {
+      variant: 'outlined',
+      density: 'comfortable',
+      color: 'primary'
+    },
+    VDataTable: {
+      density: 'comfortable'
     }
   }
 })

@@ -1,184 +1,222 @@
 @import './variables.css';
 
+:root {
+  --bg: #070B1A;
+  --surface: #0B122A;
+  --surface-2: #0F1B3D;
+  --border: rgba(148, 163, 184, 0.14);
+  --text: #F8FAFC;
+  --text-2: #E2E8F0;
+  --muted: #94A3B8;
+  --primary: #60A5FA;
+  --primary-2: #7DD3FC;
+  --success: #22C55E;
+  --warning: #FCD34D;
+  --error: #F87171;
+  --info: #38BDF8;
+  --shadow-1: 0 10px 30px rgba(0, 0, 0, .35);
+  --shadow-2: 0 18px 60px rgba(0, 0, 0, .45);
+
+  /* Compat com tokens legados */
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
+  --bg-card: var(--surface);
+  --bg-card-hover: var(--surface-2);
+  --text-primary: var(--text);
+  --text-secondary: var(--text-2);
+  --text-disabled: var(--muted);
+  --border-color: var(--border);
+  --border-color-hover: rgba(125, 211, 252, 0.45);
+  --color-primary: var(--primary);
+  --color-secondary: var(--surface-2);
+  --color-accent: var(--primary-2);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  --transition-normal: 220ms ease;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  font-size: 16px;
-}
+html { font-size: 16px; }
 
 body {
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: radial-gradient(1200px circle at 15% -10%, rgba(96, 165, 250, 0.15), transparent 45%),
+    radial-gradient(900px circle at 90% 0%, rgba(56, 189, 248, 0.12), transparent 45%),
+    linear-gradient(165deg, var(--bg) 0%, #060915 45%, var(--surface) 100%);
+  color: var(--text);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#app {
+#app,
+.v-application {
   min-height: 100vh;
   width: 100%;
+  background: transparent !important;
+  color: var(--text) !important;
 }
 
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--surface); }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
+  background: color-mix(in srgb, var(--primary) 70%, #000 30%);
   border-radius: var(--radius-full);
 }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-2); }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent);
-}
-
-/* Vuetify overrides para dark theme */
-.v-application {
-  background: var(--bg-primary) !important;
-}
-
-.v-card {
-  background: var(--bg-card) !important;
+.v-card,
+.glass {
+  background: linear-gradient(180deg, rgba(15, 27, 61, 0.55) 0%, rgba(11, 18, 42, 0.95) 100%) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-1);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  transition: all var(--transition-normal);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
 }
 
-.v-card:hover {
-  border-color: var(--border-color-hover);
-}
-
-.v-btn {
-  transition: all var(--transition-normal);
-}
-
-.v-btn:hover {
+.v-card:hover,
+.glass-hover:hover {
+  border-color: var(--border-color-hover) !important;
+  box-shadow: var(--shadow-2);
   transform: translateY(-2px);
 }
 
-.v-text-field,
-.v-select,
-.v-textarea {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-md);
+.v-btn {
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), filter var(--transition-normal);
 }
 
-.v-data-table {
+.v-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.v-btn:active { transform: translateY(0); }
+
+.v-btn--disabled { opacity: 0.55 !important; }
+
+.v-field,
+.v-text-field .v-field,
+.v-select .v-field,
+.v-textarea .v-field {
+  border-radius: 12px !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+}
+
+.v-field--focused {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.22);
+}
+
+.v-field-label,
+.v-label,
+.v-list-item-subtitle,
+.text-medium-emphasis,
+.text-secondary {
+  color: var(--text-2) !important;
+}
+
+.v-field input::placeholder,
+.v-field textarea::placeholder,
+.text-disabled {
+  color: var(--muted) !important;
+  opacity: 1;
+}
+
+.v-navigation-drawer,
+.v-toolbar,
+.v-app-bar,
+.v-tabs,
+.v-sheet {
+  background: color-mix(in srgb, var(--surface) 92%, #000 8%) !important;
+}
+
+.v-list-item--active {
+  background: rgba(125, 211, 252, 0.12) !important;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 12px;
+}
+
+.v-table,
+.v-data-table,
+.v-data-table .v-table__wrapper > table {
   background: transparent !important;
+  color: var(--text) !important;
 }
 
-.v-data-table-header {
-  background: var(--bg-secondary) !important;
+.v-data-table thead th,
+.v-table thead th {
+  color: var(--text-2) !important;
+  background: rgba(15, 27, 61, 0.85) !important;
+  border-bottom: 1px solid var(--border) !important;
+  font-weight: 600 !important;
 }
 
+.v-data-table tbody tr td,
+.v-table tbody tr td { border-color: var(--border) !important; }
+
+.v-data-table tbody tr:hover,
 .v-table .v-table__wrapper > table > tbody > tr:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(96, 165, 250, 0.08) !important;
 }
 
-/* Animações de transição */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--transition-normal);
+.v-chip { font-weight: 600; }
+
+.v-snackbar__content,
+.v-alert,
+.v-toast {
+  color: var(--text) !important;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.text-main { color: var(--text) !important; }
+.text-secondary { color: var(--text-2) !important; }
+.text-muted { color: var(--muted) !important; }
+.link-primary,
+a,
+a.text-primary {
+  color: var(--primary-2) !important;
+  text-decoration: none;
 }
 
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform var(--transition-normal);
+.link-primary:hover,
+a:hover,
+a.text-primary:hover {
+  color: var(--primary) !important;
+  text-decoration: underline;
 }
 
-.slide-enter-from {
-  transform: translateX(-100%);
+:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.9);
+  outline-offset: 2px;
 }
 
-.slide-leave-to {
-  transform: translateX(100%);
-}
-
-/* Responsivo */
 @media (max-width: 768px) {
-  html {
-    font-size: 14px;
+  html { font-size: 14px; }
+
+  .v-card-text,
+  .v-card-title {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .v-table .v-table__wrapper {
+    overflow-x: auto;
+  }
+
+  .v-data-table-header__content {
+    white-space: nowrap;
+    font-size: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
-  html {
-    font-size: 12px;
-  }
-}
-
-/* ========================================
-   MELHORIAS DE CONTRASTE
-   ======================================== */
-
-/* Textos primários em fundos escuros */
-.text-primary,
-.v-icon.text-primary {
-  color: #FCD34D !important; /* Amarelo para contraste em fundo azul */
-}
-
-/* Títulos e headers */
-h1, h2, h3, h4, h5, h6,
-.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
-  color: #F3F4F6 !important; /* Branco suave */
-}
-
-/* Textos secundários */
-.text-secondary,
-.text-medium-emphasis {
-  color: #9CA3AF !important; /* Cinza médio */
-}
-
-/* Links e textos interativos */
-a, .v-btn--variant-text {
-  color: #7DD3FC !important;
-}
-
-a:hover, .v-btn--variant-text:hover {
-  color: #38BDF8 !important;
-}
-
-/* Ícones em cards e listas */
-.v-list-item__prepend .v-icon,
-.v-card .v-icon {
-  opacity: 0.9;
-}
-
-/* Badges e chips */
-.v-chip {
-  font-weight: 500;
-}
-
-/* Melhorar legibilidade de labels */
-.v-label,
-.v-field-label {
-  color: #D1D5DB !important;
-}
-
-/* Placeholder de inputs */
-.v-field--variant-outlined input::placeholder,
-.v-field--variant-outlined textarea::placeholder {
-  color: #6B7280 !important;
-  opacity: 1;
-}
-
-/* Destaque visual para títulos de cards no Dashboard */
-.dashboard-highlight {
-  color: #FACC15 !important;
+  html { font-size: 12px; }
 }

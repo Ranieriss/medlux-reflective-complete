@@ -23,7 +23,7 @@
       <v-col cols="12" sm="6" md="3">
         <v-card class="glass">
           <v-card-text>
-            <div class="text-h6 text-primary mb-2">Vínculos Ativos</div>
+            <div class="text-h6 text-main mb-2">Vínculos Ativos</div>
             <div class="text-h3 font-weight-bold">{{ estatisticas.ativos }}</div>
           </v-card-text>
         </v-card>

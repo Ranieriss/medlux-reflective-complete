@@ -3,7 +3,7 @@
     <!-- Cabeçalho -->
     <v-row align="center" class="mb-6">
       <v-col cols="12" md="6">
-        <h1 class="text-h4 font-weight-bold text-primary">
+        <h1 class="text-h4 font-weight-bold text-main">
           <v-icon size="36" color="primary" class="mr-3">mdi-chart-line</v-icon>
           Medições de Retrorrefletância
         </h1>
