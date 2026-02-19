@@ -5,6 +5,26 @@ const MAX_ERROR_ITEMS = 50
 const MAX_LOG_ITEMS = 200
 const MAX_STORAGE_ITEMS = 200
 
+const normalizeStoragePath = (rawPath = '') => {
+  const path = String(rawPath || '').trim()
+  if (!path) return null
+  if (/^https?:\/\//i.test(path)) return null
+  return path.replace(/^\/+/, '')
+}
+
+const shouldRunStorageSignedUrlCheck = () => {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    const envFlag = import.meta.env.MEDLUX_DEBUG_STORAGE || import.meta.env.VITE_MEDLUX_DEBUG_STORAGE
+    if (String(envFlag) === '1') return true
+  }
+
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('MEDLUX_DEBUG_STORAGE') === '1'
+  }
+
+  return false
+}
+
 const debugState = {
   enabled: false,
   initialized: false,
@@ -430,50 +450,68 @@ const runSupabaseChecks = async ({ session } = {}) => {
     })
   }
 
-  try {
-    const { data, error } = await bucket.createSignedUploadUrl('debug/dummy.txt')
-    if (error) {
-      recordRlsHint(error, 'storage:signed-upload-url')
+  const signedUploadPath = normalizeStoragePath('debug/dummy.txt')
+  const shouldRunSignedUrlCheck = shouldRunStorageSignedUrlCheck()
+
+  if (!shouldRunSignedUrlCheck || !signedUploadPath) {
+    checks.storage.push({
+      action: 'signedUploadUrlDummy',
+      bucket: 'medicoes',
+      path: signedUploadPath,
+      ok: true,
+      skipped: true,
+      reason: !shouldRunSignedUrlCheck ? 'MEDLUX_DEBUG_STORAGE disabled' : 'invalid path',
+      message: 'signed_upload_url_check_skipped'
+    })
+  } else {
+    try {
+      const { data, error } = await bucket.createSignedUploadUrl(signedUploadPath)
+      if (error) {
+        recordRlsHint(error, 'storage:signed-upload-url')
+        checks.storage.push({
+          action: 'signedUploadUrlDummy',
+          bucket: 'medicoes',
+          path: signedUploadPath,
+          ok: false,
+          status: error?.status || null,
+          message: error?.message || null,
+          error: sanitizeByKey('error', error),
+          storageError: {
+            status: error?.status || null,
+            code: error?.code || null,
+            body: error?.message || null
+          }
+        })
+      } else {
+        checks.storage.push({
+          action: 'signedUploadUrlDummy',
+          bucket: 'medicoes',
+          path: signedUploadPath,
+          ok: true,
+          status: 200,
+          hasSignedUrl: Boolean(data?.signedUrl),
+          hasToken: Boolean(data?.token),
+          signedUrlMasked: data?.signedUrl ? sanitizeUrl(data.signedUrl) : null,
+          message: 'signed_upload_url_ok'
+        })
+      }
+    } catch (error) {
+      recordRlsHint(error, 'storage:signed-upload-url:catch')
       checks.storage.push({
         action: 'signedUploadUrlDummy',
         bucket: 'medicoes',
+        path: signedUploadPath,
         ok: false,
         status: error?.status || null,
-        message: error?.message || null,
+        message: error?.message || String(error),
         error: sanitizeByKey('error', error),
         storageError: {
           status: error?.status || null,
           code: error?.code || null,
-          body: error?.message || null
+          body: error?.message || String(error)
         }
       })
-    } else {
-      checks.storage.push({
-        action: 'signedUploadUrlDummy',
-        bucket: 'medicoes',
-        ok: true,
-        status: 200,
-        hasSignedUrl: Boolean(data?.signedUrl),
-        hasToken: Boolean(data?.token),
-        signedUrlMasked: data?.signedUrl ? sanitizeUrl(data.signedUrl) : null,
-        message: 'signed_upload_url_ok'
-      })
     }
-  } catch (error) {
-    recordRlsHint(error, 'storage:signed-upload-url:catch')
-    checks.storage.push({
-      action: 'signedUploadUrlDummy',
-      bucket: 'medicoes',
-      ok: false,
-      status: error?.status || null,
-      message: error?.message || String(error),
-      error: sanitizeByKey('error', error),
-      storageError: {
-        status: error?.status || null,
-        code: error?.code || null,
-        body: error?.message || String(error)
-      }
-    })
   }
 
   return checks
