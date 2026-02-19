@@ -219,12 +219,12 @@
               <v-expansion-panel-text>
                 <div class="text-caption">
                   <div class="mb-2">
-                    <strong class="text-primary">Administrador:</strong><br>
+                    <strong class="text-main">Administrador:</strong><br>
                     E-mail: admin@medlux.com<br>
                     Senha: 2308
                   </div>
                   <div>
-                    <strong class="text-accent">Técnico:</strong><br>
+                    <strong class="text-secondary">Técnico:</strong><br>
                     E-mail: joao.silva@medlux.com<br>
                     Senha: 1234
                   </div>
