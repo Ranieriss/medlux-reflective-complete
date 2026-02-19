@@ -1002,6 +1002,10 @@ const abrirCertificado = (equipamento) => {
   window.open(certificadoUrl, '_blank', 'noopener,noreferrer')
 }
 
+const sortEquipamentosPorCodigo = (lista = []) => [...lista].sort(
+  (a, b) => (a?.codigo || '').localeCompare((b?.codigo || ''), 'pt-BR', { sensitivity: 'base' })
+)
+
 // Métodos CRUD
 const carregarEquipamentos = async () => {
   carregando.value = true
@@ -1034,19 +1038,19 @@ const carregarEquipamentos = async () => {
         .order('codigo', { ascending: true })
       
       if (error) throw error
-      equipamentos.value = (data || []).map(eq => ({
+      equipamentos.value = sortEquipamentosPorCodigo((data || []).map(eq => ({
         ...eq,
         fabricante: eq.fabricante || eq.marca || ''
-      }))
+      })))
       console.log(`✅ ${data.length} equipamentos vinculados carregados`)
     } else {
       // ADMIN vê todos
       const resultado = await getEquipamentos()
       if (resultado.success) {
-        equipamentos.value = (resultado.data || []).map(eq => ({
+        equipamentos.value = sortEquipamentosPorCodigo((resultado.data || []).map(eq => ({
           ...eq,
           fabricante: eq.fabricante || eq.marca || ''
-        }))
+        })))
         console.log(`✅ ${resultado.data.length} equipamentos carregados`)
       } else {
         throw new Error(resultado.error)

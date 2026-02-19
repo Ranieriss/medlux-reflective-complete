@@ -70,25 +70,13 @@ export async function buscarCriterioNormativo(params = {}) {
     return data
   }
 
-  const primary = await queryCriteria({
-    table: 'criterios_retrorrefletancia',
-    fields: {
-      tipoEquipamento: 'tipo_equipamento',
-      ativo: 'ativo',
-      cor: 'cor',
-      geometria: 'geometria',
-      tipoMaterial: 'tipo_material',
-      tipoPelicula: 'tipo_pelicula'
-    },
-    normaField: 'norma_referencia'
-  })
+  const criteriaTables = ['norma_criterios_validacao', 'criterios_retrorrefletancia']
+  let data = null
+  let error = null
 
-  let data = mapRecord({ data: primary.data, table: 'criterios_retrorrefletancia' })
-  let error = primary.error
-
-  if (!data) {
-    const fallback = await queryCriteria({
-      table: 'norma_criterios_validacao',
+  for (const table of criteriaTables) {
+    const response = await queryCriteria({
+      table,
       fields: {
         tipoEquipamento: 'tipo_equipamento',
         ativo: 'ativo',
@@ -100,11 +88,16 @@ export async function buscarCriterioNormativo(params = {}) {
       normaField: 'norma_referencia'
     })
 
-    if (fallback.data) {
-      data = mapRecord({ data: fallback.data, table: 'norma_criterios_validacao' })
+    if (response.data) {
+      data = mapRecord({ data: response.data, table })
       error = null
-    } else if (!error) {
-      error = fallback.error
+      break
+    }
+
+    const tableError = response.error
+    const tableMissing = tableError?.code === '42P01' || tableError?.status === 404
+    if (!tableMissing) {
+      error = tableError
     }
   }
 

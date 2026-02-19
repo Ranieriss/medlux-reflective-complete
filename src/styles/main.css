@@ -8,12 +8,12 @@
   --text: #F8FAFC;
   --text-2: #E2E8F0;
   --muted: #94A3B8;
-  --primary: #60A5FA;
-  --primary-2: #7DD3FC;
+  --primary: #FBBF24;
+  --primary-2: #FDE68A;
   --success: #22C55E;
-  --warning: #FCD34D;
+  --warning: #F59E0B;
   --error: #F87171;
-  --info: #38BDF8;
+  --info: #22D3EE;
   --shadow-1: 0 10px 30px rgba(0, 0, 0, .35);
   --shadow-2: 0 18px 60px rgba(0, 0, 0, .45);
 
@@ -121,7 +121,7 @@ body {
 .v-list-item-subtitle,
 .text-medium-emphasis,
 .text-secondary {
-  color: var(--text-2) !important;
+  color: #FDE68A !important;
 }
 
 .v-field input::placeholder,
@@ -182,14 +182,14 @@ body {
 .link-primary,
 a,
 a.text-primary {
-  color: var(--primary-2) !important;
+  color: #FDE047 !important;
   text-decoration: none;
 }
 
 .link-primary:hover,
 a:hover,
 a.text-primary:hover {
-  color: var(--primary) !important;
+  color: #FACC15 !important;
   text-decoration: underline;
 }
 

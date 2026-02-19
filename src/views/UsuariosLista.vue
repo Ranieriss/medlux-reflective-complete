@@ -805,22 +805,39 @@ const salvarUsuario = async () => {
       if (error) throw error
       mostrarSnackbar('Usuário atualizado com sucesso!', 'success')
     } else {
-      // Insert - senha será guardada como texto simples (em produção use bcrypt)
-      const { error } = await supabase
-        .from('usuarios')
-        .insert([{
-          nome: usuarioForm.value.nome,
-          email: (usuarioForm.value.email || '').trim().toLowerCase(),
-          cpf: cpfLimpo || null,
-          telefone: telefoneLimpo || null,
-          senha_hash: usuarioForm.value.senha, // TODO: Hash em produção
-          perfil: usuarioForm.value.perfil,
-          ativo: usuarioForm.value.ativo,
-          foto_url: usuarioForm.value.foto_url || null,
-          cautela_url: usuarioForm.value.cautela_url || null
-        }])
+      const payload = {
+        email: (usuarioForm.value.email || '').trim().toLowerCase(),
+        password: usuarioForm.value.senha,
+        nome: usuarioForm.value.nome,
+        perfil: usuarioForm.value.perfil,
+        role: usuarioForm.value.perfil,
+        ativo: usuarioForm.value.ativo,
+        cpf: cpfLimpo || null,
+        telefone: telefoneLimpo || null
+      }
 
-      if (error) throw error
+      const { data: createUserData, error: createUserError } = await supabase.functions.invoke('create-user', {
+        body: payload
+      })
+
+      if (createUserError) throw createUserError
+
+      if (usuarioForm.value.foto_url || usuarioForm.value.cautela_url) {
+        const { error: updateProfileError } = await supabase
+          .from('usuarios')
+          .update({
+            foto_url: usuarioForm.value.foto_url || null,
+            cautela_url: usuarioForm.value.cautela_url || null
+          })
+          .eq('email', payload.email)
+
+        if (updateProfileError) throw updateProfileError
+      }
+
+      if (createUserData?.error) {
+        throw createUserData
+      }
+
       mostrarSnackbar('Usuário criado com sucesso!', 'success')
     }
 
