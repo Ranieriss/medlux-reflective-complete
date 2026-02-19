@@ -13,7 +13,7 @@
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-secondary mb-1 dashboard-highlight">Total de Equipamentos</p>
+                <p class="text-caption mb-1 dashboard-highlight">Total de Equipamentos</p>
                 <h2 class="text-h4 font-weight-bold">{{ stats.totalEquipamentos }}</h2>
               </div>
               <v-avatar size="56" color="primary" class="glow-primary">
@@ -29,7 +29,7 @@
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-secondary mb-1 dashboard-highlight">Calibrações Vencidas</p>
+                <p class="text-caption mb-1 dashboard-highlight">Calibrações Vencidas</p>
                 <h2 class="text-h4 font-weight-bold text-error">{{ stats.calibracoesVencidas }}</h2>
               </div>
               <v-avatar size="56" color="error" class="glow-error">
@@ -45,7 +45,7 @@
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-secondary mb-1 dashboard-highlight">Vínculos Ativos</p>
+                <p class="text-caption mb-1 dashboard-highlight">Vínculos Ativos</p>
                 <h2 class="text-h4 font-weight-bold text-success">{{ stats.vinculosAtivos }}</h2>
               </div>
               <v-avatar size="56" color="success" class="glow-success">
@@ -61,7 +61,7 @@
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-secondary mb-1 dashboard-highlight">Em Manutenção</p>
+                <p class="text-caption mb-1 dashboard-highlight">Em Manutenção</p>
                 <h2 class="text-h4 font-weight-bold text-warning">{{ stats.emManutencao }}</h2>
               </div>
               <v-avatar size="56" color="warning" class="glow-warning">
@@ -180,10 +180,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.text-secondary {
-  color: var(--text-secondary);
-}
-
 .glow-warning {
   box-shadow: 0 0 10px rgba(255, 220, 0, 0.5);
 }
