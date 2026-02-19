@@ -76,6 +76,14 @@
 
     <!-- Tabela de Equipamentos -->
     <v-card class="glass">
+      <v-alert
+        v-if="erroCarregamento"
+        type="error"
+        variant="tonal"
+        class="mx-4 mt-4"
+      >
+        {{ erroCarregamento }}
+      </v-alert>
       <v-data-table
         :headers="headers"
         :items="equipamentosFiltrados"
@@ -671,6 +679,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
+import { useDiagnosticsStore } from '@/stores/diagnostics'
 import supabase, {
   getEquipamentos,
   createEquipamento,
@@ -686,6 +695,7 @@ import QRCode from 'qrcode'
 
 
 const authStore = useAuthStore()
+const diagnosticsStore = useDiagnosticsStore()
 
 // State
 const equipamentos = ref([])
@@ -704,6 +714,7 @@ const equipamentoSelecionado = ref(null)
 const equipamentoParaExcluir = ref(null)
 const podeGerenciarEquipamentos = computed(() => authStore.isAdmin)
 const codigoErro = ref('')
+const erroCarregamento = ref('')
 let codigoValidationTimeout = null
 
 
@@ -912,7 +923,9 @@ const equipamentosFiltrados = computed(() => {
     }
   }
 
-  return resultado
+  return resultado.sort((a, b) =>
+    (a?.codigo || '').localeCompare((b?.codigo || ''), 'pt-BR', { sensitivity: 'base' })
+  )
 })
 
 // Métodos auxiliares
@@ -992,6 +1005,7 @@ const abrirCertificado = (equipamento) => {
 // Métodos CRUD
 const carregarEquipamentos = async () => {
   carregando.value = true
+  erroCarregamento.value = ''
   try {
     console.log('🔄 Carregando equipamentos do Supabase...')
     
@@ -1040,6 +1054,15 @@ const carregarEquipamentos = async () => {
     }
   } catch (error) {
     console.error('❌ Erro ao carregar equipamentos:', error)
+    const mensagem = mapearErroSupabase(error)
+    erroCarregamento.value = `Não foi possível carregar a lista de equipamentos. ${mensagem}`
+    diagnosticsStore.pushEvent({
+      type: 'api_error',
+      source: 'EquipamentosLista:carregarEquipamentos',
+      message: mensagem,
+      context: { table: 'equipamentos' },
+      error
+    })
     mostrarSnackbar('Erro ao carregar equipamentos', 'error')
   } finally {
     carregando.value = false

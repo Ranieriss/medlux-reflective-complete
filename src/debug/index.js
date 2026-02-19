@@ -352,7 +352,29 @@ const runSupabaseChecks = async ({ session } = {}) => {
     return checks
   }
 
-  const tables = ['usuarios', 'equipamentos', 'criterios_retrorrefletancia']
+  const tables = ['usuarios', 'equipamentos']
+  const criteriosCandidates = ['criterios_retrorrefletancia', 'norma_criterios_validacao']
+
+  for (const criterioTable of criteriosCandidates) {
+    try {
+      const { data, error, status } = await supabase.from(criterioTable).select('id', { count: 'exact' }).limit(1)
+      if (error) {
+        const code = error?.code || ''
+        const message = (error?.message || '').toLowerCase()
+        const tableMissing = status === 404 || code === '42P01' || message.includes('does not exist')
+        if (!tableMissing) {
+          recordRlsHint(error, `db:${criterioTable}`)
+          checks.db.push({ table: criterioTable, ok: false, status: status || error?.status || null, error: sanitizeByKey('error', error) })
+        }
+      } else {
+        checks.db.push({ table: criterioTable, ok: true, status: status || 200, rows: data?.length || 0 })
+        break
+      }
+    } catch (error) {
+      recordRlsHint(error, `db:${criterioTable}:catch`)
+      checks.db.push({ table: criterioTable, ok: false, error: sanitizeByKey('error', error) })
+    }
+  }
 
   for (const table of tables) {
     try {

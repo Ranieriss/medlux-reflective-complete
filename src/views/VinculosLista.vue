@@ -66,6 +66,9 @@
 
     <!-- Tabela de Vínculos -->
     <v-card class="glass">
+      <v-alert v-if="erroCarregamento" type="error" variant="tonal" class="mx-4 mt-4">
+        {{ erroCarregamento }}
+      </v-alert>
       <v-data-table
         :headers="headers"
         :items="vinculosFiltrados"
@@ -463,6 +466,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ensureSessionAndProfile, supabase } from '@/services/supabase'
+import { useDiagnosticsStore } from '@/stores/diagnostics'
+
+const diagnosticsStore = useDiagnosticsStore()
 
 // State
 const vinculos = ref([])
@@ -480,6 +486,7 @@ const formRef = ref(null)
 const vinculoSelecionado = ref(null)
 const vinculoParaExcluir = ref(null)
 const realtimeSubscription = ref(null)
+const erroCarregamento = ref('')
 
 // Filtros
 const filtros = ref({
@@ -553,6 +560,7 @@ const vinculosFiltrados = computed(() => {
 
 // Methods
 const carregarVinculos = async () => {
+  erroCarregamento.value = ''
   try {
     carregando.value = true
     const { data, error } = await supabase
@@ -573,12 +581,15 @@ const carregarVinculos = async () => {
       equipamento_nome: v.equipamento?.nome || 'N/A',
       usuario_nome: v.usuario?.nome || 'N/A',
       usuario_email: v.usuario?.email || 'N/A'
-    }))
+    })).sort((a, b) => (a.equipamento_codigo || '').localeCompare((b.equipamento_codigo || ''), 'pt-BR', { sensitivity: 'base' }))
 
     console.log('✅ Vínculos carregados:', vinculos.value.length)
   } catch (error) {
     console.error('❌ Erro ao carregar vínculos:', error)
-    mostrarSnackbar('Erro ao carregar vínculos', 'error')
+    const mensagem = isRlsError(error) ? getMensagemErroRls() : `Erro ao carregar vínculos: ${error?.message || 'sem detalhes'}`
+    erroCarregamento.value = mensagem
+    diagnosticsStore.pushEvent({ type: 'api_error', source: 'VinculosLista:carregarVinculos', message: mensagem, context: { table: 'vinculos' }, error })
+    mostrarSnackbar(mensagem, 'error')
   } finally {
     carregando.value = false
   }
@@ -594,10 +605,10 @@ const carregarEquipamentos = async () => {
 
     if (error) throw error
 
-    equipamentos.value = data.map(e => ({
+    equipamentos.value = (data || []).map(e => ({
       ...e,
       display: `${e.codigo} - ${e.nome}`
-    }))
+    })).sort((a, b) => (a.codigo || '').localeCompare((b.codigo || ''), 'pt-BR', { sensitivity: 'base' }))
   } catch (error) {
     console.error('❌ Erro ao carregar equipamentos:', error)
   }
