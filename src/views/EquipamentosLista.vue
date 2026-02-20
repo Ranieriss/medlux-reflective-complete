@@ -1012,49 +1012,16 @@ const carregarEquipamentos = async () => {
   erroCarregamento.value = ''
   try {
     console.log('🔄 Carregando equipamentos do Supabase...')
-    
-    // Se for operador, carregar apenas equipamentos vinculados
-    if (authStore.isOperador) {
-      const { data: vinculos, error: errorVinc } = await supabase
-        .from('vinculos')
-        .select('equipamento_id')
-        .eq('usuario_id', authStore.usuario.id)
-        .eq('ativo', true)
-      
-      if (errorVinc) throw errorVinc
-      
-      const equipamentosIds = vinculos.map(v => v.equipamento_id)
-      
-      if (equipamentosIds.length === 0) {
-        equipamentos.value = []
-        console.log('✅ Operador sem equipamentos vinculados')
-        return
-      }
-      
-      const { data, error } = await supabase
-        .from('equipamentos')
-        .select('*')
-        .in('id', equipamentosIds)
-        .order('codigo', { ascending: true })
-      
-      if (error) throw error
-      equipamentos.value = sortEquipamentosPorCodigo((data || []).map(eq => ({
+
+    const resultado = await getEquipamentos()
+    if (resultado.success) {
+      equipamentos.value = sortEquipamentosPorCodigo((resultado.data || []).map(eq => ({
         ...eq,
         fabricante: eq.fabricante || eq.marca || ''
       })))
-      console.log(`✅ ${data.length} equipamentos vinculados carregados`)
+      console.log(`✅ ${resultado.data.length} equipamentos carregados`)
     } else {
-      // ADMIN vê todos
-      const resultado = await getEquipamentos()
-      if (resultado.success) {
-        equipamentos.value = sortEquipamentosPorCodigo((resultado.data || []).map(eq => ({
-          ...eq,
-          fabricante: eq.fabricante || eq.marca || ''
-        })))
-        console.log(`✅ ${resultado.data.length} equipamentos carregados`)
-      } else {
-        throw new Error(resultado.error)
-      }
+      throw new Error(resultado.error)
     }
   } catch (error) {
     console.error('❌ Erro ao carregar equipamentos:', error)

@@ -29,7 +29,7 @@ export function formatSupabaseError(error, fallback = 'Erro inesperado no Supaba
 
   if (code === 'PGRST116' || status === 406 || joined.includes('cannot coerce the result to a single json object')) {
     return {
-      message: 'Cadastro de perfil não encontrado ou duplicado em public.usuarios. O app tentou seguir automaticamente; se persistir, revise UNIQUE(user_id) e duplicidades.',
+      message: 'Cadastro de perfil não encontrado ou duplicado em public.usuarios. O app tentou seguir automaticamente; se persistir, revise UNIQUE(auth_user_id) e duplicidades.',
       code,
       status,
       details,

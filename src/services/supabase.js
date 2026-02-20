@@ -88,16 +88,12 @@ async function obterPerfilPorUsuarioId(userId) {
   const { data, error } = await supabase
     .from('usuarios')
     .select('*')
-    .eq('user_id', userId)
+    .eq('auth_user_id', userId)
     .maybeSingle()
 
   if (error) {
-    if (isMissingColumnError(error, 'user_id')) {
-      return { data: null, error: null, nextFallback: 'auth_user_id' }
-    }
-
     if (PERFIL_DUPLICADO_CODES.has(error.code) || (error.message || '').toLowerCase().includes('multiple')) {
-      const duplicated = new Error('Perfil duplicado detectado em public.usuarios para este usuário. Contate o suporte para remover duplicidades e aplique UNIQUE(user_id).')
+      const duplicated = new Error('Perfil duplicado detectado em public.usuarios para este usuário. Contate o suporte para remover duplicidades e aplique UNIQUE(auth_user_id).')
       duplicated.code = 'PROFILE_DUPLICATED'
       duplicated.status = 409
       throw duplicated
@@ -106,7 +102,7 @@ async function obterPerfilPorUsuarioId(userId) {
     throw error
   }
 
-  return { data, error: null, nextFallback: data ? null : 'auth_user_id' }
+  return { data, error: null, nextFallback: data ? null : 'id' }
 }
 
 async function criarPerfilAusente(user) {
@@ -120,24 +116,21 @@ async function criarPerfilAusente(user) {
       email,
       nome: nomeFallback,
       perfil: 'USER',
-      ativo: true,
-      senha_hash: 'managed_by_supabase_auth'
+      ativo: true
     },
     {
       auth_user_id: user.id,
       email,
       nome: nomeFallback,
       perfil: 'USER',
-      ativo: true,
-      senha_hash: 'managed_by_supabase_auth'
+      ativo: true
     },
     {
       id: user.id,
       email,
       nome: nomeFallback,
       perfil: 'USER',
-      ativo: true,
-      senha_hash: 'managed_by_supabase_auth'
+      ativo: true
     }
   ]
 
@@ -208,21 +201,7 @@ export async function ensureSessionAndProfile() {
     const perfilByUserId = await obterPerfilPorUsuarioId(userData.user.id)
     perfil = perfilByUserId.data
 
-    if (!perfil && perfilByUserId.nextFallback === 'auth_user_id') {
-      const { data: perfilAuthId, error: perfilAuthError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('auth_user_id', userData.user.id)
-        .maybeSingle()
-
-      if (perfilAuthError && !isMissingColumnError(perfilAuthError, 'auth_user_id')) {
-        throw perfilAuthError
-      }
-
-      perfil = perfilAuthId || null
-    }
-
-    if (!perfil) {
+    if (!perfil && perfilByUserId.nextFallback === 'id') {
       const { data: perfilById, error: perfilByIdError } = await supabase
         .from('usuarios')
         .select('*')
@@ -373,8 +352,7 @@ export async function signUp(email, password, nome, perfil = 'TECNICO') {
       email,
       nome,
       perfil: perfilPadrao,
-      ativo: true,
-      senha_hash: 'managed_by_supabase_auth'
+      ativo: true
     }
 
     const payloadComId = {
@@ -382,8 +360,7 @@ export async function signUp(email, password, nome, perfil = 'TECNICO') {
       email,
       nome,
       perfil: perfilPadrao,
-      ativo: true,
-      senha_hash: 'managed_by_supabase_auth'
+      ativo: true
     }
 
     let userError = null

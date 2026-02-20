@@ -178,10 +178,20 @@ const salvarUsuario = async () => {
       if (error) throw error
       snackbar.value = { show: true, message: 'Usuário atualizado!', color: 'success' }
     } else {
-      const { error } = await supabase
-        .from('usuarios')
-        .insert([{ ...usuarioForm.value, senha_hash: usuarioForm.value.senha }])
+      const payload = {
+        email: (usuarioForm.value.email || '').trim().toLowerCase(),
+        password: usuarioForm.value.senha,
+        nome: usuarioForm.value.nome,
+        perfil: usuarioForm.value.perfil,
+        role: usuarioForm.value.perfil,
+        ativo: usuarioForm.value.ativo
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: payload
+      })
       if (error) throw error
+      if (data?.error) throw new Error(data.error)
       snackbar.value = { show: true, message: 'Usuário criado!', color: 'success' }
     }
     await carregarUsuarios()
