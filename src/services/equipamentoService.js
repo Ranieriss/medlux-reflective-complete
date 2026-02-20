@@ -1,11 +1,5 @@
 import { supabase } from './supabase'
 
-function normalizarPerfil(perfil) {
-  const valor = (perfil || '').toString().trim().toUpperCase()
-  if (valor === 'ADMIN' || valor === 'ADMINISTRADOR' || valor === 'ADMINISTRADOR(A)') return 'ADMIN'
-  return 'USER'
-}
-
 /**
  * Detecta o tipo de equipamento baseado no código
  * RHxx-H15 = Horizontal 15m
@@ -94,68 +88,19 @@ export function detectarTipoEquipamento(codigo) {
  * - Admin: todos os equipamentos
  * - Operador: apenas equipamentos vinculados
  */
-export async function buscarEquipamentosDoUsuario(usuarioId, perfil) {
+export async function buscarEquipamentosDoUsuario() {
   try {
-    const perfilNormalizado = normalizarPerfil(perfil)
-    // Admin vê todos
-    if (perfilNormalizado === 'ADMIN') {
-      const { data, error } = await supabase
-        .from('equipamentos')
-        .select('*')
-        .order('codigo', { ascending: true })
-      
-      if (error) throw error
-      
-      console.log(`📦 Equipamentos encontrados: ${data?.length || 0}`)
-      
-      // Enriquecer com informações de tipo
-      return (data || []).map(eq => ({
-        ...eq,
-        tipoDetalhado: detectarTipoEquipamento(eq.codigo)
-      }))
-    }
-    
-    // Operador: apenas vinculados ativos
     const { data, error } = await supabase
-      .from('vinculos')
-      .select(`
-        id,
-        equipamento_id,
-        data_inicio,
-        data_fim,
-        equipamentos (
-          id,
-          codigo,
-          nome,
-          tipo,
-          fabricante,
-          modelo,
-          numero_serie,
-          localizacao,
-          status
-        )
-      `)
-      .eq('usuario_id', usuarioId)
-      .eq('ativo', true)
-      .is('data_fim', null)
-    
+      .from('equipamentos')
+      .select('*')
+      .order('codigo', { ascending: true })
+
     if (error) throw error
-    
-    // Mapear e enriquecer
-    const equipamentos = data
-      .map(v => v.equipamentos)
-      .filter(eq => eq !== null)
-      .map(eq => ({
-        ...eq,
-        tipoDetalhado: detectarTipoEquipamento(eq.codigo)
-      }))
-      .sort((a, b) =>
-        (a.codigo || '').localeCompare((b.codigo || ''), 'pt-BR', { sensitivity: 'base' })
-      )
-    
-    console.log(`✅ Equipamentos do usuário:`, equipamentos.length)
-    return equipamentos
-    
+
+    return (data || []).map(eq => ({
+      ...eq,
+      tipoDetalhado: detectarTipoEquipamento(eq.codigo)
+    }))
   } catch (error) {
     console.error('❌ Erro ao buscar equipamentos:', error)
     return []
@@ -197,12 +142,7 @@ export async function buscarVinculosAtivos(usuarioId) {
 /**
  * Valida se usuário tem acesso ao equipamento
  */
-export async function validarAcessoEquipamento(usuarioId, equipamentoId, perfil) {
-  // Admin sempre tem acesso
-  if (normalizarPerfil(perfil) === 'ADMIN') {
-    return true
-  }
-  
+export async function validarAcessoEquipamento(usuarioId, equipamentoId) {
   // Verificar vínculo ativo
   try {
     const { data, error } = await supabase

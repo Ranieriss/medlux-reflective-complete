@@ -162,33 +162,6 @@
                   <span>{{ usuario.telefone }}</span>
                 </div>
               </v-col>
-              <v-col cols="12">
-                <div class="d-flex align-center text-caption">
-                  <v-icon size="16" class="mr-1" color="warning">mdi-lock</v-icon>
-                  <span class="mr-2">Senha:</span>
-                  <v-chip 
-                    size="x-small" 
-                    color="grey-darken-2"
-                    @click="verSenha(usuario)"
-                    style="cursor: pointer;"
-                  >
-                    {{ senhaVisivel[usuario.id] ? usuario.senha_hash : '••••••••' }}
-                    <v-icon size="14" class="ml-1">
-                      {{ senhaVisivel[usuario.id] ? 'mdi-eye-off' : 'mdi-eye' }}
-                    </v-icon>
-                  </v-chip>
-                  <v-btn
-                    icon="mdi-content-copy"
-                    size="x-small"
-                    variant="text"
-                    @click="copiarSenha(usuario.senha_hash)"
-                    class="ml-1"
-                  >
-                    <v-icon size="14">mdi-content-copy</v-icon>
-                    <v-tooltip activator="parent" location="top">Copiar senha</v-tooltip>
-                  </v-btn>
-                </div>
-              </v-col>
             </v-row>
             
             <!-- Documentos (Foto e Cautela) -->
@@ -539,18 +512,10 @@
         <v-divider />
 
         <v-card-text class="pa-6">
-          <v-text-field
-            v-model="novaSenha"
-            label="Nova Senha *"
-            :type="mostrarNovaSenha ? 'text' : 'password'"
-            variant="outlined"
-            density="comfortable"
-            prepend-inner-icon="mdi-lock"
-            :append-inner-icon="mostrarNovaSenha ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="mostrarNovaSenha = !mostrarNovaSenha"
-            hint="Mínimo de 6 caracteres"
-            persistent-hint
-          />
+          <p>
+            Será enviado um e-mail de redefinição de senha para
+            <strong>{{ usuarioParaResetSenha?.email }}</strong>.
+          </p>
         </v-card-text>
 
         <v-divider />
@@ -565,7 +530,7 @@
             variant="flat"
             @click="confirmarResetSenha"
             :loading="resetandoSenha"
-            :disabled="!novaSenha || novaSenha.length < 6"
+            
           >
             Resetar
           </v-btn>
@@ -612,10 +577,7 @@ const usuarioSelecionado = ref(null)
 const usuarioParaExcluir = ref(null)
 const usuarioParaResetSenha = ref(null)
 const mostrarSenha = ref(false)
-const mostrarNovaSenha = ref(false)
-const novaSenha = ref('')
 const realtimeSubscription = ref(null)
-const senhaVisivel = ref({}) // Controla visibilidade por usuário
 const erroCarregamento = ref('')
 
 // Filtros
@@ -724,7 +686,7 @@ const carregarUsuarios = async () => {
     erroCarregamento.value = ''
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, nome, email, cpf, telefone, senha_hash, perfil, ativo, foto_url, cautela_url, ultimo_acesso, created_at, updated_at')
+      .select('id, nome, email, cpf, telefone, perfil, ativo, foto_url, cautela_url, ultimo_acesso, created_at, updated_at')
       .order('nome')
 
     if (error) throw error
@@ -862,27 +824,21 @@ const visualizarUsuario = (usuario) => {
 
 const resetarSenha = (usuario) => {
   usuarioParaResetSenha.value = usuario
-  novaSenha.value = ''
   dialogResetSenha.value = true
 }
 
 const confirmarResetSenha = async () => {
-  if (!usuarioParaResetSenha.value || !novaSenha.value) return
+  if (!usuarioParaResetSenha.value?.email) return
 
   try {
     resetandoSenha.value = true
 
-    const { error } = await supabase
-      .from('usuarios')
-      .update({ senha_hash: novaSenha.value }) // TODO: Hash em produção
-      .eq('id', usuarioParaResetSenha.value.id)
-
+    const { error } = await supabase.auth.resetPasswordForEmail(usuarioParaResetSenha.value.email)
     if (error) throw error
 
-    mostrarSnackbar('Senha resetada com sucesso!', 'success')
+    mostrarSnackbar('E-mail de redefinição enviado com sucesso!', 'success')
     dialogResetSenha.value = false
     usuarioParaResetSenha.value = null
-    novaSenha.value = ''
   } catch (error) {
     console.error('❌ Erro ao resetar senha:', error)
     mostrarSnackbar(formatarErroSupabase(error), 'error')
@@ -978,19 +934,6 @@ const formatarCPF = (cpf) => {
   return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
 }
 
-const verSenha = (usuario) => {
-  senhaVisivel.value[usuario.id] = !senhaVisivel.value[usuario.id]
-}
-
-const copiarSenha = async (senha) => {
-  try {
-    await navigator.clipboard.writeText(senha)
-    mostrarSnackbar('Senha copiada!', 'success')
-  } catch (error) {
-    console.error('Erro ao copiar senha:', error)
-    mostrarSnackbar('Erro ao copiar senha', 'error')
-  }
-}
 
 const formatarData = (data) => {
   if (!data) return '-'

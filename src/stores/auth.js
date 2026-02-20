@@ -102,7 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
         const { count } = await supabase
           .from('usuarios')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', authId)
+          .eq('auth_user_id', authId)
 
         const mensagem = count > 1
           ? 'Foram encontrados múltiplos cadastros em public.usuarios para este id/auth.uid(). Contate o ADMIN para remover duplicidades.'
