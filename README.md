@@ -58,6 +58,11 @@ Defina estas variáveis de ambiente no frontend Vite:
 2. Cadastre as duas variáveis para **Production**, **Preview** e **Development**.
 3. Faça **Redeploy** do projeto para aplicar as novas vars.
 
+
+### Edge Function `create-user` (Secrets + Deploy)
+
+- Adicionar Secrets `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` no **Supabase → Edge Functions → Secrets** e depois dar **Deploy updates**.
+
 ### Aplicar SQL final de RLS
 
 Execute o arquivo abaixo no **Supabase SQL Editor**:
