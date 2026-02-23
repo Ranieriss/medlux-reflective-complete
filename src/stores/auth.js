@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ensureSessionAndProfile, hasSupabaseEnv, supabase, supabaseEnvErrorMessage } from '@/services/supabase'
 import { formatSupabaseError } from '@/utils/formatSupabaseError'
+import { PERFIS, normalizePerfil } from '@/types/perfis'
 
 const STORAGE_KEY = 'medlux_auth'
 
@@ -50,21 +51,14 @@ function isEmailConfirmationRequired(error) {
   return message.includes('email not confirmed') || message.includes('email_not_confirmed')
 }
 
-function normalizePerfil(perfil) {
-  const normalized = (perfil || '').toString().trim().toUpperCase()
-  if (normalized === 'ADMIN' || normalized === 'ADMINISTRADOR') return 'ADMIN'
-  if (normalized === 'USER' || normalized === 'TECNICO' || normalized === 'OPERADOR') return 'USER'
-  return normalized
-}
-
 export const useAuthStore = defineStore('auth', () => {
   const usuario = ref(null)
   const isAuthenticated = ref(false)
   const session = ref(null)
 
-  const isAdmin = computed(() => normalizePerfil(usuario.value?.perfil) === 'ADMIN')
-  const isTecnico = computed(() => normalizePerfil(usuario.value?.perfil) === 'USER')
-  const isOperador = computed(() => normalizePerfil(usuario.value?.perfil) === 'USER')
+  const isAdmin = computed(() => normalizePerfil(usuario.value?.perfil) === PERFIS.ADMIN)
+  const isTecnico = computed(() => false)
+  const isOperador = computed(() => normalizePerfil(usuario.value?.perfil) === PERFIS.OPERADOR)
   const nomeUsuario = computed(() => usuario.value?.nome || 'Usuário')
   const emailUsuario = computed(() => usuario.value?.email || '')
   const perfilUsuario = computed(() => normalizePerfil(usuario.value?.perfil))
@@ -189,11 +183,11 @@ export const useAuthStore = defineStore('auth', () => {
       const usuarioPerfil = await carregarPerfilUsuario()
 
       const perfilNormalizado = normalizePerfil(usuarioPerfil.perfil)
-      if (perfilNormalizado !== 'ADMIN' && perfilNormalizado !== 'USER') {
+      if (perfilNormalizado !== PERFIS.ADMIN && perfilNormalizado !== PERFIS.OPERADOR) {
         return {
           sucesso: false,
           etapa: 'Permissões',
-          mensagem: `Perfil inconsistente em public.usuarios: "${usuarioPerfil.perfil || 'vazio'}". Apenas ADMIN ou USER são aceitos.`,
+          mensagem: `Perfil inconsistente em public.usuarios: "${usuarioPerfil.perfil || 'vazio'}". Apenas ADMIN ou OPERADOR são aceitos.`,
           detalhes: {
             status: 403,
             message: 'Perfil inválido para autorização no app.',

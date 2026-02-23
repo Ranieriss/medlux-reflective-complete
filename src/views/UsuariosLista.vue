@@ -555,6 +555,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/services/supabase'
+import { invokeEdgeFunctionWithAuth } from '@/services/edgeFunctions'
+import { PERFIS, PERFIS_SELECT_ITEMS, formatarPerfil as formatarPerfilLabel, getPerfilColor as mapPerfilColor, getPerfilIcon as mapPerfilIcon, normalizePerfil } from '@/types/perfis'
 import { formatCPF, formatTelefone, unformatCPF, unformatTelefone, validarCPF, validarTelefone } from '@/utils/formatters'
 import { useDiagnosticsStore } from '@/stores/diagnostics'
 
@@ -594,18 +596,14 @@ const usuarioForm = ref({
   cpf: '',
   telefone: '',
   senha: '',
-  perfil: 'operador',
+  perfil: PERFIS.OPERADOR,
   ativo: true,
   foto_url: '',
   cautela_url: ''
 })
 
 // Options
-const perfisUsuario = [
-  { title: 'Administrador', value: 'administrador' },
-  { title: 'Técnico', value: 'tecnico' },
-  { title: 'Operador', value: 'operador' }
-]
+const perfisUsuario = PERFIS_SELECT_ITEMS
 
 const statusUsuario = [
   { title: 'Ativo', value: true },
@@ -635,15 +633,17 @@ const telefoneRules = [
 
 
 const formatarErroSupabase = (error) => {
-  const status = error?.status || null
-  const code = error?.code || null
+  const details = error?.details || null
+  const status = error?.status || details?.status || null
+  const code = error?.code || details?.code || null
+  const requestId = details?.requestId || null
   const hint = error?.hint || null
-  const message = error?.message || 'Erro inesperado.'
+  const message = error?.message || details?.message || 'Erro inesperado.'
 
   if (code === '23505') return 'E-mail já cadastrado'
-  if (status === 403) return 'Sem permissão para esta ação'
+  if (status === 403) return `Sem permissão para esta ação${requestId ? ` (requestId=${requestId})` : ''}`
 
-  return `Erro: ${message} (status=${status || 'n/a'}, code=${code || 'n/a'}${hint ? `, hint=${hint}` : ''})`
+  return `Erro: ${message} (status=${status || 'n/a'}, code=${code || 'n/a'}${requestId ? `, requestId=${requestId}` : ''}${hint ? `, hint=${hint}` : ''})`
 }
 
 // Snackbar
@@ -712,7 +712,7 @@ const abrirDialogNovo = () => {
     cpf: '',
     telefone: '',
     senha: '',
-    perfil: 'tecnico',
+    perfil: PERFIS.OPERADOR,
     ativo: true,
     foto_url: '',
     cautela_url: ''
@@ -728,7 +728,7 @@ const editarUsuario = (usuario) => {
     email: usuario.email,
     cpf: formatCPF(usuario.cpf || ''),
     telefone: formatTelefone(usuario.telefone || ''),
-    perfil: usuario.perfil,
+    perfil: normalizePerfil(usuario.perfil),
     ativo: usuario.ativo,
     foto_url: usuario.foto_url || '',
     cautela_url: usuario.cautela_url || ''
@@ -757,7 +757,7 @@ const salvarUsuario = async () => {
           nome: usuarioForm.value.nome,
           cpf: cpfLimpo || null,
           telefone: telefoneLimpo || null,
-          perfil: usuarioForm.value.perfil,
+          perfil: normalizePerfil(usuarioForm.value.perfil),
           ativo: usuarioForm.value.ativo,
           foto_url: usuarioForm.value.foto_url || null,
           cautela_url: usuarioForm.value.cautela_url || null
@@ -771,27 +771,13 @@ const salvarUsuario = async () => {
         email: (usuarioForm.value.email || '').trim().toLowerCase(),
         password: usuarioForm.value.senha,
         nome: usuarioForm.value.nome,
-        perfil: usuarioForm.value.perfil,
+        perfil: normalizePerfil(usuarioForm.value.perfil),
         ativo: usuarioForm.value.ativo,
         cpf: cpfLimpo || null,
         telefone: telefoneLimpo || null
       }
 
-      const { data: sess } = await supabase.auth.getSession()
-      const token = sess?.session?.access_token
-      if (!token) throw new Error('Sessão expirada. Faça login novamente.')
-
-      const { data: createUserData, error: createUserError } = await supabase.functions.invoke('create-user', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: payload
-      })
-
-      if (createUserError) {
-        const details = createUserError.context?.json || createUserError.context || createUserError
-        throw new Error(details?.message || details?.error_description || details?.error || createUserError.message || 'Erro ao criar usuário')
-      }
+      const { data: createUserData, requestId } = await invokeEdgeFunctionWithAuth('create-user', payload)
 
       if (usuarioForm.value.foto_url || usuarioForm.value.cautela_url) {
         const { error: updateProfileError } = await supabase
@@ -809,13 +795,25 @@ const salvarUsuario = async () => {
         throw new Error(createUserData?.message || createUserData?.details?.createErrMessage || createUserData?.error || 'Erro desconhecido ao criar usuário')
       }
 
+      console.info('[usuarios] create-user success', {
+        requestId,
+        status: 201,
+        email: payload.email
+      })
+
       mostrarSnackbar('Usuário criado com sucesso!', 'success')
     }
 
     fecharDialog()
     await carregarUsuarios()
   } catch (error) {
-    console.error('❌ Erro ao salvar usuário:', error)
+    console.error('❌ Erro ao salvar usuário:', {
+      message: error?.message,
+      code: error?.code,
+      status: error?.status,
+      requestId: error?.details?.requestId || null,
+      details: error?.details || null
+    })
     if (error?.code === '23505') {
       mostrarSnackbar('E-mail já cadastrado', 'warning')
     } else {
@@ -909,30 +907,15 @@ const getInitials = (nome) => {
 }
 
 const formatarPerfil = (perfil) => {
-  const perfis = {
-    administrador: 'Administrador',
-    tecnico: 'Técnico',
-    operador: 'Operador'
-  }
-  return perfis[perfil] || perfil
+  return formatarPerfilLabel(perfil)
 }
 
 const getPerfilColor = (perfil) => {
-  const colors = {
-    administrador: 'error',
-    tecnico: 'primary',
-    operador: 'secondary'
-  }
-  return colors[perfil] || 'grey'
+  return mapPerfilColor(perfil)
 }
 
 const getPerfilIcon = (perfil) => {
-  const icons = {
-    administrador: 'mdi-shield-crown',
-    tecnico: 'mdi-account-wrench',
-    operador: 'mdi-account-cog'
-  }
-  return icons[perfil] || 'mdi-account'
+  return mapPerfilIcon(perfil)
 }
 
 const formatarCPF = (cpf) => {

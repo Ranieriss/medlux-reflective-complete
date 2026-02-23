@@ -37,7 +37,7 @@ export const popularDadosDemo = async () => {
         nome: 'Administrador',
         email: 'admin@medlux.com',
         senha: hashPassword('2308'),
-        perfil: 'admin',
+        perfil: 'ADMIN',
         ativo: true,
         data_cadastro: new Date().toISOString()
       },
@@ -45,7 +45,7 @@ export const popularDadosDemo = async () => {
         nome: 'João Silva',
         email: 'joao.silva@medlux.com',
         senha: hashPassword('1234'),
-        perfil: 'tecnico',
+        perfil: 'OPERADOR',
         ativo: true,
         data_cadastro: new Date().toISOString()
       },
@@ -53,7 +53,7 @@ export const popularDadosDemo = async () => {
         nome: 'Maria Santos',
         email: 'maria.santos@medlux.com',
         senha: hashPassword('1234'),
-        perfil: 'tecnico',
+        perfil: 'OPERADOR',
         ativo: true,
         data_cadastro: new Date().toISOString()
       }

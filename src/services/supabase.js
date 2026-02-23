@@ -14,6 +14,7 @@ import {
 } from '@/config/env'
 import { RESET_PASSWORD_REDIRECT_URL } from '@/config/urls'
 import { formatSupabaseError } from '@/utils/formatSupabaseError'
+import { PERFIS, normalizePerfil } from '@/types/perfis'
 
 if (!hasSupabaseEnv) {
   if (missingSupabaseEnvVars.length > 0) {
@@ -115,21 +116,21 @@ async function criarPerfilAusente(user) {
       auth_user_id: user.id,
       email,
       nome: nomeFallback,
-      perfil: 'USER',
+      perfil: PERFIS.OPERADOR,
       ativo: true
     },
     {
       auth_user_id: user.id,
       email,
       nome: nomeFallback,
-      perfil: 'USER',
+      perfil: PERFIS.OPERADOR,
       ativo: true
     },
     {
       id: user.id,
       email,
       nome: nomeFallback,
-      perfil: 'USER',
+      perfil: PERFIS.OPERADOR,
       ativo: true
     }
   ]
@@ -336,7 +337,7 @@ export async function getCurrentUser() {
   }
 }
 
-export async function signUp(email, password, nome, perfil = 'TECNICO') {
+export async function signUp(email, password, nome, perfil = PERFIS.OPERADOR) {
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -345,7 +346,7 @@ export async function signUp(email, password, nome, perfil = 'TECNICO') {
     if (authError) throw authError
     if (!authData?.user?.id) throw new Error('Usuário não retornado pelo Supabase Auth')
 
-    const perfilPadrao = (perfil || 'TECNICO').toString().trim().toUpperCase()
+    const perfilPadrao = normalizePerfil(perfil || PERFIS.OPERADOR)
 
     const payloadComAuthUserId = {
       auth_user_id: authData.user.id,
