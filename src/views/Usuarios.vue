@@ -183,8 +183,9 @@ const salvarUsuario = async () => {
         password: usuarioForm.value.senha,
         nome: usuarioForm.value.nome,
         perfil: usuarioForm.value.perfil,
-        role: usuarioForm.value.perfil,
-        ativo: usuarioForm.value.ativo
+        cpf: null,
+        telefone: null,
+        ativo: usuarioForm.value.ativo ?? true
       }
 
       const { data: sess } = await supabase.auth.getSession()
@@ -197,8 +198,11 @@ const salvarUsuario = async () => {
         },
         body: payload
       })
-      if (error) throw error
-      if (data?.error) throw new Error(data.error)
+      if (error) {
+        const details = error.context?.json || error.context || error
+        throw new Error(details?.message || details?.error_description || details?.error || error.message || 'Erro ao criar usuário')
+      }
+      if (data?.error) throw new Error(data?.message || data?.details?.createErrMessage || data?.error)
       snackbar.value = { show: true, message: 'Usuário criado!', color: 'success' }
     }
     await carregarUsuarios()

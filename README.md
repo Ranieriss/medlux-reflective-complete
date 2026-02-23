@@ -61,7 +61,39 @@ Defina estas variáveis de ambiente no frontend Vite:
 
 ### Edge Function `create-user` (Secrets + Deploy)
 
-- Adicionar Secrets `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` no **Supabase → Edge Functions → Secrets** e depois dar **Deploy updates**.
+> ⚠️ **Nunca** exponha `SUPABASE_SERVICE_ROLE_KEY` no frontend (`VITE_...`). Ela deve existir apenas no ambiente do Supabase (Edge Functions Secrets).
+
+1. No **Supabase → Edge Functions → Secrets**, configure:
+   - `SUPABASE_URL=https://<project-ref>.supabase.co`
+   - `SUPABASE_SERVICE_ROLE_KEY=<service_role_key>`
+2. Faça redeploy da function:
+   ```bash
+   supabase functions deploy create-user --project-ref <project-ref>
+   ```
+3. Aplique a migration de segurança de trigger em `auth.users`:
+   ```bash
+   supabase db push --project-ref <project-ref>
+   ```
+4. Valide via `curl` (substitua `<ACCESS_TOKEN_ADMIN>` por token de ADMIN logado):
+   ```bash
+   curl -i \
+     -X POST "https://<project-ref>.functions.supabase.co/create-user" \
+     -H "Authorization: Bearer <ACCESS_TOKEN_ADMIN>" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email":"novo.usuario@medlux.com",
+       "password":"Senha@123",
+       "nome":"Novo Usuário",
+       "perfil":"USUARIO",
+       "cpf":"12345678901",
+       "telefone":"11999998888",
+       "ativo":true
+     }'
+   ```
+5. Teste pelo app:
+   - Acesse **Usuários** com conta ADMIN.
+   - Crie usuário novo e confira retorno de erro detalhado no snackbar/log caso falhe.
+   - Se houver 500, abra **Supabase → Logs → Edge Functions → create-user** e procure por `auth.createUser:error`.
 
 ### Aplicar SQL final de RLS
 

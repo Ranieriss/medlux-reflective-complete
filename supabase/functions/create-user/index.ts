@@ -12,12 +12,8 @@ type CreateUserPayload = {
   password?: string;
   nome?: string;
   perfil?: string;
-  role?: string;
-  telefone?: string;
-  phone?: string;
-  celular?: string;
   cpf?: string;
-  documento?: string;
+  telefone?: string;
   ativo?: boolean | string | number;
 };
 
@@ -35,11 +31,7 @@ class HttpError extends Error {
   }
 }
 
-const response = (
-  status: number,
-  requestId: string,
-  body: Record<string, unknown>,
-): Response => {
+const response = (status: number, requestId: string, body: Record<string, unknown>): Response => {
   return new Response(JSON.stringify({ requestId, ...body }), {
     status,
     headers: jsonHeaders,
@@ -48,6 +40,11 @@ const response = (
 
 const getRequestId = (req: Request): string => {
   return req.headers.get("x-request-id") || req.headers.get("x-sb-request-id") || crypto.randomUUID();
+};
+
+const parseBearerToken = (authHeader: string | null): string | null => {
+  const match = authHeader?.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() || null;
 };
 
 const normalizeEmail = (value?: string): string => (value || "").trim().toLowerCase();
@@ -89,93 +86,87 @@ const normalizeAtivo = (value: CreateUserPayload["ativo"]): boolean => {
   return true;
 };
 
-const parseBearerToken = (authHeader: string | null): string | null => {
-  const match = authHeader?.match(/^Bearer\s+(.+)$/i);
-  return match?.[1]?.trim() || null;
-};
-
 const findAuthUserByEmail = async (
   supabaseAdmin: ReturnType<typeof createClient>,
   email: string,
   requestId: string,
 ) => {
-  // Limite alto para minimizar chamadas extras e manter comportamento previsível.
-  const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const adminApi = supabaseAdmin.auth.admin as { getUserByEmail?: (email: string) => Promise<{ data: { user: { id: string; email?: string | null } | null }; error: { message: string; status?: number } | null }> };
 
-  if (error) {
-    throw new HttpError(500, "auth_list_users_failed", "Falha ao listar usuários no Auth", {
-      authError: error.message,
+  if (typeof adminApi.getUserByEmail !== "function") {
+    throw new HttpError(500, "auth_api_not_supported", "Current supabase-js version does not expose admin.getUserByEmail");
+  }
+
+  const { data, error } = await adminApi.getUserByEmail(email);
+
+  if (error && error.status !== 404 && !error.message?.toLowerCase().includes("not found")) {
+    throw new HttpError(500, "auth_get_user_by_email_failed", "Failed to query auth user by email", {
+      message: error.message,
+      status: error.status,
     });
   }
 
-  const found = data.users.find((u) => (u.email || "").toLowerCase() === email.toLowerCase()) || null;
-
-  console.log("[create-user] auth.listUsers result", {
+  console.log("[create-user] auth.getUserByEmail", {
     requestId,
     searchedEmail: email,
-    foundUserId: found?.id || null,
-    totalUsersFetched: data.users.length,
+    foundUserId: data?.user?.id || null,
+    error: error?.message || null,
   });
 
-  return found;
+  return data?.user || null;
 };
 
-const upsertUsuarioWithFallback = async (
+const ensureCallerIsAdmin = async (
   supabaseAdmin: ReturnType<typeof createClient>,
-  record: Record<string, unknown>,
+  requesterAuthUserId: string,
   requestId: string,
 ) => {
-  const { error: upsertError } = await supabaseAdmin
+  const { data: adminRow, error: adminsError } = await supabaseAdmin
+    .from("admins")
+    .select("auth_user_id, ativo")
+    .eq("auth_user_id", requesterAuthUserId)
+    .eq("ativo", true)
+    .maybeSingle();
+
+  if (adminsError) {
+    throw new HttpError(500, "admin_lookup_failed", "Failed to validate admin permissions", {
+      source: "admins",
+      message: adminsError.message,
+      code: adminsError.code,
+      details: adminsError.details,
+    });
+  }
+
+  const { data: usuarioRow, error: usuarioError } = await supabaseAdmin
     .from("usuarios")
-    .upsert(record, { onConflict: "id" });
+    .select("auth_user_id, perfil, ativo")
+    .eq("auth_user_id", requesterAuthUserId)
+    .eq("ativo", true)
+    .maybeSingle();
 
-  if (!upsertError) return;
+  if (usuarioError) {
+    throw new HttpError(500, "admin_lookup_failed", "Failed to validate admin permissions", {
+      source: "usuarios",
+      message: usuarioError.message,
+      code: usuarioError.code,
+      details: usuarioError.details,
+    });
+  }
 
-  const message = upsertError.message || "";
-  const maybeMissingColumn =
-    message.toLowerCase().includes("column") ||
-    message.toLowerCase().includes("schema cache") ||
-    message.toLowerCase().includes("does not exist");
+  const usuarioPerfil = normalizePerfil((usuarioRow?.perfil as string | undefined) || "");
+  const isAdmin = Boolean(adminRow) || usuarioPerfil === "ADMIN";
 
-  console.error("[create-user] usuarios upsert failed:first-attempt", {
+  console.log("[create-user] admin-check", {
     requestId,
-    message,
-    code: upsertError.code,
-    details: upsertError.details,
-    hint: upsertError.hint,
+    requesterAuthUserId,
+    isAdmin,
+    hasAdminRow: Boolean(adminRow),
+    usuarioPerfil: usuarioPerfil || null,
   });
 
-  if (!maybeMissingColumn) {
-    throw new HttpError(500, "usuarios_upsert_failed", "Falha ao salvar usuário em public.usuarios", {
-      message: upsertError.message,
-      code: upsertError.code,
-      details: upsertError.details,
-      hint: upsertError.hint,
-    });
+  if (!isAdmin) {
+    throw new HttpError(403, "forbidden", "Only ADMIN users can create new users");
   }
-
-  // Fallback resiliente para instalações com schema reduzido.
-  const minimalRecord = {
-    id: record.id,
-    email: record.email,
-    nome: record.nome,
-    perfil: record.perfil,
-    role: record.role,
-    ativo: record.ativo,
-  };
-
-  const { error: fallbackError } = await supabaseAdmin
-    .from("usuarios")
-    .upsert(minimalRecord, { onConflict: "id" });
-
-  if (fallbackError) {
-    throw new HttpError(500, "usuarios_upsert_failed", "Falha ao salvar usuário em public.usuarios", {
-      firstAttempt: upsertError.message,
-      fallbackAttempt: fallbackError.message,
-    });
-  }
-
-  console.log("[create-user] usuarios upsert fallback succeeded", { requestId });
 };
 
 Deno.serve(async (req) => {
@@ -187,24 +178,52 @@ Deno.serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new HttpError(
-        500,
-        "missing_env",
-        "Required Supabase environment variables are not configured",
-        {
-          hasSupabaseUrl: Boolean(SUPABASE_URL),
-          hasAnonKey: Boolean(SUPABASE_ANON_KEY),
-          hasServiceRoleKey: Boolean(SUPABASE_SERVICE_ROLE_KEY),
-        },
-      );
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new HttpError(500, "missing_env", "Required environment variables are not configured", {
+        hasSupabaseUrl: Boolean(SUPABASE_URL),
+        hasServiceRoleKey: Boolean(SUPABASE_SERVICE_ROLE_KEY),
+      });
+    }
+
+    if (req.method !== "POST") {
+      throw new HttpError(405, "method_not_allowed", "Only POST method is allowed");
     }
 
     const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
     const token = parseBearerToken(authHeader);
+
+    if (!token) {
+      throw new HttpError(401, "missing_authorization", "Authorization Bearer token is required");
+    }
+
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+
+    console.log("[create-user] auth.validate-token:start", { requestId });
+    const {
+      data: { user: requesterUser },
+      error: requesterError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (requesterError || !requesterUser?.id) {
+      throw new HttpError(401, "invalid_token", "Provided token is invalid or expired", {
+        message: requesterError?.message || null,
+      });
+    }
+
+    console.log("[create-user] auth.validate-token:done", {
+      requestId,
+      requesterAuthUserId: requesterUser.id,
+      requesterEmail: requesterUser.email || null,
+    });
 
     let payload: CreateUserPayload;
     try {
@@ -215,177 +234,123 @@ Deno.serve(async (req) => {
 
     console.log("[create-user] request:start", {
       requestId,
-      method: req.method,
       payloadKeys: Object.keys(payload || {}),
       hasAuthorizationHeader: Boolean(authHeader),
     });
 
-    if (req.method !== "POST") {
-      throw new HttpError(405, "method_not_allowed", "Only POST method is allowed");
-    }
-
-    if (!token) {
-      throw new HttpError(401, "missing_authorization", "Authorization Bearer token is required");
-    }
-
-    console.log("[create-user] auth.validate-token:start", { requestId });
-    const authResponse = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      method: "GET",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (authResponse.status !== 200) {
-      throw new HttpError(401, "invalid_token", "Provided token is invalid or expired", {
-        authStatus: authResponse.status,
-      });
-    }
-
-    const authUser = await authResponse.json();
-    const requesterAuthUserId: string | undefined = authUser?.id;
-
-    console.log("[create-user] auth.validate-token:done", {
-      requestId,
-      requesterAuthUserId: requesterAuthUserId || null,
-    });
-
-    if (!requesterAuthUserId) {
-      throw new HttpError(401, "invalid_token", "Token validation succeeded but user id is missing");
-    }
-
     const email = normalizeEmail(payload.email);
     const password = (payload.password || "").trim();
     const nome = (payload.nome || "").trim() || email;
-    const perfil = normalizePerfil(payload.perfil || payload.role);
-    const telefone = digitsOnly(payload.telefone || payload.phone || payload.celular);
-    const cpf = digitsOnly(payload.cpf || payload.documento);
+    const perfil = normalizePerfil(payload.perfil);
+    const cpf = digitsOnly(payload.cpf);
+    const telefone = digitsOnly(payload.telefone);
     const ativo = normalizeAtivo(payload.ativo);
 
     if (!email || !password) {
       throw new HttpError(400, "invalid_payload", "Fields 'email' and 'password' are required");
     }
 
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    await ensureCallerIsAdmin(supabaseAdmin, requesterUser.id, requestId);
 
-    const { data: adminRow, error: adminLookupError } = await supabaseAdmin
-      .from("admins")
-      .select("auth_user_id, ativo")
-      .eq("auth_user_id", requesterAuthUserId)
-      .eq("ativo", true)
-      .maybeSingle();
+    let authUser = await findAuthUserByEmail(supabaseAdmin, email, requestId);
 
-    console.log("[create-user] admin-check", {
-      requestId,
-      requesterAuthUserId,
-      hasAdminRow: Boolean(adminRow),
-      adminLookupError: adminLookupError?.message || null,
-    });
-
-    if (adminLookupError) {
-      throw new HttpError(500, "admin_lookup_failed", "Failed to validate admin permissions", {
-        message: adminLookupError.message,
-        code: adminLookupError.code,
-        details: adminLookupError.details,
-      });
-    }
-
-    if (!adminRow) {
-      throw new HttpError(403, "forbidden", "Only active ADMIN users can create new users");
-    }
-
-    let authUserToPersist: { id: string; email?: string | null } | null = null;
-
-    const existingAuthUser = await findAuthUserByEmail(supabaseAdmin, email, requestId);
-    if (existingAuthUser?.id) {
-      authUserToPersist = existingAuthUser;
-      console.log("[create-user] reusing-existing-auth-user", {
-        requestId,
-        userId: existingAuthUser.id,
-        email,
-      });
-    } else {
+    if (!authUser?.id) {
       console.log("[create-user] auth.createUser:start", { requestId, email });
-      const { data: createdUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      const { data: createdUserData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
         user_metadata: {
           nome,
           perfil,
-          role: perfil,
-          telefone,
           cpf,
+          telefone,
         },
       });
 
-      if (createError || !createdUserData?.user?.id) {
+      if (createErr || !createdUserData?.user?.id) {
         console.error("[create-user] auth.createUser:error", {
           requestId,
-          error: createError?.message || "Unknown createUser error",
+          email,
+          createErrMessage: createErr?.message || null,
+          createErrCode: createErr?.code || null,
+          createErrStatus: createErr?.status || null,
+          createErr,
         });
 
-        const existingAfterFailure = await findAuthUserByEmail(supabaseAdmin, email, requestId);
-        if (existingAfterFailure?.id) {
-          authUserToPersist = existingAfterFailure;
-          console.log("[create-user] createUser failed but existing user found by email", {
-            requestId,
-            userId: existingAfterFailure.id,
-          });
-        } else {
-          throw new HttpError(400, "auth_create_user_failed", createError?.message || "Could not create user", {
-            createError,
-          });
+        authUser = await findAuthUserByEmail(supabaseAdmin, email, requestId);
+
+        if (!authUser?.id) {
+          throw new HttpError(
+            500,
+            "auth_create_user_failed",
+            "Failed to create user (and could not find existing user)",
+            {
+              createErrMessage: createErr?.message || "Unknown createUser error",
+              createErrCode: createErr?.code || null,
+              createErrStatus: createErr?.status || null,
+            },
+          );
         }
       } else {
-        authUserToPersist = createdUserData.user;
+        authUser = createdUserData.user;
         console.log("[create-user] auth.createUser:done", {
           requestId,
-          userId: authUserToPersist.id,
+          userId: authUser.id,
+          email,
         });
       }
     }
 
-    if (!authUserToPersist?.id) {
-      throw new HttpError(500, "missing_auth_user", "Auth user could not be resolved");
-    }
+    const usuarioRecord = {
+      auth_user_id: authUser.id,
+      email,
+      nome,
+      perfil,
+      telefone,
+      cpf,
+      ativo,
+    };
 
-    await upsertUsuarioWithFallback(
-      supabaseAdmin,
-      {
-        id: authUserToPersist.id,
-        auth_user_id: authUserToPersist.id,
-        email,
-        nome,
-        perfil,
-        role: perfil,
-        telefone,
-        cpf,
-        ativo,
-      },
-      requestId,
-    );
+    const { error: upsertError } = await supabaseAdmin
+      .from("usuarios")
+      .upsert(usuarioRecord, { onConflict: "auth_user_id" });
+
+    if (upsertError) {
+      console.error("[create-user] usuarios.upsert:error", {
+        requestId,
+        message: upsertError.message,
+        code: upsertError.code,
+        details: upsertError.details,
+        hint: upsertError.hint,
+        usuarioRecord,
+      });
+
+      throw new HttpError(500, "usuarios_upsert_failed", "Auth user was created, but failed to upsert public.usuarios", {
+        message: upsertError.message,
+        code: upsertError.code,
+        details: upsertError.details,
+        hint: upsertError.hint,
+      });
+    }
 
     console.log("[create-user] request:success", {
       requestId,
-      newUserId: authUserToPersist.id,
+      createdAuthUserId: authUser.id,
       email,
       perfil,
     });
 
     return response(201, requestId, {
       success: true,
+      message: "User created/updated successfully",
       user: {
-        id: authUserToPersist.id,
+        auth_user_id: authUser.id,
         email,
         nome,
         perfil,
-        role: perfil,
-        telefone,
         cpf,
+        telefone,
         ativo,
       },
     });
