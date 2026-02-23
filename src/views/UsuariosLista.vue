@@ -772,7 +772,6 @@ const salvarUsuario = async () => {
         password: usuarioForm.value.senha,
         nome: usuarioForm.value.nome,
         perfil: usuarioForm.value.perfil,
-        role: usuarioForm.value.perfil,
         ativo: usuarioForm.value.ativo,
         cpf: cpfLimpo || null,
         telefone: telefoneLimpo || null
@@ -789,7 +788,10 @@ const salvarUsuario = async () => {
         body: payload
       })
 
-      if (createUserError) throw createUserError
+      if (createUserError) {
+        const details = createUserError.context?.json || createUserError.context || createUserError
+        throw new Error(details?.message || details?.error_description || details?.error || createUserError.message || 'Erro ao criar usuário')
+      }
 
       if (usuarioForm.value.foto_url || usuarioForm.value.cautela_url) {
         const { error: updateProfileError } = await supabase
@@ -804,7 +806,7 @@ const salvarUsuario = async () => {
       }
 
       if (createUserData?.error) {
-        throw createUserData
+        throw new Error(createUserData?.message || createUserData?.details?.createErrMessage || createUserData?.error || 'Erro desconhecido ao criar usuário')
       }
 
       mostrarSnackbar('Usuário criado com sucesso!', 'success')
