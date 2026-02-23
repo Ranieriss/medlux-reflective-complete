@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const jsonHeaders = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-request-id",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -31,6 +31,8 @@ class HttpError extends Error {
   }
 }
 
+const PERFIS_VALIDOS = new Set(["ADMIN", "OPERADOR"]);
+
 const response = (status: number, requestId: string, body: Record<string, unknown>): Response => {
   return new Response(JSON.stringify({ requestId, ...body }), {
     status,
@@ -49,13 +51,21 @@ const parseBearerToken = (authHeader: string | null): string | null => {
 
 const normalizeEmail = (value?: string): string => (value || "").trim().toLowerCase();
 
+const maskEmail = (email?: string | null): string => {
+  if (!email) return "<empty>";
+  const [localPart = "", domain = ""] = email.split("@");
+  if (!domain) return "***";
+  const first = localPart.slice(0, 2);
+  return `${first}${"*".repeat(Math.max(localPart.length - 2, 1))}@${domain}`;
+};
+
 const digitsOnly = (value?: string): string | null => {
   const digits = (value || "").replace(/\D+/g, "");
   return digits.length > 0 ? digits : null;
 };
 
 const normalizePerfil = (value?: string): string => {
-  const raw = (value || "USUARIO")
+  const raw = (value || "OPERADOR")
     .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -64,13 +74,14 @@ const normalizePerfil = (value?: string): string => {
   const aliasMap: Record<string, string> = {
     ADMINISTRADOR: "ADMIN",
     ADM: "ADMIN",
+    ADMIN: "ADMIN",
     OPERADOR: "OPERADOR",
     OPERATOR: "OPERADOR",
-    TECNICO: "TECNICO",
-    TECNICA: "TECNICO",
-    TEC: "TECNICO",
-    USUARIO: "USUARIO",
-    USER: "USUARIO",
+    TECNICO: "OPERADOR",
+    TECNICA: "OPERADOR",
+    TEC: "OPERADOR",
+    USUARIO: "OPERADOR",
+    USER: "OPERADOR",
   };
 
   return aliasMap[raw] || raw;
@@ -84,6 +95,42 @@ const normalizeAtivo = (value: CreateUserPayload["ativo"]): boolean => {
     return ["1", "true", "sim", "yes", "ativo"].includes(normalized);
   }
   return true;
+};
+
+const validatePayload = (payload: CreateUserPayload) => {
+  const email = normalizeEmail(payload.email);
+  const password = (payload.password || "").trim();
+  const nome = (payload.nome || "").trim() || email;
+  const perfil = normalizePerfil(payload.perfil);
+  const cpf = digitsOnly(payload.cpf);
+  const telefone = digitsOnly(payload.telefone);
+  const ativo = normalizeAtivo(payload.ativo);
+
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    throw new HttpError(400, "invalid_email", "Field 'email' must be a valid e-mail");
+  }
+
+  if (!password || password.length < 6) {
+    throw new HttpError(400, "invalid_password", "Field 'password' is required with at least 6 characters");
+  }
+
+  if (!PERFIS_VALIDOS.has(perfil)) {
+    throw new HttpError(400, "invalid_perfil", "Field 'perfil' must be ADMIN or OPERADOR", {
+      allowed: Array.from(PERFIS_VALIDOS),
+      received: payload.perfil,
+      normalized: perfil,
+    });
+  }
+
+  return {
+    email,
+    password,
+    nome,
+    perfil,
+    cpf,
+    telefone,
+    ativo,
+  };
 };
 
 const findAuthUserByEmail = async (
@@ -108,7 +155,7 @@ const findAuthUserByEmail = async (
 
   console.log("[create-user] auth.getUserByEmail", {
     requestId,
-    searchedEmail: email,
+    searchedEmail: maskEmail(email),
     foundUserId: data?.user?.id || null,
     error: error?.message || null,
   });
@@ -173,7 +220,7 @@ Deno.serve(async (req) => {
   const requestId = getRequestId(req);
 
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: jsonHeaders });
+    return new Response(JSON.stringify({ requestId, success: true }), { headers: jsonHeaders, status: 200 });
   }
 
   try {
@@ -200,14 +247,8 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
     });
 
-    console.log("[create-user] auth.validate-token:start", { requestId });
     const {
       data: { user: requesterUser },
       error: requesterError,
@@ -219,12 +260,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log("[create-user] auth.validate-token:done", {
-      requestId,
-      requesterAuthUserId: requesterUser.id,
-      requesterEmail: requesterUser.email || null,
-    });
-
     let payload: CreateUserPayload;
     try {
       payload = await req.json();
@@ -232,53 +267,44 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "invalid_payload", "Request body must be valid JSON");
     }
 
+    const validated = validatePayload(payload);
+
     console.log("[create-user] request:start", {
       requestId,
+      requesterAuthUserId: requesterUser.id,
+      email: maskEmail(validated.email),
+      perfil: validated.perfil,
+      ativo: validated.ativo,
       payloadKeys: Object.keys(payload || {}),
-      hasAuthorizationHeader: Boolean(authHeader),
     });
-
-    const email = normalizeEmail(payload.email);
-    const password = (payload.password || "").trim();
-    const nome = (payload.nome || "").trim() || email;
-    const perfil = normalizePerfil(payload.perfil);
-    const cpf = digitsOnly(payload.cpf);
-    const telefone = digitsOnly(payload.telefone);
-    const ativo = normalizeAtivo(payload.ativo);
-
-    if (!email || !password) {
-      throw new HttpError(400, "invalid_payload", "Fields 'email' and 'password' are required");
-    }
 
     await ensureCallerIsAdmin(supabaseAdmin, requesterUser.id, requestId);
 
-    let authUser = await findAuthUserByEmail(supabaseAdmin, email, requestId);
+    let authUser = await findAuthUserByEmail(supabaseAdmin, validated.email, requestId);
 
     if (!authUser?.id) {
-      console.log("[create-user] auth.createUser:start", { requestId, email });
       const { data: createdUserData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
+        email: validated.email,
+        password: validated.password,
         email_confirm: true,
         user_metadata: {
-          nome,
-          perfil,
-          cpf,
-          telefone,
+          nome: validated.nome,
+          perfil: validated.perfil,
+          cpf: validated.cpf,
+          telefone: validated.telefone,
         },
       });
 
       if (createErr || !createdUserData?.user?.id) {
         console.error("[create-user] auth.createUser:error", {
           requestId,
-          email,
+          email: maskEmail(validated.email),
           createErrMessage: createErr?.message || null,
           createErrCode: createErr?.code || null,
           createErrStatus: createErr?.status || null,
-          createErr,
         });
 
-        authUser = await findAuthUserByEmail(supabaseAdmin, email, requestId);
+        authUser = await findAuthUserByEmail(supabaseAdmin, validated.email, requestId);
 
         if (!authUser?.id) {
           throw new HttpError(
@@ -294,22 +320,17 @@ Deno.serve(async (req) => {
         }
       } else {
         authUser = createdUserData.user;
-        console.log("[create-user] auth.createUser:done", {
-          requestId,
-          userId: authUser.id,
-          email,
-        });
       }
     }
 
     const usuarioRecord = {
       auth_user_id: authUser.id,
-      email,
-      nome,
-      perfil,
-      telefone,
-      cpf,
-      ativo,
+      email: validated.email,
+      nome: validated.nome,
+      perfil: validated.perfil,
+      telefone: validated.telefone,
+      cpf: validated.cpf,
+      ativo: validated.ativo,
     };
 
     const { error: upsertError } = await supabaseAdmin
@@ -319,11 +340,11 @@ Deno.serve(async (req) => {
     if (upsertError) {
       console.error("[create-user] usuarios.upsert:error", {
         requestId,
+        email: maskEmail(validated.email),
         message: upsertError.message,
         code: upsertError.code,
         details: upsertError.details,
         hint: upsertError.hint,
-        usuarioRecord,
       });
 
       throw new HttpError(500, "usuarios_upsert_failed", "Auth user was created, but failed to upsert public.usuarios", {
@@ -336,9 +357,9 @@ Deno.serve(async (req) => {
 
     console.log("[create-user] request:success", {
       requestId,
-      createdAuthUserId: authUser.id,
-      email,
-      perfil,
+      authUserId: authUser.id,
+      email: maskEmail(validated.email),
+      perfil: validated.perfil,
     });
 
     return response(201, requestId, {
@@ -346,12 +367,12 @@ Deno.serve(async (req) => {
       message: "User created/updated successfully",
       user: {
         auth_user_id: authUser.id,
-        email,
-        nome,
-        perfil,
-        cpf,
-        telefone,
-        ativo,
+        email: validated.email,
+        nome: validated.nome,
+        perfil: validated.perfil,
+        cpf: validated.cpf,
+        telefone: validated.telefone,
+        ativo: validated.ativo,
       },
     });
   } catch (error) {

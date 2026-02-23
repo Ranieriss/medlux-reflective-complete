@@ -97,6 +97,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import supabase from '@/services/supabase'
+import { invokeEdgeFunctionWithAuth } from '@/services/edgeFunctions'
+import { PERFIS, PERFIS_SELECT_ITEMS, getPerfilColor, normalizePerfil } from '@/types/perfis'
 
 const usuarios = ref([])
 const carregando = ref(false)
@@ -110,7 +112,7 @@ const usuarioForm = ref({
   nome: '',
   email: '',
   senha: '',
-  perfil: 'tecnico',
+  perfil: PERFIS.OPERADOR,
   ativo: true
 })
 
@@ -123,7 +125,7 @@ const headers = [
   { title: 'Ações', key: 'actions', sortable: false, align: 'center' }
 ]
 
-const perfis = ['administrador', 'gestor', 'tecnico']
+const perfis = PERFIS_SELECT_ITEMS
 
 const regras = {
   required: v => !!v || 'Campo obrigatório',
@@ -134,8 +136,7 @@ const usuariosAtivos = computed(() => usuarios.value.filter(u => u.ativo).length
 const usuariosInativos = computed(() => usuarios.value.filter(u => !u.ativo).length)
 
 const getCorPerfil = (perfil) => {
-  const cores = { administrador: 'error', gestor: 'warning', tecnico: 'info' }
-  return cores[perfil] || 'grey'
+  return getPerfilColor(perfil)
 }
 
 const carregarUsuarios = async () => {
@@ -154,7 +155,7 @@ const carregarUsuarios = async () => {
 
 const abrirDialogNovo = () => {
   modoEdicao.value = false
-  usuarioForm.value = { nome: '', email: '', senha: '', perfil: 'tecnico', ativo: true }
+  usuarioForm.value = { nome: '', email: '', senha: '', perfil: PERFIS.OPERADOR, ativo: true }
   dialogForm.value = true
 }
 
@@ -173,7 +174,7 @@ const salvarUsuario = async () => {
     if (modoEdicao.value) {
       const { error } = await supabase
         .from('usuarios')
-        .update({ nome: usuarioForm.value.nome, perfil: usuarioForm.value.perfil, ativo: usuarioForm.value.ativo })
+        .update({ nome: usuarioForm.value.nome, perfil: normalizePerfil(usuarioForm.value.perfil), ativo: usuarioForm.value.ativo })
         .eq('id', usuarioForm.value.id)
       if (error) throw error
       snackbar.value = { show: true, message: 'Usuário atualizado!', color: 'success' }
@@ -182,26 +183,13 @@ const salvarUsuario = async () => {
         email: (usuarioForm.value.email || '').trim().toLowerCase(),
         password: usuarioForm.value.senha,
         nome: usuarioForm.value.nome,
-        perfil: usuarioForm.value.perfil,
+        perfil: normalizePerfil(usuarioForm.value.perfil),
         cpf: null,
         telefone: null,
         ativo: usuarioForm.value.ativo ?? true
       }
 
-      const { data: sess } = await supabase.auth.getSession()
-      const token = sess?.session?.access_token
-      if (!token) throw new Error('Sessão expirada. Faça login novamente.')
-
-      const { data, error } = await supabase.functions.invoke('create-user', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: payload
-      })
-      if (error) {
-        const details = error.context?.json || error.context || error
-        throw new Error(details?.message || details?.error_description || details?.error || error.message || 'Erro ao criar usuário')
-      }
+      const { data } = await invokeEdgeFunctionWithAuth('create-user', payload)
       if (data?.error) throw new Error(data?.message || data?.details?.createErrMessage || data?.error)
       snackbar.value = { show: true, message: 'Usuário criado!', color: 'success' }
     }
