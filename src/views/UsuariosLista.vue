@@ -778,7 +778,14 @@ const salvarUsuario = async () => {
         telefone: telefoneLimpo || null
       }
 
+      const { data: sess } = await supabase.auth.getSession()
+      const token = sess?.session?.access_token
+      if (!token) throw new Error('Sessão expirada. Faça login novamente.')
+
       const { data: createUserData, error: createUserError } = await supabase.functions.invoke('create-user', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
         body: payload
       })
 
