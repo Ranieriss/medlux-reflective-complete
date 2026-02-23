@@ -15,6 +15,18 @@ type CreateUserPayload = {
   role?: string;
 };
 
+class HttpError extends Error {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 const response = (
   status: number,
   requestId: string,
@@ -26,8 +38,12 @@ const response = (
   );
 };
 
+const getRequestId = (req: Request): string => {
+  return req.headers.get("x-sb-request-id") || crypto.randomUUID();
+};
+
 Deno.serve(async (req) => {
-  const requestId = crypto.randomUUID();
+  const requestId = getRequestId(req);
 
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: jsonHeaders });
@@ -39,23 +55,32 @@ Deno.serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
-      return response(500, requestId, {
-        error: "missing_env",
-        message: "Required Supabase environment variables are not configured",
-      });
+      throw new Error("Required Supabase environment variables are not configured");
     }
 
     const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
     const bearerMatch = authHeader?.match(/^Bearer\s+(.+)$/i);
     const token = bearerMatch?.[1]?.trim();
 
-    if (!token) {
-      return response(401, requestId, {
-        error: "missing_token",
-        message: "Authorization Bearer token is required",
-      });
+    let payload: CreateUserPayload;
+    try {
+      payload = await req.json();
+    } catch {
+      throw new HttpError(400, "invalid_payload", "Request body must be valid JSON");
     }
 
+    const payloadKeys = Object.keys(payload ?? {});
+    console.log("[create-user] request start", {
+      requestId,
+      payloadKeys,
+      hasAuthorizationHeader: Boolean(authHeader),
+    });
+
+    if (!token) {
+      throw new HttpError(401, "missing_authorization", "Authorization Bearer token is required");
+    }
+
+    console.log("[create-user] validating token:before", { requestId });
     const authResponse = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       method: "GET",
       headers: {
@@ -65,40 +90,26 @@ Deno.serve(async (req) => {
     });
 
     if (authResponse.status !== 200) {
-      return response(401, requestId, {
-        error: "invalid_token",
-        message: "Provided token is invalid or expired",
-      });
+      throw new HttpError(401, "invalid_token", "Provided token is invalid or expired");
     }
 
     const authUser = await authResponse.json();
     const requesterId: string | undefined = authUser?.id;
 
-    if (!requesterId) {
-      return response(401, requestId, {
-        error: "invalid_token",
-        message: "Token validation succeeded but user id is missing",
-      });
-    }
+    console.log("[create-user] validating token:after", {
+      requestId,
+      requesterId,
+    });
 
-    let payload: CreateUserPayload;
-    try {
-      payload = await req.json();
-    } catch {
-      return response(400, requestId, {
-        error: "invalid_json",
-        message: "Request body must be valid JSON",
-      });
+    if (!requesterId) {
+      throw new HttpError(401, "invalid_token", "Token validation succeeded but user id is missing");
     }
 
     const email = payload?.email?.trim();
     const password = payload?.password;
 
     if (!email || !password) {
-      return response(400, requestId, {
-        error: "invalid_body",
-        message: "Fields 'email' and 'password' are required",
-      });
+      throw new HttpError(400, "invalid_payload", "Fields 'email' and 'password' are required");
     }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -112,10 +123,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (requesterError) {
-      return response(500, requestId, {
-        error: "admin_check_failed",
-        message: requesterError.message,
-      });
+      throw new Error(`Admin permission lookup failed: ${requesterError.message}`);
     }
 
     const isAdmin = [requesterRow?.perfil, requesterRow?.role]
@@ -123,23 +131,23 @@ Deno.serve(async (req) => {
       .some((value) => value.toUpperCase() === "ADMIN");
 
     if (!isAdmin) {
-      return response(403, requestId, {
-        error: "forbidden",
-        message: "Only ADMIN users can create new users",
-      });
+      throw new HttpError(403, "forbidden", "Only ADMIN users can create new users");
     }
 
+    console.log("[create-user] admin.createUser:before", { requestId, email });
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
     });
+    console.log("[create-user] admin.createUser:after", {
+      requestId,
+      userId: createdUser?.user?.id ?? null,
+      hasError: Boolean(createError),
+    });
 
     if (createError || !createdUser?.user?.id) {
-      return response(400, requestId, {
-        error: "create_user_failed",
-        message: createError?.message ?? "Could not create user",
-      });
+      throw new HttpError(400, "invalid_payload", createError?.message ?? "Could not create user");
     }
 
     const newUserId = createdUser.user.id;
@@ -160,11 +168,7 @@ Deno.serve(async (req) => {
       );
 
     if (upsertError) {
-      return response(500, requestId, {
-        error: "sync_usuario_failed",
-        message: upsertError.message,
-        user: createdUser.user,
-      });
+      throw new Error(`usuarios upsert failed: ${upsertError.message}`);
     }
 
     return response(201, requestId, {
@@ -173,9 +177,23 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
+    const stack = error instanceof Error ? error.stack : undefined;
+
+    console.error("[create-user] request failed", {
+      requestId,
+      message,
+      stack,
+    });
+
+    if (error instanceof HttpError) {
+      return response(error.status, requestId, {
+        error: error.code,
+        message: error.message,
+      });
+    }
+
     return response(500, requestId, {
       error: "internal_error",
-      message,
     });
   }
 });
