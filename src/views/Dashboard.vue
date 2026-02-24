@@ -113,6 +113,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { PERFIS, normalizePerfil } from '@/types/perfis'
 import { useAuthStore } from '@/stores/auth'
 import { buscarEquipamentosDoUsuario } from '@/services/equipamentoService'
 import { obterEstatisticas } from '@/services/calibracaoService'
@@ -161,7 +162,7 @@ const carregarEstatisticas = async () => {
     ).length
 
     // Vínculos ativos (apenas para operadores)
-    if (usuario.perfil === 'operador') {
+    if (normalizePerfil(usuario.perfil) === PERFIS.OPERADOR) {
       stats.value.vinculosAtivos = equipamentos.length
     } else {
       stats.value.vinculosAtivos = 0

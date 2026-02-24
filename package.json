@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "import-backup": "node scripts/importar-backup.js"
+    "import-backup": "node scripts/importar-backup.js",
+    "test:create-user-flow": "node scripts/test-create-user-flow.mjs"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",

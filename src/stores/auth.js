@@ -289,7 +289,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const temPermissao = (permissao) => {
     if (!usuario.value) return false
-    if (normalizePerfil(usuario.value.perfil) === 'ADMIN') return true
+    if (normalizePerfil(usuario.value.perfil) === PERFIS.ADMIN) return true
 
     const permissoesUser = [
       'ver_equipamentos',

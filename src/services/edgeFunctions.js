@@ -29,8 +29,8 @@ function normalizeInvokeError(invokeError, responseData, requestId) {
     requestId: body?.requestId || requestId,
     status,
     code: body?.error || invokeError?.code || 'edge_function_error',
-    message: body?.message || invokeError?.message || 'Erro ao executar Edge Function.',
-    body
+    message: body?.details?.message || invokeError?.message || 'Erro ao executar Edge Function.',
+    details: body?.details || body || null
   }
 }
 
@@ -47,8 +47,16 @@ export async function invokeEdgeFunctionWithAuth(functionName, body, options = {
     }
   })
 
-  if (error || data?.success === false || data?.error) {
+  if (error || data?.ok === false || data?.error) {
     const normalizedError = normalizeInvokeError(error, data, requestId)
+    console.error('[edge-function] invoke failed', {
+      functionName,
+      requestId: normalizedError.requestId,
+      status: normalizedError.status,
+      code: normalizedError.code,
+      details: normalizedError.details
+    })
+
     const err = new Error(normalizedError.message)
     err.details = normalizedError
     err.code = normalizedError.code

@@ -274,7 +274,7 @@ export async function requireAdmin() {
 
     const { session, ...usuario } = profileResult.data
     const perfil = (usuario?.perfil || '').toString().trim().toUpperCase()
-    if (perfil !== 'ADMIN') {
+    if (normalizePerfil(perfil) !== PERFIS.ADMIN) {
       const forbiddenError = new Error('Somente ADMIN')
       forbiddenError.code = 'FORBIDDEN_ADMIN_ONLY'
       throw forbiddenError

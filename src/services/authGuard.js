@@ -1,10 +1,5 @@
 import { ensureSessionAndProfile } from './supabase'
-
-const ADMIN_PROFILES = new Set(['ADMIN', 'ADMINISTRADOR'])
-
-function normalizePerfil(perfil) {
-  return (perfil || '').toString().trim().toUpperCase()
-}
+import { PERFIS, normalizePerfil } from '@/types/perfis'
 
 function notify(notifyFn, message) {
   if (typeof notifyFn === 'function') {
@@ -45,7 +40,7 @@ export async function getCurrentProfile(notifyFn) {
 export async function requireAdmin(notifyFn) {
   const profile = await getCurrentProfile(notifyFn)
 
-  if (!ADMIN_PROFILES.has(profile.perfilNormalizado)) {
+  if (profile.perfilNormalizado !== PERFIS.ADMIN) {
     notify(notifyFn, 'Somente ADMIN')
     throw new Error('Somente ADMIN')
   }
