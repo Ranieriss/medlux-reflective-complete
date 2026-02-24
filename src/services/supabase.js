@@ -23,7 +23,9 @@ if (!hasSupabaseEnv) {
   if (invalidSupabaseEnvVars.length > 0) {
     console.error('⚠️ [supabase] variáveis de ambiente inválidas:', invalidSupabaseEnvVars.join(', '))
   }
-  console.error('ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel e gere novo deploy.')
+  console.error(
+    'ℹ️ [supabase] configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente da Vercel e gere novo deploy.'
+  )
   console.error(supabaseEnvErrorMessage)
 }
 
@@ -55,6 +57,21 @@ export const supabase = hasSupabaseEnv
       }
     })
   : buildMissingEnvProxy()
+
+// ===============================
+// DEBUG MODE - expõe supabase no window
+// ===============================
+const debugEnabled =
+  (typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('debug') === '1') ||
+  (typeof window !== 'undefined' && window.localStorage.getItem('MEDLUX_DEBUG') === '1')
+
+// IMPORTANTE: expor apenas quando env está OK (evita expor Proxy que lança erro)
+if (debugEnabled && typeof window !== 'undefined' && hasSupabaseEnv) {
+  window.supabaseClient = supabase
+  window.supabase = supabase
+  console.log('[MEDLUX DEBUG] window.supabaseClient disponível')
+}
 
 const AUTH_ERROR_STATUS = new Set([401, 403])
 
@@ -127,15 +144,13 @@ function formatarErroSupabase(error, fallback = 'Erro inesperado no Supabase.') 
 }
 
 async function obterPerfilPorUsuarioId(userId) {
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('*')
-    .eq('auth_user_id', userId)
-    .maybeSingle()
+  const { data, error } = await supabase.from('usuarios').select('*').eq('auth_user_id', userId).maybeSingle()
 
   if (error) {
     if (PERFIL_DUPLICADO_CODES.has(error.code) || (error.message || '').toLowerCase().includes('multiple')) {
-      const duplicated = new Error('Perfil duplicado detectado em public.usuarios para este usuário. Contate o suporte para remover duplicidades e aplique UNIQUE(auth_user_id).')
+      const duplicated = new Error(
+        'Perfil duplicado detectado em public.usuarios para este usuário. Contate o suporte para remover duplicidades e aplique UNIQUE(auth_user_id).'
+      )
       duplicated.code = 'PROFILE_DUPLICATED'
       duplicated.status = 409
       throw duplicated
@@ -244,11 +259,7 @@ export async function ensureSessionAndProfile() {
     perfil = perfilByUserId.data
 
     if (!perfil && perfilByUserId.nextFallback === 'id') {
-      const { data: perfilById, error: perfilByIdError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', userData.user.id)
-        .maybeSingle()
+      const { data: perfilById, error: perfilByIdError } = await supabase.from('usuarios').select('*').eq('id', userData.user.id).maybeSingle()
 
       if (perfilByIdError) throw perfilByIdError
       perfil = perfilById || null
@@ -258,11 +269,7 @@ export async function ensureSessionAndProfile() {
       perfil = await criarPerfilAusente(userData.user)
 
       if (!perfil) {
-        const { data: perfilRecuperado, error: perfilRecuperadoError } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', userData.user.id)
-          .maybeSingle()
+        const { data: perfilRecuperado, error: perfilRecuperadoError } = await supabase.from('usuarios').select('*').eq('id', userData.user.id).maybeSingle()
 
         if (perfilRecuperadoError) throw perfilRecuperadoError
         perfil = perfilRecuperado || null
@@ -533,11 +540,7 @@ export async function createEquipamento(equipamento) {
     const adminResult = await requireAdmin()
     if (!adminResult.success) return adminResult
 
-    const { data, error } = await supabase
-      .from('equipamentos')
-      .insert([equipamento])
-      .select()
-      .maybeSingle()
+    const { data, error } = await supabase.from('equipamentos').insert([equipamento]).select().maybeSingle()
 
     if (error) throw error
     if (!data) return { success: false, error: 'Equipamento não retornou dados após criação.' }
@@ -601,11 +604,7 @@ export async function deleteEquipamento(id) {
 export function subscribeToEquipamentos(callback) {
   const channel = supabase
     .channel('equipamentos-changes')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'equipamentos' },
-      (payload) => callback(payload)
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'equipamentos' }, (payload) => callback(payload))
     .subscribe()
 
   return () => {
@@ -637,7 +636,8 @@ export async function registrarAuditoria(entidade, entidadeId, acao, dadosAnteri
 
     const { error } = await supabase.from('auditoria').insert([
       {
-        usuario_id: ctx?.user?.id || null,
+        // Preferir o ID do perfil (public.usuarios.id). Fallback para auth.users.id se seu schema usar isso.
+        usuario_id: ctx?.perfil?.id || ctx?.user?.id || null,
         entidade,
         entidade_id: entidadeId,
         acao,
