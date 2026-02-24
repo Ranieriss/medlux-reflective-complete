@@ -88,6 +88,26 @@ setupDebugHooks({
   diagnosticsStore
 })
 
+supabase.auth.onAuthStateChange(async (event, newSession) => {
+  console.info('[auth] state change', {
+    event,
+    hasSession: !!newSession,
+    userId: newSession?.user?.id || null
+  })
+
+  if (event === 'TOKEN_REFRESHED') {
+    return
+  }
+
+  if (event === 'SIGNED_OUT') {
+    authStore.clearLocalSessionState()
+  }
+
+  if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && newSession?.user?.id) {
+    await authStore.restaurarSessao()
+  }
+})
+
 if (isDebugEnabled() && typeof window !== 'undefined') {
   window.supabase = supabase
   window.supabaseClient = supabase
