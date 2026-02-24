@@ -60,14 +60,34 @@ export const supabase = hasSupabaseEnv
 
 // ===============================
 // DEBUG MODE - expõe supabase no window
+// (compatível com HashRouter / query após #)
 // ===============================
-const debugEnabled =
-  (typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).get('debug') === '1') ||
-  (typeof window !== 'undefined' && window.localStorage.getItem('MEDLUX_DEBUG') === '1')
+function hasDebugFlag() {
+  if (typeof window === 'undefined') return false
 
-// IMPORTANTE: expor apenas quando env está OK (evita expor Proxy que lança erro)
-if (debugEnabled && typeof window !== 'undefined' && hasSupabaseEnv) {
+  const search = window.location.search || ''
+  const hash = window.location.hash || ''
+
+  // pega debug=1 tanto no ?debug=1 normal quanto no #/rota?debug=1
+  const fromSearch = new URLSearchParams(search).get('debug') === '1'
+  const hashQuery = hash.includes('?') ? hash.split('?')[1] : ''
+  const fromHash = new URLSearchParams(hashQuery).get('debug') === '1'
+
+  const fromStorage = window.localStorage.getItem('MEDLUX_DEBUG') === '1'
+  return fromSearch || fromHash || fromStorage
+}
+
+const debugEnabled = hasDebugFlag()
+
+// “sinal de vida” para confirmar que este arquivo está rodando
+if (typeof window !== 'undefined') {
+  window.__MEDLUX_SUPABASE_JS_LOADED__ = true
+  if (debugEnabled) console.log('[MEDLUX DEBUG] supabase.js carregou com debugEnabled=true')
+}
+
+// IMPORTANTE: expor mesmo se hasSupabaseEnv for false (para diagnosticar env)
+// (atribuir o proxy no window não quebra; só quebra se você tentar usar .auth/.from)
+if (debugEnabled && typeof window !== 'undefined') {
   window.supabaseClient = supabase
   window.supabase = supabase
   console.log('[MEDLUX DEBUG] window.supabaseClient disponível')
