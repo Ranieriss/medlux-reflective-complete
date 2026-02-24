@@ -235,6 +235,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+
+  const clearLocalSessionState = () => {
+    usuario.value = null
+    isAuthenticated.value = false
+    session.value = null
+    limparSessaoLocal()
+  }
+
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut()
@@ -244,29 +252,20 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('❌ Erro no logout:', error)
     } finally {
-      usuario.value = null
-      isAuthenticated.value = false
-      session.value = null
-      limparSessaoLocal()
+      clearLocalSessionState()
     }
   }
 
   const restaurarSessao = async () => {
     try {
       if (!hasSupabaseEnv) {
-        usuario.value = null
-        session.value = null
-        isAuthenticated.value = false
-        limparSessaoLocal()
+        clearLocalSessionState()
         return false
       }
 
       const ctx = await ensureSessionAndProfile()
       if (!ctx?.session?.user) {
-        usuario.value = null
-        session.value = null
-        isAuthenticated.value = false
-        limparSessaoLocal()
+        clearLocalSessionState()
         return false
       }
 
@@ -279,10 +278,7 @@ export const useAuthStore = defineStore('auth', () => {
       return true
     } catch (error) {
       console.error('❌ Erro ao restaurar sessão:', error)
-      usuario.value = null
-      session.value = null
-      isAuthenticated.value = false
-      limparSessaoLocal()
+      clearLocalSessionState()
       return false
     }
   }
@@ -315,6 +311,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     restaurarSessao,
+    clearLocalSessionState,
     temPermissao
   }
 })

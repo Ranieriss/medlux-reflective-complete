@@ -1,4 +1,5 @@
-import { supabase } from './supabase'
+import { executeWithAuthRetry, supabase } from './supabase'
+import { PERFIS, normalizePerfil } from '@/types/perfis'
 
 /**
  * Detecta o tipo de equipamento baseado no código
@@ -88,12 +89,45 @@ export function detectarTipoEquipamento(codigo) {
  * - Admin: todos os equipamentos
  * - Operador: apenas equipamentos vinculados
  */
-export async function buscarEquipamentosDoUsuario() {
+export async function buscarEquipamentosDoUsuario(usuarioId = null, perfil = null) {
   try {
-    const { data, error } = await supabase
-      .from('equipamentos')
-      .select('*')
-      .order('codigo', { ascending: true })
+    const role = normalizePerfil(perfil)
+
+    if (role === PERFIS.OPERADOR && usuarioId) {
+      const { data: vinculos, error: vincError } = await executeWithAuthRetry('buscarEquipamentosDoUsuario:vinculos', async () =>
+        supabase
+          .from('vinculos')
+          .select('equipamento_id')
+          .eq('usuario_id', usuarioId)
+          .eq('ativo', true)
+      )
+
+      if (vincError) throw vincError
+      const ids = [...new Set((vinculos || []).map((item) => item.equipamento_id).filter(Boolean))]
+      if (!ids.length) return []
+
+      const { data, error } = await executeWithAuthRetry('buscarEquipamentosDoUsuario:equipamentos_vinculados', async () =>
+        supabase
+          .from('equipamentos')
+          .select('*')
+          .in('id', ids)
+          .order('codigo', { ascending: true })
+      )
+
+      if (error) throw error
+
+      return (data || []).map(eq => ({
+        ...eq,
+        tipoDetalhado: detectarTipoEquipamento(eq.codigo)
+      }))
+    }
+
+    const { data, error } = await executeWithAuthRetry('buscarEquipamentosDoUsuario:todos', async () =>
+      supabase
+        .from('equipamentos')
+        .select('*')
+        .order('codigo', { ascending: true })
+    )
 
     if (error) throw error
 

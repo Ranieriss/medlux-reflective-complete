@@ -56,6 +56,47 @@ export const supabase = hasSupabaseEnv
     })
   : buildMissingEnvProxy()
 
+const AUTH_ERROR_STATUS = new Set([401, 403])
+
+function isAuthError(error) {
+  const status = Number(error?.status)
+  const code = String(error?.code || '').toUpperCase()
+  return AUTH_ERROR_STATUS.has(status) || code === '401' || code === '403' || code === 'SESSION_EXPIRED'
+}
+
+export async function executeWithAuthRetry(operationName, operation) {
+  try {
+    return await operation()
+  } catch (error) {
+    if (!isAuthError(error)) throw error
+
+    console.warn('⚠️ [supabase] falha de autenticação, tentando refresh da sessão', {
+      operationName,
+      status: error?.status || null,
+      code: error?.code || null,
+      message: error?.message || 'sem mensagem'
+    })
+
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+    if (refreshError || !refreshData?.session) {
+      console.error('❌ [supabase] refresh de sessão falhou; relogin necessário', {
+        operationName,
+        status: refreshError?.status || null,
+        code: refreshError?.code || null,
+        message: refreshError?.message || error?.message || 'sem mensagem'
+      })
+
+      const reloginError = new Error('Sessão expirada, faça login novamente')
+      reloginError.code = 'SESSION_EXPIRED'
+      reloginError.status = 401
+      throw reloginError
+    }
+
+    console.info('🔁 [supabase] sessão renovada com sucesso; repetindo operação', { operationName })
+    return operation()
+  }
+}
+
 if (hasSupabaseEnv && import.meta.env.DEV) {
   console.info('[supabase] health-check', {
     url: supabaseUrl,

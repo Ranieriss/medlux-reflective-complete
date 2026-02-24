@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { executeWithAuthRetry, supabase } from './supabase'
 
 const friendlyMissingCriteria = 'Critério normativo não cadastrado para esta combinação. Solicite cadastro na tabela de normas.'
 
@@ -39,20 +39,39 @@ export async function buscarCriterioNormativo(params = {}) {
     ativo: params.ativo ?? true
   }
 
-  const queryCriteria = async ({ table, fields, normaField }) => {
-    let query = supabase
-      .from(table)
-      .select('*')
-      .eq(fields.tipoEquipamento, filtros.tipo_equipamento)
-      .eq(fields.ativo, filtros.ativo)
+  const queryCriteria = async ({ table, fields }) => {
+    const { data, error } = await executeWithAuthRetry(`buscarCriterioNormativo:${table}`, async () =>
+      supabase
+        .from(table)
+        .select('*')
+        .eq(fields.tipoEquipamento, filtros.tipo_equipamento)
+        .eq(fields.ativo, filtros.ativo)
+        .limit(250)
+    )
 
-    if (filtros.cor) query = query.eq(fields.cor, filtros.cor)
-    if (filtros.geometria) query = query.eq(fields.geometria, filtros.geometria)
-    if (filtros.tipo_material) query = query.eq(fields.tipoMaterial, filtros.tipo_material)
-    if (filtros.tipo_pelicula) query = query.eq(fields.tipoPelicula, filtros.tipo_pelicula)
-    if (filtros.norma) query = query.eq(normaField, filtros.norma)
+    if (error) {
+      return { data: null, error }
+    }
 
-    return query.limit(1).maybeSingle()
+    const rows = Array.isArray(data) ? data : []
+
+    const filtered = rows.find((row) => {
+      const check = (column, expected) => {
+        if (!expected) return true
+        if (!(column in row)) return true
+        return normalize(row[column]) === expected
+      }
+
+      return (
+        check(fields.cor, filtros.cor) &&
+        check(fields.geometria, filtros.geometria) &&
+        check(fields.tipoMaterial, filtros.tipo_material) &&
+        check(fields.tipoPelicula, filtros.tipo_pelicula) &&
+        check(fields.normaReferencia, filtros.norma)
+      )
+    })
+
+    return { data: filtered || null, error: null }
   }
 
   const mapRecord = ({ data, table }) => {
@@ -83,9 +102,9 @@ export async function buscarCriterioNormativo(params = {}) {
         cor: 'cor',
         geometria: 'geometria',
         tipoMaterial: 'tipo_material',
-        tipoPelicula: 'tipo_pelicula'
-      },
-      normaField: 'norma_referencia'
+        tipoPelicula: 'tipo_pelicula',
+        normaReferencia: 'norma_referencia'
+      }
     })
 
     if (response.data) {

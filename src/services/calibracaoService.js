@@ -3,7 +3,7 @@
 // Lógica de validação automática baseada nas normas ABNT
 // ============================================
 
-import { supabase } from './supabase'
+import { ensureSessionAndProfile, executeWithAuthRetry, supabase } from './supabase'
 import laudoPDFService from './laudoPDFService'
 import { NORMATIVE_REFERENCE } from '@/constants/normativeConfig'
 import { buscarCriterioNormativo, calcularValidacao as calcularValidacaoNormativa, mensagensNormas } from './normasService'
@@ -331,11 +331,13 @@ export const registrarCalibracao = async (dados) => {
     } = dados
 
     // 1. Buscar equipamento para determinar tipo
-    const { data: equipamento, error: equipError } = await supabase
-      .from('equipamentos')
-      .select('tipo')
-      .eq('id', equipamento_id)
-      .single()
+    const { data: equipamento, error: equipError } = await executeWithAuthRetry('registrarCalibracao:buscar_equipamento', async () =>
+      supabase
+        .from('equipamentos')
+        .select('tipo')
+        .eq('id', equipamento_id)
+        .single()
+    )
 
     if (equipError) throw equipError
 
@@ -366,17 +368,22 @@ export const registrarCalibracao = async (dados) => {
     proxima_calibracao.setFullYear(proxima_calibracao.getFullYear() + 1)
 
     // 5. Inserir registro de calibração
-    const { data: calibracao, error: insError } = await supabase
-      .from('historico_calibracoes')
-      .insert([{
+    const ctx = await ensureSessionAndProfile()
+
+    const { data: calibracao, error: insError } = await executeWithAuthRetry('registrarCalibracao:insert', async () =>
+      supabase
+        .from('historico_calibracoes')
+        .insert([{
         equipamento_id,
+        criado_por_auth_user_id: ctx?.user?.id || null,
+        criado_por_usuario_id: ctx?.perfil?.id || null,
         data_calibracao,
         proxima_calibracao: proxima_calibracao.toISOString().split('T')[0],
         tipo_pelicula,
         tipo_material,
         cor_medicao,
         geometria_medicao,
-        valores_medicoes: JSON.stringify(valores_medicoes),
+        valores_medicoes,
         valor_medio: validacao.valor_medio,
         valor_minimo_medido: validacao.valor_minimo_medido,
         valor_maximo_medido: validacao.valor_maximo_medido,
@@ -398,17 +405,20 @@ export const registrarCalibracao = async (dados) => {
         resultado: validacao.status
       }])
       .select()
+    )
 
     if (insError) throw insError
 
     // 6. Atualizar equipamento com data da última calibração
-    const { error: updateError } = await supabase
-      .from('equipamentos')
-      .update({
-        data_ultima_calibracao: data_calibracao,
-        proxima_calibracao: proxima_calibracao.toISOString().split('T')[0]
-      })
-      .eq('id', equipamento_id)
+    const { error: updateError } = await executeWithAuthRetry('registrarCalibracao:update_equipamento', async () =>
+      supabase
+        .from('equipamentos')
+        .update({
+          data_ultima_calibracao: data_calibracao,
+          proxima_calibracao: proxima_calibracao.toISOString().split('T')[0]
+        })
+        .eq('id', equipamento_id)
+    )
 
     if (updateError) console.warn('⚠️ Erro ao atualizar equipamento:', updateError)
 
@@ -601,50 +611,84 @@ export const listarCalibracoes = async (filtros = {}, usuario = null) => {
     // Se for operador, buscar apenas medições dos equipamentos vinculados
     if (usuario && normalizePerfil(usuario.perfil) === PERFIS.OPERADOR) {
       // Buscar IDs dos equipamentos vinculados
-      const { data: vinculos, error: vincError } = await supabase
-        .from('vinculos')
-        .select('equipamento_id')
-        .eq('usuario_id', usuario.id)
-        .eq('ativo', true)
+      const { data: vinculos, error: vincError } = await executeWithAuthRetry('listarCalibracoes:vinculos', async () =>
+        supabase
+          .from('vinculos')
+          .select('equipamento_id')
+          .eq('usuario_id', usuario.id)
+          .eq('ativo', true)
+      )
       
       if (vincError) throw vincError
       
-      const equipamentosIds = vinculos.map(v => v.equipamento_id)
-      
-      if (equipamentosIds.length === 0) {
-        console.log('⚠️ Operador sem equipamentos vinculados')
+      const equipamentosIds = [...new Set((vinculos || []).map(v => v.equipamento_id).filter(Boolean))]
+
+      const {
+        data: { user: authUser }
+      } = await supabase.auth.getUser()
+
+      if (equipamentosIds.length === 0 && !authUser?.id) {
+        console.log('⚠️ Operador sem equipamentos vinculados e sem auth uid disponível')
         return []
       }
       
       // Buscar calibrações apenas desses equipamentos
-      let query = supabase
-        .from('historico_calibracoes')
-        .select(`
-          *,
-          equipamentos (
-            id,
-            codigo,
-            nome,
-            tipo
-          )
-        `)
-        .in('equipamento_id', equipamentosIds)
-        .order('data_calibracao', { ascending: false })
+      const baseSelect = `
+        *,
+        equipamentos (
+          id,
+          codigo,
+          nome,
+          tipo
+        )
+      `
+
+      let data = []
+
+      if (equipamentosIds.length > 0) {
+        let query = supabase
+          .from('historico_calibracoes')
+          .select(baseSelect)
+          .in('equipamento_id', equipamentosIds)
+          .order('data_calibracao', { ascending: false })
+
+        if (filtros.status) {
+          query = query.eq('status_validacao', filtros.status)
+        }
+        if (filtros.data_inicio) {
+          query = query.gte('data_calibracao', filtros.data_inicio)
+        }
+        if (filtros.data_fim) {
+          query = query.lte('data_calibracao', filtros.data_fim)
+        }
+
+        const response = await executeWithAuthRetry('listarCalibracoes:operador_vinculos', async () => query)
+        if (response.error) throw response.error
+        data = response.data || []
+      }
+
+      if (authUser?.id) {
+        let ownQuery = supabase
+          .from('historico_calibracoes')
+          .select(baseSelect)
+          .eq('criado_por_auth_user_id', authUser.id)
+          .order('data_calibracao', { ascending: false })
       
       // Aplicar outros filtros
-      if (filtros.status) {
-        query = query.eq('status_validacao', filtros.status)
+        if (filtros.status) ownQuery = ownQuery.eq('status_validacao', filtros.status)
+        if (filtros.data_inicio) ownQuery = ownQuery.gte('data_calibracao', filtros.data_inicio)
+        if (filtros.data_fim) ownQuery = ownQuery.lte('data_calibracao', filtros.data_fim)
+
+        const ownResponse = await executeWithAuthRetry('listarCalibracoes:operador_proprias', async () => ownQuery)
+        if (ownResponse.error && ownResponse.error.code !== '42703') {
+          throw ownResponse.error
+        }
+
+        const merged = [...data, ...(ownResponse.data || [])]
+        const dedupe = new Map(merged.map((item) => [item.id, item]))
+        data = Array.from(dedupe.values()).sort((a, b) => new Date(b.data_calibracao) - new Date(a.data_calibracao))
       }
-      if (filtros.data_inicio) {
-        query = query.gte('data_calibracao', filtros.data_inicio)
-      }
-      if (filtros.data_fim) {
-        query = query.lte('data_calibracao', filtros.data_fim)
-      }
-      
-      const { data, error } = await query
-      if (error) throw error
-      
+
       console.log(`✅ ${data?.length || 0} calibrações carregadas (operador)`)
       return data || []
     }
@@ -677,7 +721,7 @@ export const listarCalibracoes = async (filtros = {}, usuario = null) => {
       query = query.lte('data_calibracao', filtros.data_fim)
     }
     
-    const { data, error } = await query
+    const { data, error } = await executeWithAuthRetry('listarCalibracoes:admin', async () => query)
     
     if (error) throw error
     
