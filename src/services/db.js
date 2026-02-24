@@ -1,5 +1,6 @@
 import Dexie from 'dexie'
 import { format } from 'date-fns'
+import { PERFIS } from '@/types/perfis'
 
 // Inicializar banco de dados
 export const db = new Dexie('medlux_reflective')
@@ -37,7 +38,7 @@ export const popularDadosDemo = async () => {
         nome: 'Administrador',
         email: 'admin@medlux.com',
         senha: hashPassword('2308'),
-        perfil: 'ADMIN',
+        perfil: PERFIS.ADMIN,
         ativo: true,
         data_cadastro: new Date().toISOString()
       },
@@ -45,7 +46,7 @@ export const popularDadosDemo = async () => {
         nome: 'João Silva',
         email: 'joao.silva@medlux.com',
         senha: hashPassword('1234'),
-        perfil: 'OPERADOR',
+        perfil: PERFIS.OPERADOR,
         ativo: true,
         data_cadastro: new Date().toISOString()
       },
@@ -53,7 +54,7 @@ export const popularDadosDemo = async () => {
         nome: 'Maria Santos',
         email: 'maria.santos@medlux.com',
         senha: hashPassword('1234'),
-        perfil: 'OPERADOR',
+        perfil: PERFIS.OPERADOR,
         ativo: true,
         data_cadastro: new Date().toISOString()
       }

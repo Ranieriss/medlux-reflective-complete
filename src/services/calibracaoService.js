@@ -7,6 +7,7 @@ import { supabase } from './supabase'
 import laudoPDFService from './laudoPDFService'
 import { NORMATIVE_REFERENCE } from '@/constants/normativeConfig'
 import { buscarCriterioNormativo, calcularValidacao as calcularValidacaoNormativa, mensagensNormas } from './normasService'
+import { PERFIS, normalizePerfil } from '@/types/perfis'
 
 /**
  * Buscar critérios de retrorrefletância
@@ -598,7 +599,7 @@ export const gerarLaudoPDF = async (calibracaoId) => {
 export const listarCalibracoes = async (filtros = {}, usuario = null) => {
   try {
     // Se for operador, buscar apenas medições dos equipamentos vinculados
-    if (usuario && usuario.perfil === 'operador') {
+    if (usuario && normalizePerfil(usuario.perfil) === PERFIS.OPERADOR) {
       // Buscar IDs dos equipamentos vinculados
       const { data: vinculos, error: vincError } = await supabase
         .from('vinculos')
@@ -732,7 +733,7 @@ export const obterEstatisticas = async (usuario = null) => {
       .order('data_calibracao', { ascending: false })
     
     // Se for operador, filtrar apenas medições dos equipamentos vinculados
-    if (usuario && usuario.perfil === 'operador') {
+    if (usuario && normalizePerfil(usuario.perfil) === PERFIS.OPERADOR) {
       const { data: vinculos, error: vincError } = await supabase
         .from('vinculos')
         .select('equipamento_id')

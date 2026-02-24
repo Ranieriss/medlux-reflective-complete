@@ -1,10 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { PERFIS, PERFIS_VALIDOS, normalizePerfil } from "../_shared/roles.ts";
 
-const jsonHeaders = {
+const corsHeaders = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-request-id",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Max-Age": "86400",
 };
 
 type CreateUserPayload = {
@@ -24,25 +26,16 @@ class HttpError extends Error {
 
   constructor(status: number, code: string, message: string, details?: unknown) {
     super(message);
-    this.name = "HttpError";
     this.status = status;
     this.code = code;
     this.details = details;
   }
 }
 
-const PERFIS_VALIDOS = new Set(["ADMIN", "OPERADOR"]);
+const getRequestId = (req: Request): string => req.headers.get("x-request-id") || crypto.randomUUID();
 
-const response = (status: number, requestId: string, body: Record<string, unknown>): Response => {
-  return new Response(JSON.stringify({ requestId, ...body }), {
-    status,
-    headers: jsonHeaders,
-  });
-};
-
-const getRequestId = (req: Request): string => {
-  return req.headers.get("x-request-id") || req.headers.get("x-sb-request-id") || crypto.randomUUID();
-};
+const respond = (status: number, requestId: string, body: Record<string, unknown>): Response =>
+  new Response(JSON.stringify({ requestId, ...body }), { status, headers: corsHeaders });
 
 const parseBearerToken = (authHeader: string | null): string | null => {
   const match = authHeader?.match(/^Bearer\s+(.+)$/i);
@@ -51,49 +44,15 @@ const parseBearerToken = (authHeader: string | null): string | null => {
 
 const normalizeEmail = (value?: string): string => (value || "").trim().toLowerCase();
 
-const maskEmail = (email?: string | null): string => {
-  if (!email) return "<empty>";
-  const [localPart = "", domain = ""] = email.split("@");
-  if (!domain) return "***";
-  const first = localPart.slice(0, 2);
-  return `${first}${"*".repeat(Math.max(localPart.length - 2, 1))}@${domain}`;
-};
-
 const digitsOnly = (value?: string): string | null => {
   const digits = (value || "").replace(/\D+/g, "");
-  return digits.length > 0 ? digits : null;
-};
-
-const normalizePerfil = (value?: string): string => {
-  const raw = (value || "OPERADOR")
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase();
-
-  const aliasMap: Record<string, string> = {
-    ADMINISTRADOR: "ADMIN",
-    ADM: "ADMIN",
-    ADMIN: "ADMIN",
-    OPERADOR: "OPERADOR",
-    OPERATOR: "OPERADOR",
-    TECNICO: "OPERADOR",
-    TECNICA: "OPERADOR",
-    TEC: "OPERADOR",
-    USUARIO: "OPERADOR",
-    USER: "OPERADOR",
-  };
-
-  return aliasMap[raw] || raw;
+  return digits || null;
 };
 
 const normalizeAtivo = (value: CreateUserPayload["ativo"]): boolean => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value === 1;
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    return ["1", "true", "sim", "yes", "ativo"].includes(normalized);
-  }
+  if (typeof value === "string") return ["1", "true", "sim", "yes", "ativo"].includes(value.trim().toLowerCase());
   return true;
 };
 
@@ -102,9 +61,6 @@ const validatePayload = (payload: CreateUserPayload) => {
   const password = (payload.password || "").trim();
   const nome = (payload.nome || "").trim() || email;
   const perfil = normalizePerfil(payload.perfil);
-  const cpf = digitsOnly(payload.cpf);
-  const telefone = digitsOnly(payload.telefone);
-  const ativo = normalizeAtivo(payload.ativo);
 
   if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
     throw new HttpError(400, "invalid_email", "Field 'email' must be a valid e-mail");
@@ -127,91 +83,32 @@ const validatePayload = (payload: CreateUserPayload) => {
     password,
     nome,
     perfil,
-    cpf,
-    telefone,
-    ativo,
+    cpf: digitsOnly(payload.cpf),
+    telefone: digitsOnly(payload.telefone),
+    ativo: normalizeAtivo(payload.ativo),
   };
-};
-
-const findAuthUserByEmail = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
-  email: string,
-  requestId: string,
-) => {
-  const adminApi = supabaseAdmin.auth.admin as { getUserByEmail?: (email: string) => Promise<{ data: { user: { id: string; email?: string | null } | null }; error: { message: string; status?: number } | null }> };
-
-  if (typeof adminApi.getUserByEmail !== "function") {
-    throw new HttpError(500, "auth_api_not_supported", "Current supabase-js version does not expose admin.getUserByEmail");
-  }
-
-  const { data, error } = await adminApi.getUserByEmail(email);
-
-  if (error && error.status !== 404 && !error.message?.toLowerCase().includes("not found")) {
-    throw new HttpError(500, "auth_get_user_by_email_failed", "Failed to query auth user by email", {
-      message: error.message,
-      status: error.status,
-    });
-  }
-
-  console.log("[create-user] auth.getUserByEmail", {
-    requestId,
-    searchedEmail: maskEmail(email),
-    foundUserId: data?.user?.id || null,
-    error: error?.message || null,
-  });
-
-  return data?.user || null;
 };
 
 const ensureCallerIsAdmin = async (
   supabaseAdmin: ReturnType<typeof createClient>,
   requesterAuthUserId: string,
-  requestId: string,
 ) => {
-  const { data: adminRow, error: adminsError } = await supabaseAdmin
-    .from("admins")
-    .select("auth_user_id, ativo")
-    .eq("auth_user_id", requesterAuthUserId)
-    .eq("ativo", true)
-    .maybeSingle();
-
-  if (adminsError) {
-    throw new HttpError(500, "admin_lookup_failed", "Failed to validate admin permissions", {
-      source: "admins",
-      message: adminsError.message,
-      code: adminsError.code,
-      details: adminsError.details,
-    });
-  }
-
-  const { data: usuarioRow, error: usuarioError } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("usuarios")
     .select("auth_user_id, perfil, ativo")
     .eq("auth_user_id", requesterAuthUserId)
     .eq("ativo", true)
     .maybeSingle();
 
-  if (usuarioError) {
+  if (error) {
     throw new HttpError(500, "admin_lookup_failed", "Failed to validate admin permissions", {
-      source: "usuarios",
-      message: usuarioError.message,
-      code: usuarioError.code,
-      details: usuarioError.details,
+      message: error.message,
+      code: error.code,
+      details: error.details,
     });
   }
 
-  const usuarioPerfil = normalizePerfil((usuarioRow?.perfil as string | undefined) || "");
-  const isAdmin = Boolean(adminRow) || usuarioPerfil === "ADMIN";
-
-  console.log("[create-user] admin-check", {
-    requestId,
-    requesterAuthUserId,
-    isAdmin,
-    hasAdminRow: Boolean(adminRow),
-    usuarioPerfil: usuarioPerfil || null,
-  });
-
-  if (!isAdmin) {
+  if (normalizePerfil((data?.perfil as string | undefined) || "") !== PERFIS.ADMIN) {
     throw new HttpError(403, "forbidden", "Only ADMIN users can create new users");
   }
 };
@@ -220,27 +117,21 @@ Deno.serve(async (req) => {
   const requestId = getRequestId(req);
 
   if (req.method === "OPTIONS") {
-    return new Response(JSON.stringify({ requestId, success: true }), { headers: jsonHeaders, status: 200 });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new HttpError(500, "missing_env", "Required environment variables are not configured", {
-        hasSupabaseUrl: Boolean(SUPABASE_URL),
-        hasServiceRoleKey: Boolean(SUPABASE_SERVICE_ROLE_KEY),
-      });
-    }
-
     if (req.method !== "POST") {
       throw new HttpError(405, "method_not_allowed", "Only POST method is allowed");
     }
 
-    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
-    const token = parseBearerToken(authHeader);
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new HttpError(500, "missing_env", "Required environment variables are not configured");
+    }
 
+    const token = parseBearerToken(req.headers.get("authorization") || req.headers.get("Authorization"));
     if (!token) {
       throw new HttpError(401, "missing_authorization", "Authorization Bearer token is required");
     }
@@ -260,93 +151,64 @@ Deno.serve(async (req) => {
       });
     }
 
-    let payload: CreateUserPayload;
-    try {
-      payload = await req.json();
-    } catch {
-      throw new HttpError(400, "invalid_payload", "Request body must be valid JSON");
-    }
-
+    const payload = await req.json() as CreateUserPayload;
     const validated = validatePayload(payload);
 
-    console.log("[create-user] request:start", {
-      requestId,
-      requesterAuthUserId: requesterUser.id,
-      email: maskEmail(validated.email),
-      perfil: validated.perfil,
-      ativo: validated.ativo,
-      payloadKeys: Object.keys(payload || {}),
+    await ensureCallerIsAdmin(supabaseAdmin, requesterUser.id);
+
+    const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: validated.email,
+      password: validated.password,
+      email_confirm: true,
+      user_metadata: {
+        nome: validated.nome,
+        perfil: validated.perfil,
+        cpf: validated.cpf,
+        telefone: validated.telefone,
+      },
     });
 
-    await ensureCallerIsAdmin(supabaseAdmin, requesterUser.id, requestId);
+    const authUserId = createData?.user?.id;
 
-    let authUser = await findAuthUserByEmail(supabaseAdmin, validated.email, requestId);
-
-    if (!authUser?.id) {
-      const { data: createdUserData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-        email: validated.email,
-        password: validated.password,
-        email_confirm: true,
-        user_metadata: {
-          nome: validated.nome,
-          perfil: validated.perfil,
-          cpf: validated.cpf,
-          telefone: validated.telefone,
-        },
+    if (createError && !createError.message?.toLowerCase().includes("already") && !createError.message?.toLowerCase().includes("registered")) {
+      throw new HttpError(500, "auth_create_user_failed", "Failed to create auth user", {
+        message: createError.message,
+        code: createError.code,
+        status: createError.status,
       });
+    }
 
-      if (createErr || !createdUserData?.user?.id) {
-        console.error("[create-user] auth.createUser:error", {
-          requestId,
-          email: maskEmail(validated.email),
-          createErrMessage: createErr?.message || null,
-          createErrCode: createErr?.code || null,
-          createErrStatus: createErr?.status || null,
-        });
-
-        authUser = await findAuthUserByEmail(supabaseAdmin, validated.email, requestId);
-
-        if (!authUser?.id) {
-          throw new HttpError(
-            500,
-            "auth_create_user_failed",
-            "Failed to create user (and could not find existing user)",
-            {
-              createErrMessage: createErr?.message || "Unknown createUser error",
-              createErrCode: createErr?.code || null,
-              createErrStatus: createErr?.status || null,
-            },
-          );
+    let resolvedAuthUserId = authUserId;
+    if (!resolvedAuthUserId) {
+      const getByEmailApi = supabaseAdmin.auth.admin as { getUserByEmail?: (email: string) => Promise<{ data: { user: { id: string } | null }; error: { message: string } | null }> };
+      if (typeof getByEmailApi.getUserByEmail === "function") {
+        const { data: userByEmail, error: byEmailError } = await getByEmailApi.getUserByEmail(validated.email);
+        if (byEmailError || !userByEmail?.user?.id) {
+          throw new HttpError(500, "auth_lookup_failed", "Auth user exists but could not be resolved by e-mail", {
+            message: byEmailError?.message || null,
+          });
         }
-      } else {
-        authUser = createdUserData.user;
+        resolvedAuthUserId = userByEmail.user.id;
       }
     }
 
-    const usuarioRecord = {
-      auth_user_id: authUser.id,
-      email: validated.email,
-      nome: validated.nome,
-      perfil: validated.perfil,
-      telefone: validated.telefone,
-      cpf: validated.cpf,
-      ativo: validated.ativo,
-    };
+    if (!resolvedAuthUserId) {
+      throw new HttpError(500, "auth_user_id_missing", "Auth user id could not be resolved");
+    }
 
     const { error: upsertError } = await supabaseAdmin
       .from("usuarios")
-      .upsert(usuarioRecord, { onConflict: "auth_user_id" });
+      .upsert({
+        auth_user_id: resolvedAuthUserId,
+        email: validated.email,
+        nome: validated.nome,
+        perfil: validated.perfil,
+        cpf: validated.cpf,
+        telefone: validated.telefone,
+        ativo: validated.ativo,
+      }, { onConflict: "auth_user_id" });
 
     if (upsertError) {
-      console.error("[create-user] usuarios.upsert:error", {
-        requestId,
-        email: maskEmail(validated.email),
-        message: upsertError.message,
-        code: upsertError.code,
-        details: upsertError.details,
-        hint: upsertError.hint,
-      });
-
       throw new HttpError(500, "usuarios_upsert_failed", "Auth user was created, but failed to upsert public.usuarios", {
         message: upsertError.message,
         code: upsertError.code,
@@ -355,18 +217,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log("[create-user] request:success", {
-      requestId,
-      authUserId: authUser.id,
-      email: maskEmail(validated.email),
-      perfil: validated.perfil,
-    });
-
-    return response(201, requestId, {
-      success: true,
-      message: "User created/updated successfully",
-      user: {
-        auth_user_id: authUser.id,
+    return respond(200, requestId, {
+      ok: true,
+      data: {
+        auth_user_id: resolvedAuthUserId,
         email: validated.email,
         nome: validated.nome,
         perfil: validated.perfil,
@@ -378,28 +232,19 @@ Deno.serve(async (req) => {
   } catch (error) {
     const isHttpError = error instanceof HttpError;
     const status = isHttpError ? error.status : 500;
-    const code = isHttpError ? error.code : "internal_error";
-    const message = error instanceof Error ? error.message : "Unexpected error";
-    const details = isHttpError
-      ? error.details
-      : {
-          errorType: typeof error,
-          rawError: String(error),
-        };
+    const details = isHttpError ? error.details : { rawError: String(error) };
 
-    console.error("[create-user] request:failed", {
+    console.error("[create-user] failed", {
       requestId,
       status,
-      code,
-      message,
+      error: isHttpError ? error.code : "internal_error",
       details,
       stack: error instanceof Error ? error.stack : null,
     });
 
-    return response(status, requestId, {
-      success: false,
-      error: code,
-      message,
+    return respond(status, requestId, {
+      ok: false,
+      error: isHttpError ? error.code : "internal_error",
       details,
     });
   }

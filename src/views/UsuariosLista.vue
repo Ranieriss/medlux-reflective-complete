@@ -635,15 +635,15 @@ const telefoneRules = [
 const formatarErroSupabase = (error) => {
   const details = error?.details || null
   const status = error?.status || details?.status || null
-  const code = error?.code || details?.code || null
+  const code = error?.code || details?.code || details?.error || null
   const requestId = details?.requestId || null
   const hint = error?.hint || null
   const message = error?.message || details?.message || 'Erro inesperado.'
 
   if (code === '23505') return 'E-mail já cadastrado'
-  if (status === 403) return `Sem permissão para esta ação${requestId ? ` (requestId=${requestId})` : ''}`
+  if (status === 403) return `Você não tem permissão para criar usuários.${requestId ? ` (requestId=${requestId})` : ''}`
 
-  return `Erro: ${message} (status=${status || 'n/a'}, code=${code || 'n/a'}${requestId ? `, requestId=${requestId}` : ''}${hint ? `, hint=${hint}` : ''})`
+  return `Erro ao processar solicitação. ${message} (status=${status || 'n/a'}, code=${code || 'n/a'}${requestId ? `, requestId=${requestId}` : ''}${hint ? `, hint=${hint}` : ''})`
 }
 
 // Snackbar
@@ -791,17 +791,21 @@ const salvarUsuario = async () => {
         if (updateProfileError) throw updateProfileError
       }
 
-      if (createUserData?.error) {
-        throw new Error(createUserData?.message || createUserData?.details?.createErrMessage || createUserData?.error || 'Erro desconhecido ao criar usuário')
+      if (createUserData?.ok === false) {
+        throw Object.assign(new Error(createUserData?.details?.message || 'Erro desconhecido ao criar usuário'), {
+          code: createUserData?.error || 'create_user_failed',
+          status: 500,
+          details: createUserData
+        })
       }
 
       console.info('[usuarios] create-user success', {
         requestId,
-        status: 201,
+        status: 200,
         email: payload.email
       })
 
-      mostrarSnackbar('Usuário criado com sucesso!', 'success')
+      mostrarSnackbar('Usuário criado com sucesso.', 'success')
     }
 
     fecharDialog()
