@@ -34,10 +34,7 @@ const routes = [
     component: LayoutView,
     meta: { requiresAuth: true },
     children: [
-      {
-        path: '',
-        redirect: '/dashboard'
-      },
+      { path: '', redirect: '/dashboard' },
       {
         path: 'dashboard',
         name: 'Dashboard',
@@ -66,7 +63,7 @@ const routes = [
         path: 'calibracoes',
         name: 'Calibracoes',
         component: CalibracoesView,
-        meta: { title: 'Medições' }
+        meta: { title: 'Calibrações' }
       },
       {
         path: 'medicoes-horizontal',
@@ -105,41 +102,66 @@ const routes = [
         meta: { title: 'Sistema', requiresAdmin: true }
       }
     ]
-  }
+  },
+  // fallback SPA (opcional, ajuda quando cair em rota inexistente)
+  { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes
+  // recomendado em Vite: respeita BASE_URL
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
+// Evita várias restaurações simultâneas (causa “fica rodando”)
+let restorePromise = null
+async function restoreSessionOnce(authStore) {
+  if (authStore.isAuthenticated) return
+  if (!restorePromise) {
+    restorePromise = Promise.resolve()
+      .then(() => authStore.restaurarSessao())
+      .catch(() => null)
+      .finally(() => {
+        restorePromise = null
+      })
+  }
+  await restorePromise
+}
+
 // Guard de navegação
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
 
-  // Restaurar sessão apenas quando rota protegida exigir autenticação
+  // Só tenta restaurar sessão se realmente precisa (rota protegida)
   if ((requiresAuth || requiresAdmin) && !authStore.isAuthenticated) {
-    await authStore.restaurarSessao()
+    await restoreSessionOnce(authStore)
   }
 
-  if (requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-    return
+  // Se a rota exige login e não está logado -> manda para /login e guarda redirect
+  if ((requiresAuth || requiresAdmin) && !authStore.isAuthenticated) {
+    return {
+      path: '/login',
+      query: { redirect: to.fullPath }
+    }
   }
 
+  // Se exige admin e não é admin -> manda para dashboard
   if (requiresAdmin && !authStore.isAdmin) {
-    next('/dashboard')
-    return
+    return { path: '/dashboard' }
   }
 
+  // Se está logado e tenta ir pro login -> manda pro dashboard (ou redirect se tiver)
   if (to.path === '/login' && authStore.isAuthenticated) {
-    next('/dashboard')
-    return
+    const redirect = typeof to.query?.redirect === 'string' ? to.query.redirect : '/dashboard'
+    return { path: redirect }
   }
 
-  next()
+  return true
 })
 
 export default router
