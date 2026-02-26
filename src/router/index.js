@@ -16,6 +16,9 @@ const RelatoriosView = () => import('@/views/RelatoriosLista.vue')
 const AuditoriaView = () => import('@/views/AuditoriaView.vue')
 const SistemaView = () => import('@/views/SistemaView.vue')
 
+// ✅ NOVO: Tela de Critérios Normativos (somente mínimo)
+const CriteriosNormativosView = () => import('@/views/CriteriosNormativos.vue')
+
 const routes = [
   {
     path: '/login',
@@ -100,6 +103,14 @@ const routes = [
         name: 'Sistema',
         component: SistemaView,
         meta: { title: 'Sistema', requiresAdmin: true }
+      },
+
+      // ✅ NOVO: Critérios Normativos (ADMIN)
+      {
+        path: 'criterios-normativos',
+        name: 'CriteriosNormativos',
+        component: CriteriosNormativosView,
+        meta: { title: 'Critérios Normativos', requiresAdmin: true }
       }
     ]
   },
