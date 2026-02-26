@@ -1,14 +1,9 @@
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-app-bar
-      :elevation="0"
-      color="surface"
-      class="glass"
-      height="64"
-    >
+    <v-app-bar :elevation="0" color="surface" class="glass" height="64">
       <v-app-bar-nav-icon @click="drawer = !drawer" />
-      
+
       <v-toolbar-title class="text-h6 font-weight-bold">
         <v-icon class="mr-2" color="primary">mdi-chart-box</v-icon>
         MEDLUX Reflective
@@ -30,10 +25,7 @@
       <!-- Menu do usuário -->
       <v-menu>
         <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            class="ml-2"
-          >
+          <v-btn v-bind="props" class="ml-2">
             <v-avatar size="32" color="primary" class="mr-2">
               <v-icon size="20">mdi-account</v-icon>
             </v-avatar>
@@ -41,6 +33,7 @@
             <v-icon class="ml-1">mdi-chevron-down</v-icon>
           </v-btn>
         </template>
+
         <v-list>
           <v-list-item>
             <v-list-item-title class="font-weight-bold">
@@ -50,18 +43,22 @@
               {{ authStore.emailUsuario }}
             </v-list-item-subtitle>
           </v-list-item>
+
           <v-divider />
-          <v-list-item 
-            prepend-icon="mdi-account-cog" 
+
+          <v-list-item
+            prepend-icon="mdi-account-cog"
             title="Perfil"
             @click="irParaPerfil"
           />
-          <v-list-item 
-            prepend-icon="mdi-cog" 
+          <v-list-item
+            prepend-icon="mdi-cog"
             title="Configurações"
             @click="irParaConfiguracoes"
           />
+
           <v-divider />
+
           <v-list-item
             prepend-icon="mdi-logout"
             title="Sair"
@@ -91,15 +88,20 @@
       <v-divider />
 
       <v-list density="compact" nav>
-        <v-list-item
-          v-for="item in menuItems"
-          :key="item.to"
-          :prepend-icon="item.icon"
-          :title="item.title"
-          :to="item.to"
-          :active="$route.path === item.to"
-          class="my-1"
-        />
+        <template v-for="(item, idx) in menuItems" :key="`${item.type || 'item'}-${item.to || idx}`">
+          <!-- Divider (linha separadora) -->
+          <v-divider v-if="item.type === 'divider'" class="my-2" />
+
+          <!-- Item normal -->
+          <v-list-item
+            v-else
+            :prepend-icon="item.icon"
+            :title="item.title"
+            :to="item.to"
+            :active="$route.path === item.to"
+            class="my-1"
+          />
+        </template>
       </v-list>
     </v-navigation-drawer>
 
@@ -137,21 +139,20 @@ const notificacoesCount = ref(3) // TODO: Implementar sistema de notificações
 // Menu items baseado em permissões
 const menuItems = computed(() => {
   const items = []
-  
+
   // Dashboard - todos veem
   items.push({
     title: 'Dashboard',
     icon: 'mdi-view-dashboard',
     to: '/dashboard'
   })
-  
+
   // Operadores veem apenas medições e seus equipamentos
   if (authStore.isOperador) {
     items.push({
       title: 'Meus Equipamentos',
       icon: 'mdi-devices',
-      to: '/equipamentos',
-      badge: null
+      to: '/equipamentos'
     })
     items.push({
       title: 'Minhas Medições',
@@ -160,7 +161,7 @@ const menuItems = computed(() => {
     })
     return items
   }
-  
+
   // Admin e Técnicos veem tudo
   items.push({
     title: 'Equipamentos',
@@ -196,10 +197,21 @@ const menuItems = computed(() => {
         icon: 'mdi-shield-search',
         to: '/auditoria'
       },
+
+      // ✅ Linha entre Auditoria e Sistema
+      { type: 'divider' },
+
       {
         title: 'Sistema',
         icon: 'mdi-cog',
         to: '/sistema'
+      },
+
+      // ✅ NOVO: Critérios Normativos (admin atualiza manualmente)
+      {
+        title: 'Critérios Normativos',
+        icon: 'mdi-tune-vertical',
+        to: '/criterios-normativos'
       }
     )
   }
@@ -209,11 +221,11 @@ const menuItems = computed(() => {
 
 // Métodos
 const irParaPerfil = () => {
-  router.push('/sistema')  // Reutiliza tela de sistema por enquanto
+  router.push('/sistema') // Reutiliza tela de sistema por enquanto
 }
 
 const irParaConfiguracoes = () => {
-  router.push('/sistema')  // Reutiliza tela de sistema por enquanto
+  router.push('/sistema') // Reutiliza tela de sistema por enquanto
 }
 
 const handleLogout = () => {
