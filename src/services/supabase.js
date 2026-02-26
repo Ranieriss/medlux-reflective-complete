@@ -47,9 +47,23 @@ export const supabase = hasSupabaseEnv
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true,
-        flowType: 'pkce'
+
+        // ✅ CORREÇÃO 1: NÃO tente ler token da URL em SPA com history router (Vercel)
+        // Isso evita loops / travas no /login e conflitos de navegação.
+        detectSessionInUrl: false,
+
+        // ✅ CORREÇÃO 2: mais estável para SPA tradicional (email/senha) no browser
+        // PKCE + detectSessionInUrl costuma gerar comportamento intermitente em rota /login.
+        flowType: 'implicit'
       },
+
+      // ✅ Extra seguro (não muda comportamento, ajuda debug)
+      global: {
+        headers: {
+          'x-application-name': 'medlux-reflective'
+        }
+      },
+
       realtime: {
         params: {
           eventsPerSecond: 10
@@ -279,7 +293,11 @@ export async function ensureSessionAndProfile() {
     perfil = perfilByUserId.data
 
     if (!perfil && perfilByUserId.nextFallback === 'id') {
-      const { data: perfilById, error: perfilByIdError } = await supabase.from('usuarios').select('*').eq('id', userData.user.id).maybeSingle()
+      const { data: perfilById, error: perfilByIdError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', userData.user.id)
+        .maybeSingle()
 
       if (perfilByIdError) throw perfilByIdError
       perfil = perfilById || null
@@ -289,7 +307,11 @@ export async function ensureSessionAndProfile() {
       perfil = await criarPerfilAusente(userData.user)
 
       if (!perfil) {
-        const { data: perfilRecuperado, error: perfilRecuperadoError } = await supabase.from('usuarios').select('*').eq('id', userData.user.id).maybeSingle()
+        const { data: perfilRecuperado, error: perfilRecuperadoError } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', userData.user.id)
+          .maybeSingle()
 
         if (perfilRecuperadoError) throw perfilRecuperadoError
         perfil = perfilRecuperado || null
