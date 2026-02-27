@@ -25,23 +25,35 @@
             item-key="id"
             density="compact"
           >
-            <template #item.valor_minimo="{ item }">
+            <!-- Valor mínimo -->
+            <template v-slot:[`item.valor_minimo`]="{ item }">
               <v-text-field
-                v-model.number="item.valor_minimo"
+                v-model.number="item.raw.valor_minimo"
                 type="number"
                 density="compact"
+                variant="outlined"
+                hide-details
                 :readonly="!authStore.isAdmin"
-                @blur="atualizar(aba.table, item)"
+                @blur="atualizar(aba.table, item.raw)"
               />
             </template>
 
-            <template #item.ativo="{ item }">
+            <!-- Ativo -->
+            <template v-slot:[`item.ativo`]="{ item }">
               <v-switch
-                v-model="item.ativo"
+                v-model="item.raw.ativo"
                 :readonly="!authStore.isAdmin"
-                @change="atualizar(aba.table, item)"
+                @change="atualizar(aba.table, item.raw)"
                 inset
+                hide-details
               />
+            </template>
+
+            <!-- Mensagem quando vazio -->
+            <template v-slot:no-data>
+              <div class="py-6 text-medium-emphasis">
+                Nenhum critério cadastrado nesta aba.
+              </div>
             </template>
           </v-data-table>
         </v-window-item>
@@ -65,14 +77,15 @@ import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/services/supabase'
 
 const authStore = useAuthStore()
+
 const loading = ref(false)
 const abaAtiva = ref('horizontal')
 
 /**
- * IMPORTANTÍSSIMO:
- * - Vertical usa: public.norma_vertical
- * - Dispositivos usa: public.norma_dispositivos
- * (essas são as tabelas que você criou no Supabase)
+ * Tabelas no Supabase:
+ * - Horizontal: norma_criterios_horizontal
+ * - Vertical: norma_vertical
+ * - Dispositivos (tachas): norma_dispositivos
  */
 const abas = [
   {
@@ -94,8 +107,8 @@ const abas = [
     table: 'norma_vertical',
     headers: [
       { title: 'Classe', key: 'classe_pelicula' },
-      { title: 'Ângulo Observação', key: 'angulo_observacao' },
-      { title: 'Ângulo Entrada', key: 'angulo_entrada' },
+      { title: 'Ang. Observação', key: 'angulo_observacao' },
+      { title: 'Ang. Entrada', key: 'angulo_entrada' },
       { title: 'Cor', key: 'cor' },
       { title: 'Norma', key: 'norma_ref' },
       { title: 'Unidade', key: 'unidade' },
@@ -108,8 +121,8 @@ const abas = [
     table: 'norma_dispositivos',
     headers: [
       { title: 'Tipo Lente', key: 'tipo_lente' },
-      { title: 'Ângulo Observação', key: 'angulo_observacao' },
-      { title: 'Ângulo Entrada', key: 'angulo_entrada' },
+      { title: 'Ang. Observação', key: 'angulo_observacao' },
+      { title: 'Ang. Entrada', key: 'angulo_entrada' },
       { title: 'Cor', key: 'cor' },
       { title: 'Norma', key: 'norma_ref' },
       { title: 'Unidade', key: 'unidade' },
@@ -125,90 +138,59 @@ const itensPorAba = ref({
   dispositivos: []
 })
 
-const abasCarregadas = ref({
-  horizontal: false,
-  vertical: false,
-  dispositivos: false
-})
-
-const carregarHorizontal = async () => {
+async function carregar() {
   loading.value = true
+  try {
+    for (const aba of abas) {
+      const { data, error } = await supabase
+        .from(aba.table)
+        .select('*')
+        .order('id', { ascending: true })
 
-  const { data, error } = await supabase
-    .from('norma_criterios_validacao')
-    .select('*')
-    .order('id', { ascending: true })
-
-  if (!error) {
-    itensPorAba.value.horizontal = data
-    abasCarregadas.value.horizontal = true
+      if (error) {
+        console.error(`[CriteriosNormativos] Erro ao carregar ${aba.table}:`, error)
+        itensPorAba.value[aba.key] = []
+      } else {
+        itensPorAba.value[aba.key] = data ?? []
+      }
+    }
+  } finally {
+    loading.value = false
   }
-
-  loading.value = false
 }
-
-const carregarVertical = async () => {
-  loading.value = true
-
-  const { data, error } = await supabase
-    .from('norma_vertical')
-    .select('*')
-    .order('id', { ascending: true })
-
-  if (!error) {
-    itensPorAba.value.vertical = data
-    abasCarregadas.value.vertical = true
-  }
-
-  loading.value = false
-}
-
-const carregarDispositivos = async () => {
-  loading.value = true
-
-  const { data, error } = await supabase
-    .from('norma_dispositivos')
-    .select('*')
-    .order('id', { ascending: true })
-
-if (!error) {
-  itensPorAba.value[aba.key] = data
-} else {
-  itensPorAba.value[aba.key] = []
-}
-  }
-
-  loading.value = false
-}
-
-const carregarAbaAtiva = async (aba) => {
-  if (abasCarregadas.value[aba]) return
-
-  if (aba === 'horizontal') {
-    await carregarHorizontal()
-    return
-  }
-
-  if (aba === 'vertical') {
-    await carregarVertical()
-    return
-  }
-
-  if (aba === 'dispositivos') {
-    await carregarDispositivos()
   }
 }
 
-const atualizar = async (table, item) => {
+async function atualizar(table, row) {
   if (!authStore.isAdmin) return
+  if (!row?.id) return
 
-  await supabase
+  const { error } = await supabase
     .from(table)
     .update({
-      valor_minimo: item.valor_minimo,
-      ativo: item.ativo
+      valor_minimo: row.valor_minimo,
+      ativo: row.ativo
     })
-    .eq('id', item.id)
+    .eq('id', row.id)
+
+  if (error) {
+    console.error(`[CriteriosNormativos] Erro ao atualizar ${table}:`, error)
+  }
+}
+  if (!authStore.isAdmin) return
+  if (!row?.id) return
+
+  const { error } = await supabase
+    .from(table)
+    .update({
+      valor_minimo: row.valor_minimo,
+      ativo: row.ativo
+    })
+    .eq('id', row.id)
+
+  if (error) {
+    console.error(`[CriteriosNormativos] Erro ao atualizar ${table}:`, error)
+  }
 }
 
 onMounted(() => {
