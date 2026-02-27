@@ -25,10 +25,10 @@
             item-key="id"
             density="compact"
           >
-            <!-- Valor mínimo -->
-            <template v-slot:[`item.valor_minimo`]="{ item }">
+            <!-- VALOR MÍNIMO -->
+            <template #item.valor_minimo="{ item }">
               <v-text-field
-                v-model.number="item.raw.valor_minimo"
+                v-model.number="item?.raw?.valor_minimo"
                 type="number"
                 density="compact"
                 variant="outlined"
@@ -38,10 +38,10 @@
               />
             </template>
 
-            <!-- Ativo -->
-            <template v-slot:[`item.ativo`]="{ item }">
+            <!-- ATIVO -->
+            <template #item.ativo="{ item }">
               <v-switch
-                v-model="item.raw.ativo"
+                v-model="item?.raw?.ativo"
                 :readonly="!authStore.isAdmin"
                 @change="atualizar(aba.table, item.raw)"
                 inset
@@ -49,7 +49,7 @@
               />
             </template>
 
-            <template v-slot:no-data>
+            <template #no-data>
               <div class="py-6 text-medium-emphasis">
                 Nenhum critério cadastrado nesta aba.
               </div>
@@ -64,7 +64,7 @@
         type="info"
         variant="tonal"
       >
-        Apenas ADMIN pode editar critérios. Usuários não-admin possuem acesso somente de leitura.
+        Apenas ADMIN pode editar critérios.
       </v-alert>
     </v-card>
   </v-container>
@@ -141,7 +141,7 @@ async function carregar() {
         .order('id', { ascending: true })
 
       if (error) {
-        console.error(`[CriteriosNormativos] Erro ao carregar ${aba.table}:`, error)
+        console.error(`Erro ao carregar ${aba.table}`, error)
         itensPorAba.value[aba.key] = []
       } else {
         itensPorAba.value[aba.key] = data ?? []
@@ -156,17 +156,13 @@ async function atualizar(table, row) {
   if (!authStore.isAdmin) return
   if (!row?.id) return
 
-  const { error } = await supabase
+  await supabase
     .from(table)
     .update({
-      valor_minimo: row.valor_minimo,
-      ativo: row.ativo
+      valor_minimo: row.valor_minimo ?? 0,
+      ativo: row.ativo ?? false
     })
     .eq('id', row.id)
-
-  if (error) {
-    console.error(`[CriteriosNormativos] Erro ao atualizar ${table}:`, error)
-  }
 }
 
 onMounted(() => {
