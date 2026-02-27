@@ -13,11 +13,7 @@
       </v-tabs>
 
       <v-window v-model="abaAtiva">
-        <v-window-item
-          v-for="aba in abas"
-          :key="aba.key"
-          :value="aba.key"
-        >
+        <v-window-item v-for="aba in abas" :key="aba.key" :value="aba.key">
           <v-data-table
             :headers="aba.headers"
             :items="itensPorAba[aba.key]"
@@ -25,31 +21,33 @@
             item-key="id"
             density="compact"
           >
-            <!-- VALOR MÍNIMO -->
-            <template #item.valor_minimo="{ item }">
+            <!-- Valor mínimo (SEM v-model com optional chaining) -->
+            <template v-slot:[`item.valor_minimo`]="{ item }">
               <v-text-field
-                v-model.number="item?.raw?.valor_minimo"
+                :model-value="getRow(item)?.valor_minimo ?? null"
                 type="number"
                 density="compact"
                 variant="outlined"
                 hide-details
                 :readonly="!authStore.isAdmin"
-                @blur="atualizar(aba.table, item.raw)"
+                @update:model-value="(v) => onEditNumber(aba.key, aba.table, getRow(item), 'valor_minimo', v)"
+                @blur="() => onPersist(aba.table, getRow(item))"
               />
             </template>
 
-            <!-- ATIVO -->
-            <template #item.ativo="{ item }">
+            <!-- Ativo (SEM v-model com optional chaining) -->
+            <template v-slot:[`item.ativo`]="{ item }">
               <v-switch
-                v-model="item?.raw?.ativo"
-                :readonly="!authStore.isAdmin"
-                @change="atualizar(aba.table, item.raw)"
+                :model-value="Boolean(getRow(item)?.ativo)"
                 inset
                 hide-details
+                :readonly="!authStore.isAdmin"
+                @update:model-value="(v) => onEditBool(aba.key, aba.table, getRow(item), 'ativo', v)"
+                @change="() => onPersist(aba.table, getRow(item))"
               />
             </template>
 
-            <template #no-data>
+            <template v-slot:no-data>
               <div class="py-6 text-medium-emphasis">
                 Nenhum critério cadastrado nesta aba.
               </div>
@@ -58,13 +56,8 @@
         </v-window-item>
       </v-window>
 
-      <v-alert
-        v-if="!authStore.isAdmin"
-        class="mt-4"
-        type="info"
-        variant="tonal"
-      >
-        Apenas ADMIN pode editar critérios.
+      <v-alert v-if="!authStore.isAdmin" class="mt-4" type="info" variant="tonal">
+        Apenas ADMIN pode editar critérios. Usuários não-admin possuem acesso somente de leitura.
       </v-alert>
     </v-card>
   </v-container>
@@ -100,8 +93,8 @@ const abas = [
     table: 'norma_vertical',
     headers: [
       { title: 'Classe', key: 'classe_pelicula' },
-      { title: 'Ang. Observação', key: 'angulo_observacao' },
-      { title: 'Ang. Entrada', key: 'angulo_entrada' },
+      { title: 'Ângulo Observação', key: 'angulo_observacao' },
+      { title: 'Ângulo Entrada', key: 'angulo_entrada' },
       { title: 'Cor', key: 'cor' },
       { title: 'Norma', key: 'norma_ref' },
       { title: 'Unidade', key: 'unidade' },
@@ -114,8 +107,8 @@ const abas = [
     table: 'norma_dispositivos',
     headers: [
       { title: 'Tipo Lente', key: 'tipo_lente' },
-      { title: 'Ang. Observação', key: 'angulo_observacao' },
-      { title: 'Ang. Entrada', key: 'angulo_entrada' },
+      { title: 'Ângulo Observação', key: 'angulo_observacao' },
+      { title: 'Ângulo Entrada', key: 'angulo_entrada' },
       { title: 'Cor', key: 'cor' },
       { title: 'Norma', key: 'norma_ref' },
       { title: 'Unidade', key: 'unidade' },
@@ -131,6 +124,12 @@ const itensPorAba = ref({
   dispositivos: []
 })
 
+// Vuetify DataTable pode entregar { item: { raw: row } }.
+// Em alguns cenários item/raw pode vir indefinido → por isso este helper.
+function getRow(slotItem) {
+  return slotItem?.raw ?? slotItem ?? null
+}
+
 async function carregar() {
   loading.value = true
   try {
@@ -138,10 +137,10 @@ async function carregar() {
       const { data, error } = await supabase
         .from(aba.table)
         .select('*')
-        .order('id', { ascending: true })
+        .order('created_at', { ascending: true })
 
       if (error) {
-        console.error(`Erro ao carregar ${aba.table}`, error)
+        console.error(`[CriteriosNormativos] Erro ao carregar ${aba.table}:`, error)
         itensPorAba.value[aba.key] = []
       } else {
         itensPorAba.value[aba.key] = data ?? []
@@ -152,17 +151,33 @@ async function carregar() {
   }
 }
 
-async function atualizar(table, row) {
+// Edita no front (responsivo), sem quebrar se row for null
+function onEditNumber(abaKey, table, row, field, value) {
+  if (!row || !row.id) return
+  const v = value === '' || value === null || value === undefined ? null : Number(value)
+  row[field] = Number.isFinite(v) ? v : null
+}
+
+function onEditBool(abaKey, table, row, field, value) {
+  if (!row || !row.id) return
+  row[field] = Boolean(value)
+}
+
+// Persiste no Supabase (apenas ADMIN)
+async function onPersist(table, row) {
   if (!authStore.isAdmin) return
   if (!row?.id) return
 
-  await supabase
-    .from(table)
-    .update({
-      valor_minimo: row.valor_minimo ?? 0,
-      ativo: row.ativo ?? false
-    })
-    .eq('id', row.id)
+  const payload = {
+    valor_minimo: row.valor_minimo,
+    ativo: row.ativo
+  }
+
+  const { error } = await supabase.from(table).update(payload).eq('id', row.id)
+
+  if (error) {
+    console.error(`[CriteriosNormativos] Erro ao atualizar ${table}:`, error)
+  }
 }
 
 onMounted(() => {
