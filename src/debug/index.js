@@ -373,7 +373,12 @@ const runSupabaseChecks = async ({ session } = {}) => {
   }
 
   const tables = ['usuarios', 'equipamentos']
-  const criteriosCandidates = ['criterios_retrorrefletancia', 'norma_criterios_validacao']
+  const criteriosCandidates = [
+    'norma_criterios_horizontal',
+    'norma_criterios_vertical',
+    'norma_criterios_dispositivos',
+    'criterios_retrorrefletancia'
+  ]
 
   for (const criterioTable of criteriosCandidates) {
     try {

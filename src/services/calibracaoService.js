@@ -108,8 +108,13 @@ const validarParametrosObrigatorios = (params) => {
     tipo_material,
     modo_medicao,
     classe_pelicula,
+    angulo_observacao,
+    angulo_entrada,
     tipo_pelicula,
     marca_pelicula,
+    momento,
+    dispositivo,
+    tipo_refletivo,
     valores_medicoes
   } = params
 
@@ -120,18 +125,22 @@ const validarParametrosObrigatorios = (params) => {
     if (!geometria) faltantes.push('geometria (15m ou 30m)')
     if (!tipo_sinalizacao) faltantes.push('tipo de sinalização')
     if (!tipo_material) faltantes.push('tipo de material horizontal')
+    if (!momento) faltantes.push('momento (INICIAL/RESIDUAL)')
   }
 
   if (prefixo_equipamento === 'RV') {
     if (!modo_medicao) faltantes.push('modo de medição vertical')
     if (!geometria) faltantes.push('geometria conforme modo selecionado')
     if (!classe_pelicula) faltantes.push('classe da película')
+    if (!angulo_observacao) faltantes.push('ângulo de observação')
+    if (!angulo_entrada) faltantes.push('ângulo de entrada')
     if (!tipo_pelicula) faltantes.push('tipo da película')
     if (!marca_pelicula) faltantes.push('marca da película')
   }
 
-  if (prefixo_equipamento === 'RT' && geometria !== '0,2°/0°') {
-    faltantes.push('geometria fixa 0,2°/0° para RT')
+  if (prefixo_equipamento === 'RT') {
+    if (!dispositivo) faltantes.push('dispositivo (TACHA/TACHAO)')
+    if (!tipo_refletivo) faltantes.push('tipo refletivo (I/II/III)')
   }
 
   return faltantes
@@ -152,9 +161,15 @@ export const calcularValidacao = async (params) => {
       geometria: params.geometria,
       tipo_material: params.tipo_material,
       classe_pelicula: params.classe_pelicula,
+      angulo_observacao: params.angulo_observacao,
+      angulo_entrada: params.angulo_entrada,
       tipo_pelicula: params.tipo_pelicula,
       marca: params.marca_pelicula,
       tipo_sinalizacao: params.tipo_sinalizacao,
+      momento: params.momento,
+      dispositivo: params.dispositivo,
+      tipo_refletivo: params.tipo_refletivo,
+      direcionalidade: params.direcionalidade,
       cor: params.cor,
       norma: params.norma,
       ativo: true
