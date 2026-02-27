@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/services/supabase'
 
@@ -90,7 +90,7 @@ const abaAtiva = ref('horizontal')
 const abas = [
   {
     key: 'horizontal',
-    table: 'norma_criterios_horizontal',
+    table: 'norma_criterios_validacao',
     headers: [
       { title: 'Geometria', key: 'geometria' },
       { title: 'Material', key: 'material' },
@@ -158,6 +158,8 @@ async function carregar() {
     loading.value = false
   }
 }
+  }
+}
 
 async function atualizar(table, row) {
   if (!authStore.isAdmin) return
@@ -175,9 +177,28 @@ async function atualizar(table, row) {
     console.error(`[CriteriosNormativos] Erro ao atualizar ${table}:`, error)
   }
 }
+  if (!authStore.isAdmin) return
+  if (!row?.id) return
+
+  const { error } = await supabase
+    .from(table)
+    .update({
+      valor_minimo: row.valor_minimo,
+      ativo: row.ativo
+    })
+    .eq('id', row.id)
+
+  if (error) {
+    console.error(`[CriteriosNormativos] Erro ao atualizar ${table}:`, error)
+  }
+}
 
 onMounted(() => {
-  carregar()
+  carregarAbaAtiva(abaAtiva.value)
+})
+
+watch(abaAtiva, async (novaAba) => {
+  await carregarAbaAtiva(novaAba)
 })
 </script>
 
