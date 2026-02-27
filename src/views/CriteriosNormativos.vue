@@ -49,7 +49,6 @@
               />
             </template>
 
-            <!-- Mensagem quando vazio -->
             <template v-slot:no-data>
               <div class="py-6 text-medium-emphasis">
                 Nenhum critério cadastrado nesta aba.
@@ -81,12 +80,6 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const abaAtiva = ref('horizontal')
 
-/**
- * Tabelas no Supabase:
- * - Horizontal: norma_criterios_horizontal
- * - Vertical: norma_vertical
- * - Dispositivos (tachas): norma_dispositivos
- */
 const abas = [
   {
     key: 'horizontal',
