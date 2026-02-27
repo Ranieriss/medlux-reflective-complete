@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/services/supabase'
 
@@ -71,7 +71,7 @@ const abaAtiva = ref('horizontal')
 const abas = [
   {
     key: 'horizontal',
-    table: 'norma_criterios_horizontal',
+    table: 'norma_criterios_validacao',
     headers: [
       { title: 'Geometria', key: 'geometria' },
       { title: 'Material', key: 'material' },
@@ -85,7 +85,7 @@ const abas = [
   },
   {
     key: 'vertical',
-    table: 'norma_criterios_vertical',
+    table: 'norma_vertical',
     headers: [
       { title: 'Classe', key: 'classe_pelicula' },
       { title: 'Ângulo Observação', key: 'angulo_observacao' },
@@ -99,7 +99,7 @@ const abas = [
   },
   {
     key: 'dispositivos',
-    table: 'norma_criterios_dispositivos',
+    table: 'norma_dispositivos',
     headers: [
       { title: 'Dispositivo', key: 'dispositivo' },
       { title: 'Cor', key: 'cor' },
@@ -120,21 +120,76 @@ const itensPorAba = ref({
   dispositivos: []
 })
 
-const carregar = async () => {
+const abasCarregadas = ref({
+  horizontal: false,
+  vertical: false,
+  dispositivos: false
+})
+
+const carregarHorizontal = async () => {
   loading.value = true
 
-  for (const aba of abas) {
-    const { data, error } = await supabase
-      .from(aba.table)
-      .select('*')
-      .order('id', { ascending: true })
+  const { data, error } = await supabase
+    .from('norma_criterios_validacao')
+    .select('*')
+    .order('id', { ascending: true })
 
-    if (!error) {
-      itensPorAba.value[aba.key] = data
-    }
+  if (!error) {
+    itensPorAba.value.horizontal = data
+    abasCarregadas.value.horizontal = true
   }
 
   loading.value = false
+}
+
+const carregarVertical = async () => {
+  loading.value = true
+
+  const { data, error } = await supabase
+    .from('norma_vertical')
+    .select('*')
+    .order('id', { ascending: true })
+
+  if (!error) {
+    itensPorAba.value.vertical = data
+    abasCarregadas.value.vertical = true
+  }
+
+  loading.value = false
+}
+
+const carregarDispositivos = async () => {
+  loading.value = true
+
+  const { data, error } = await supabase
+    .from('norma_dispositivos')
+    .select('*')
+    .order('id', { ascending: true })
+
+  if (!error) {
+    itensPorAba.value.dispositivos = data
+    abasCarregadas.value.dispositivos = true
+  }
+
+  loading.value = false
+}
+
+const carregarAbaAtiva = async (aba) => {
+  if (abasCarregadas.value[aba]) return
+
+  if (aba === 'horizontal') {
+    await carregarHorizontal()
+    return
+  }
+
+  if (aba === 'vertical') {
+    await carregarVertical()
+    return
+  }
+
+  if (aba === 'dispositivos') {
+    await carregarDispositivos()
+  }
 }
 
 const atualizar = async (table, item) => {
@@ -150,7 +205,11 @@ const atualizar = async (table, item) => {
 }
 
 onMounted(() => {
-  carregar()
+  carregarAbaAtiva(abaAtiva.value)
+})
+
+watch(abaAtiva, async (novaAba) => {
+  await carregarAbaAtiva(novaAba)
 })
 </script>
 
