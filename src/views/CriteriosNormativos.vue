@@ -68,6 +68,12 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const abaAtiva = ref('horizontal')
 
+/**
+ * IMPORTANTÍSSIMO:
+ * - Vertical usa: public.norma_vertical
+ * - Dispositivos usa: public.norma_dispositivos
+ * (essas são as tabelas que você criou no Supabase)
+ */
 const abas = [
   {
     key: 'horizontal',
@@ -85,7 +91,7 @@ const abas = [
   },
   {
     key: 'vertical',
-    table: 'norma_criterios_vertical',
+    table: 'norma_vertical',
     headers: [
       { title: 'Classe', key: 'classe_pelicula' },
       { title: 'Ângulo Observação', key: 'angulo_observacao' },
@@ -99,13 +105,12 @@ const abas = [
   },
   {
     key: 'dispositivos',
-    table: 'norma_criterios_dispositivos',
+    table: 'norma_dispositivos',
     headers: [
-      { title: 'Dispositivo', key: 'dispositivo' },
+      { title: 'Tipo Lente', key: 'tipo_lente' },
+      { title: 'Ângulo Observação', key: 'angulo_observacao' },
+      { title: 'Ângulo Entrada', key: 'angulo_entrada' },
       { title: 'Cor', key: 'cor' },
-      { title: 'Tipo Refletivo', key: 'tipo_refletivo' },
-      { title: 'Direcionalidade', key: 'direcionalidade' },
-      { title: 'Geometria', key: 'geometria' },
       { title: 'Norma', key: 'norma_ref' },
       { title: 'Unidade', key: 'unidade' },
       { title: 'Valor Mínimo', key: 'valor_minimo' },
@@ -131,6 +136,9 @@ const carregar = async () => {
 
     if (!error) {
       itensPorAba.value[aba.key] = data
+    } else {
+      // se der erro, deixa vazio (evita quebrar a tela)
+      itensPorAba.value[aba.key] = []
     }
   }
 
