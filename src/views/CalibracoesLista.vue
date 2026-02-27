@@ -434,18 +434,37 @@
               <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_material === 'Outro...'">
                 <v-text-field v-model="formMedicaoData.tipo_material_outro" label="Descreva o material *" variant="outlined" :rules="[rules.required]" />
               </v-col>
+              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
+                <v-select v-model="formMedicaoData.momento_medicao" :items="momentoOptions" label="Momento *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
 
               <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
                 <v-select v-model="formMedicaoData.modo_medicao_vertical" :items="[{ title: 'Ângulo único', value: 'angulo-unico' }, { title: 'Multiângulo', value: 'multi-angulo' }]" label="Modo de medição *" variant="outlined" :rules="[rules.required]" />
               </v-col>
               <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
-                <v-select v-model="formMedicaoData.classe_pelicula" :items="classePeliculaOptions" item-title="title" item-value="value" label="Classe da película *" variant="outlined" :rules="[rules.required]" />
+                <v-select v-model="formMedicaoData.classe_pelicula" :items="classePeliculaOptions" label="Classe da película *" variant="outlined" :rules="[rules.required]" />
               </v-col>
               <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
                 <v-select v-model="formMedicaoData.tipo_pelicula" :items="tipoPeliculaOptions" item-title="title" item-value="value" label="Tipo da película *" variant="outlined" :rules="[rules.required]" />
               </v-col>
               <v-col cols="12" md="6" v-if="mostrarCamposPelicula">
                 <v-text-field v-model="formMedicaoData.marca_pelicula" label="Marca da película *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="3" v-if="mostrarCamposPelicula">
+                <v-select v-model="formMedicaoData.angulo_observacao" :items="anguloObservacaoOptions" label="Ângulo observação *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="3" v-if="mostrarCamposPelicula">
+                <v-select v-model="formMedicaoData.angulo_entrada" :items="anguloEntradaOptions" label="Ângulo entrada *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+
+              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
+                <v-select v-model="formMedicaoData.dispositivo" :items="dispositivoOptions" label="Dispositivo *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
+                <v-select v-model="formMedicaoData.tipo_refletivo" :items="tipoRefletivoOptions" label="Tipo refletivo *" variant="outlined" :rules="[rules.required]" />
+              </v-col>
+              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
+                <v-select v-model="formMedicaoData.direcionalidade" :items="direcionalidadeOptions" label="Direcionalidade" variant="outlined" />
               </v-col>
 
               <v-col cols="12" md="6">
@@ -742,7 +761,7 @@ import { useAuthStore } from '@/stores/auth'
 import calibracaoService from '@/services/calibracaoService'
 import { buscarEquipamentosDoUsuario } from '@/services/equipamentoService'
 import { uploadFotosMedicao } from '@/services/uploadService'
-import { detectEquipmentPrefix, GEOMETRY_BY_PREFIX, HORIZONTAL_MATERIAL_OPTIONS, HORIZONTAL_SIGNAL_TYPES, VERTICAL_CLASSES, VERTICAL_TYPES } from '@/constants/normativeConfig'
+import { detectEquipmentPrefix, GEOMETRY_BY_PREFIX, HORIZONTAL_MATERIAL_OPTIONS, HORIZONTAL_SIGNAL_TYPES, VERTICAL_TYPES } from '@/constants/normativeConfig'
 import supabase, { getCurrentProfile, maskSupabaseKey, supabaseUrl } from '@/services/supabase'
 import { useDiagnosticsStore } from '@/stores/diagnostics'
 
@@ -796,6 +815,12 @@ export default {
       classe_pelicula: null,
       tipo_pelicula: null,
       marca_pelicula: '',
+      momento_medicao: 'INICIAL',
+      angulo_observacao: null,
+      angulo_entrada: null,
+      dispositivo: null,
+      tipo_refletivo: null,
+      direcionalidade: null,
       tipo_material: null,
       tipo_material_outro: '',
       cor_medicao: null,
@@ -857,7 +882,13 @@ export default {
     ]
     
     const tipoPeliculaOptions = VERTICAL_TYPES
-    const classePeliculaOptions = VERTICAL_CLASSES
+    const classePeliculaOptions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+    const momentoOptions = ['INICIAL', 'RESIDUAL']
+    const anguloObservacaoOptions = ['0,2°', '0,5°', '1,0°']
+    const anguloEntradaOptions = ['-4°', '+30°']
+    const dispositivoOptions = ['TACHA', 'TACHAO']
+    const tipoRefletivoOptions = ['I', 'II', 'III']
+    const direcionalidadeOptions = ['BIDIRECIONAL', 'MONODIRECIONAL']
     const tipoSinalizacaoOptions = HORIZONTAL_SIGNAL_TYPES
     const tipoMaterialHorizontalOptions = HORIZONTAL_MATERIAL_OPTIONS
     
@@ -1011,12 +1042,17 @@ export default {
 
       if (prefixo === 'RH') {
         formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RH[0].value
+        formMedicaoData.value.momento_medicao = 'INICIAL'
       }
       if (prefixo === 'RV') {
         formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RV_SINGLE[0].value
+        formMedicaoData.value.angulo_observacao = '0,2°'
+        formMedicaoData.value.angulo_entrada = '-4°'
       }
       if (prefixo === 'RT') {
         formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RT[0].value
+        formMedicaoData.value.dispositivo = 'TACHA'
+        formMedicaoData.value.tipo_refletivo = 'I'
       }
     }
 
@@ -1037,6 +1073,8 @@ export default {
     const mostrarCamposPelicula = computed(() => tipoMedicao.value === 'RV')
 
     const mostrarCamposMaterial = computed(() => tipoMedicao.value === 'RH')
+
+    const mostrarCamposDispositivos = computed(() => tipoMedicao.value === 'RT')
 
     const mostrarSimuladorChuva = computed(() => false)
 
@@ -1172,8 +1210,14 @@ export default {
           tipo_material: formMedicaoData.value.tipo_material === 'Outro...' ? formMedicaoData.value.tipo_material_outro : formMedicaoData.value.tipo_material,
           modo_medicao: formMedicaoData.value.modo_medicao_vertical,
           classe_pelicula: formMedicaoData.value.classe_pelicula,
+          angulo_observacao: formMedicaoData.value.angulo_observacao,
+          angulo_entrada: formMedicaoData.value.angulo_entrada,
           tipo_pelicula: formMedicaoData.value.tipo_pelicula,
           marca_pelicula: formMedicaoData.value.marca_pelicula,
+          momento: formMedicaoData.value.momento_medicao,
+          dispositivo: formMedicaoData.value.dispositivo,
+          tipo_refletivo: formMedicaoData.value.tipo_refletivo,
+          direcionalidade: formMedicaoData.value.direcionalidade,
           cor: formMedicaoData.value.cor_medicao,
           geometria: formMedicaoData.value.geometria_medicao,
           valores_medicoes: formMedicaoData.value.valores_medicoes,
@@ -1413,6 +1457,12 @@ export default {
       // Opções Dinâmicas
       tipoPeliculaOptions,
       classePeliculaOptions,
+      momentoOptions,
+      anguloObservacaoOptions,
+      anguloEntradaOptions,
+      dispositivoOptions,
+      tipoRefletivoOptions,
+      direcionalidadeOptions,
       tipoSinalizacaoOptions,
       tipoMaterialHorizontalOptions,
       corOptions,
@@ -1420,6 +1470,7 @@ export default {
       tipoMedicao,
       mostrarCamposPelicula,
       mostrarCamposMaterial,
+      mostrarCamposDispositivos,
       mostrarSimuladorChuva,
       
       // Headers

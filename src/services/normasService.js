@@ -13,11 +13,110 @@ const toNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+const pickMinimoFromResponse = (data) => {
+  if (data === null || data === undefined) return null
+
+  if (typeof data === 'number') return data
+
+  if (Array.isArray(data)) {
+    if (!data.length) return null
+    return pickMinimoFromResponse(data[0])
+  }
+
+  if (typeof data === 'object') {
+    const candidateKeys = ['valor_minimo', 'minimo', 'criterio_minimo', 'resultado', 'value']
+    for (const key of candidateKeys) {
+      if (key in data && toNumber(data[key]) !== null) {
+        return toNumber(data[key])
+      }
+    }
+
+    for (const value of Object.values(data)) {
+      const parsed = toNumber(value)
+      if (parsed !== null) return parsed
+    }
+  }
+
+  return toNumber(data)
+}
+
 const mapTipoEquipamento = (prefixo, tipoEquipamento) => {
   if (prefixo === 'RH') return 'horizontal'
   if (prefixo === 'RV') return 'vertical'
-  if (prefixo === 'RT') return 'tachas'
-  return normalize(tipoEquipamento)?.toLowerCase() || null
+  if (prefixo === 'RT') return 'dispositivos'
+
+  const normalized = normalize(tipoEquipamento)?.toLowerCase() || null
+  if (normalized === 'tachas' || normalized === 'tachoes' || normalized === 'tachões') return 'dispositivos'
+  return normalized
+}
+
+const buildHorizontalArgs = (params) => ({
+  p_geometria: normalize(params.geometria),
+  p_material: normalize(params.tipo_material),
+  p_cor: normalize(params.cor),
+  p_momento: normalize(params.momento) || 'INICIAL'
+})
+
+const buildVerticalArgs = (params) => ({
+  p_classe_pelicula: normalize(params.classe_pelicula),
+  p_angulo_observacao: normalize(params.angulo_observacao),
+  p_angulo_entrada: normalize(params.angulo_entrada),
+  p_cor: normalize(params.cor)
+})
+
+const buildDispositivoArgs = (params) => ({
+  p_dispositivo: normalize(params.dispositivo),
+  p_cor: normalize(params.cor),
+  p_tipo_refletivo: normalize(params.tipo_refletivo),
+  p_direcionalidade: normalize(params.direcionalidade),
+  p_geometria: normalize(params.geometria)
+})
+
+const getRpcConfigByTipo = (tipoEquipamento) => {
+  if (tipoEquipamento === 'horizontal') {
+    return {
+      rpc: 'get_criterio_horizontal_minimo',
+      argsBuilder: buildHorizontalArgs,
+      metadataBuilder: (params) => ({
+        tipo_equipamento: 'horizontal',
+        geometria: normalize(params.geometria),
+        tipo_material: normalize(params.tipo_material),
+        cor: normalize(params.cor),
+        momento: normalize(params.momento)
+      })
+    }
+  }
+
+  if (tipoEquipamento === 'vertical') {
+    return {
+      rpc: 'get_criterio_vertical_minimo',
+      argsBuilder: buildVerticalArgs,
+      metadataBuilder: (params) => ({
+        tipo_equipamento: 'vertical',
+        classe_pelicula: normalize(params.classe_pelicula),
+        angulo_observacao: normalize(params.angulo_observacao),
+        angulo_entrada: normalize(params.angulo_entrada),
+        cor: normalize(params.cor)
+      })
+    }
+  }
+
+  if (tipoEquipamento === 'dispositivos') {
+    return {
+      rpc: 'get_criterio_dispositivo_minimo',
+      argsBuilder: buildDispositivoArgs,
+      metadataBuilder: (params) => ({
+        tipo_equipamento: 'dispositivos',
+        dispositivo: normalize(params.dispositivo),
+        cor: normalize(params.cor),
+        tipo_refletivo: normalize(params.tipo_refletivo),
+        direcionalidade: normalize(params.direcionalidade),
+        geometria: normalize(params.geometria)
+      })
+    }
+  }
+
+  return null
 }
 
 export async function buscarCriterioNormativo(params = {}) {
@@ -26,123 +125,33 @@ export async function buscarCriterioNormativo(params = {}) {
     return { success: false, error: 'Tipo de equipamento inválido para consulta normativa.' }
   }
 
-  const filtros = {
-    tipo_equipamento: tipoEquipamento,
-    geometria: normalize(params.geometria),
-    tipo_material: normalize(params.tipo_material),
-    tipo_pelicula: normalize(params.tipo_pelicula),
-    classe_pelicula: normalize(params.classe_pelicula),
-    marca: normalize(params.marca),
-    tipo_sinalizacao: normalize(params.tipo_sinalizacao),
-    cor: normalize(params.cor),
-    norma: normalize(params.norma),
-    ativo: params.ativo ?? true
+  const config = getRpcConfigByTipo(tipoEquipamento)
+  if (!config) {
+    return { success: false, error: `Tipo de equipamento sem RPC mapeada: ${tipoEquipamento}` }
   }
 
-  const queryCriteria = async ({ table, fields }) => {
-    const { data, error } = await executeWithAuthRetry(`buscarCriterioNormativo:${table}`, async () =>
-      supabase
-        .from(table)
-        .select('*')
-        .eq(fields.tipoEquipamento, filtros.tipo_equipamento)
-        .eq(fields.ativo, filtros.ativo)
-        .limit(250)
-    )
-
-    if (error) {
-      return { data: null, error }
-    }
-
-    const rows = Array.isArray(data) ? data : []
-
-    const filtered = rows.find((row) => {
-      const check = (column, expected) => {
-        if (!expected) return true
-        if (!(column in row)) return true
-        return normalize(row[column]) === expected
-      }
-
-      return (
-        check(fields.cor, filtros.cor) &&
-        check(fields.geometria, filtros.geometria) &&
-        check(fields.tipoMaterial, filtros.tipo_material) &&
-        check(fields.tipoPelicula, filtros.tipo_pelicula) &&
-        check(fields.normaReferencia, filtros.norma)
-      )
-    })
-
-    return { data: filtered || null, error: null }
-  }
-
-  const mapRecord = ({ data, table }) => {
-    if (!data) return null
-    if (table === 'norma_criterios_validacao') {
-      return {
-        ...data,
-        norma_referencia: data.norma_referencia ?? data.norma,
-        valor_minimo: data.valor_minimo,
-        tipo_equipamento: data.tipo_equipamento,
-        tipo_material: data.tipo_material,
-        tipo_pelicula: data.tipo_pelicula
-      }
-    }
-    return data
-  }
-
-  const criteriaTables = ['norma_criterios_validacao', 'criterios_retrorrefletancia']
-  let data = null
-  let error = null
-
-  for (const table of criteriaTables) {
-    const response = await queryCriteria({
-      table,
-      fields: {
-        tipoEquipamento: 'tipo_equipamento',
-        ativo: 'ativo',
-        cor: 'cor',
-        geometria: 'geometria',
-        tipoMaterial: 'tipo_material',
-        tipoPelicula: 'tipo_pelicula',
-        normaReferencia: 'norma_referencia'
-      }
-    })
-
-    if (response.data) {
-      data = mapRecord({ data: response.data, table })
-      error = null
-      break
-    }
-
-    const tableError = response.error
-    const tableMissing = tableError?.code === '42P01' || tableError?.status === 404
-    if (!tableMissing) {
-      error = tableError
-    }
-  }
+  const rpcArgs = config.argsBuilder(params)
+  const { data, error } = await executeWithAuthRetry(`buscarCriterioNormativo:${config.rpc}`, async () =>
+    supabase.rpc(config.rpc, rpcArgs)
+  )
 
   if (error) {
     return { success: false, error: error.message, details: error }
   }
 
-  if (!data) {
+  const valorMinimo = pickMinimoFromResponse(data)
+  if (valorMinimo === null) {
     return { success: false, error: friendlyMissingCriteria, code: 'CRITERIO_NAO_CADASTRADO' }
   }
 
   return {
     success: true,
     data: {
-      id: data.id,
-      valor_minimo: toNumber(data.valor_minimo),
-      unidade: data.unidade || 'cd/(lx·m²)',
-      norma: data.norma_referencia || 'Norma não informada',
-      metadata: {
-        tipo_equipamento: data.tipo_equipamento,
-        geometria: data.geometria,
-        tipo_material: data.tipo_material,
-        tipo_pelicula: data.tipo_pelicula,
-        cor: data.cor,
-        observacoes: data.observacoes
-      },
+      id: null,
+      valor_minimo: valorMinimo,
+      unidade: 'cd/(lx·m²)',
+      norma: normalize(params.norma) || 'Norma não informada',
+      metadata: config.metadataBuilder(params),
       raw: data
     }
   }
