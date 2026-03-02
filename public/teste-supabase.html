@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste Supabase - MEDLUX</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #fff;
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: #4caf50;
+        margin-bottom: 10px;
+        font-size: 24px;
+      }
+      .section {
+        background: rgba(42, 42, 42, 0.8);
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 12px;
+        border-left: 4px solid #4caf50;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+      h2 {
+        color: #4caf50;
+        font-size: 18px;
+        margin-bottom: 15px;
+      }
+      button {
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        padding: 14px 20px;
+        font-size: 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin: 5px;
+        transition: all 0.3s;
+        width: 100%;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+      }
+      button:hover {
+        background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      button:disabled {
+        background: #666;
+        cursor: not-allowed;
+        transform: none;
+      }
+      #result {
+        white-space: pre-wrap;
+        background: #1a1a1a;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border: 1px solid #444;
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .success {
+        color: #4caf50;
+        font-weight: bold;
+      }
+      .error {
+        color: #f44336;
+        font-weight: bold;
+      }
+      .warning {
+        color: #ff9800;
+        font-weight: bold;
+      }
+      .info {
+        color: #2196f3;
+      }
+      .highlight {
+        background: rgba(76, 175, 80, 0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .status.success {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+      }
+      .status.error {
+        background: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+      }
+      .status.pending {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+      }
+      p {
+        margin: 8px 0;
+        line-height: 1.6;
+      }
+      strong {
+        color: #4caf50;
+      }
+      .btn-group {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 600px) {
+        .btn-group {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .loader {
+        border: 3px solid #444;
+        border-top: 3px solid #4caf50;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 10px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 Teste de Conexão Supabase</h1>
+      <p style="color: #999; margin-bottom: 20px">
+        MEDLUX Reflective - Diagnóstico de Equipamentos
+      </p>
+
+      <div class="section">
+        <h2>📊 Informações do Projeto</h2>
+        <p>
+          <strong>Projeto ID:</strong>
+          <span class="highlight">earrnuuvdzawclxsyoxk</span>
+        </p>
+        <p>
+          <strong>Status:</strong>
+          <span id="status" class="status pending">Aguardando teste...</span>
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>🧪 Testes Disponíveis</h2>
+        <div class="btn-group">
+          <button onclick="testarConexao()">🔌 Testar Conexão</button>
+          <button onclick="contarEquipamentos()">📊 Contar Equipamentos</button>
+          <button onclick="listarEquipamentos()">📋 Listar Todos</button>
+          <button onclick="testarQueryAdmin()">👤 Query Admin</button>
+        </div>
+        <button
+          onclick="limparResultado()"
+          style="background: #666; margin-top: 10px"
+        >
+          🗑️ Limpar
+        </button>
+      </div>
+
+      <div class="section">
+        <h2>📝 Resultado:</h2>
+        <div id="result">Clique em um botão acima para executar o teste...</div>
+      </div>
+    </div>
+
+    <script>
+      // Configuração Supabase
+      const SUPABASE_URL = "https://earrnuuvdzawclxsyoxk.supabase.co";
+      const SUPABASE_KEY = "<SUPABASE_ANON_KEY>";
+
+      const resultDiv = document.getElementById("result");
+      const statusSpan = document.getElementById("status");
+
+      function log(message, type = "info") {
+        const timestamp = new Date().toLocaleTimeString("pt-BR");
+        const icon =
+          {
+            success: "✅",
+            error: "❌",
+            warning: "⚠️",
+            info: "ℹ️",
+          }[type] || "ℹ️";
+
+        resultDiv.innerHTML += `<span class="${type}">${icon} [${timestamp}] ${message}</span>\n`;
+        resultDiv.scrollTop = resultDiv.scrollHeight;
+      }
+
+      function limparResultado() {
+        resultDiv.innerHTML =
+          "🧹 Resultado limpo. Pronto para novos testes...\n";
+      }
+
+      function updateStatus(text, type) {
+        statusSpan.textContent = text;
+        statusSpan.className = `status ${type}`;
+      }
+
+      async function testarConexao() {
+        limparResultado();
+        log("Testando conexão com Supabase...", "info");
+        updateStatus("Testando...", "pending");
+
+        try {
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/equipamentos?select=count&limit=1`,
+            {
+              headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+              },
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          log("Conexão estabelecida com sucesso!", "success");
+          log(`URL: ${SUPABASE_URL}`, "info");
+          log(`Status HTTP: ${response.status} OK`, "success");
+          updateStatus("✅ Conectado", "success");
+        } catch (error) {
+          log(`Erro de conexão: ${error.message}`, "error");
+          updateStatus("❌ Erro", "error");
+        }
+      }
+
+      async function contarEquipamentos() {
+        log("\n📊 Contando equipamentos...", "info");
+        updateStatus("Contando...", "pending");
+
+        try {
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/equipamentos?select=*`,
+            {
+              headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                Prefer: "count=exact",
+              },
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          const count = data.length;
+
+          log(
+            `Total de equipamentos: ${count}`,
+            count > 0 ? "success" : "warning",
+          );
+
+          if (count === 0) {
+            log("ATENÇÃO: Tabela está VAZIA!", "warning");
+            log("Você precisa executar o SQL de inserção.", "warning");
+            updateStatus("⚠️ Vazio", "error");
+          } else if (count === 22) {
+            log(
+              "PERFEITO! Todos os 22 equipamentos estão no banco!",
+              "success",
+            );
+            updateStatus("✅ 22 equipamentos", "success");
+          } else {
+            log(`Esperado 22, encontrado ${count}`, "warning");
+            updateStatus(`⚠️ ${count} equipamentos`, "pending");
+          }
+        } catch (error) {
+          log(`Erro: ${error.message}`, "error");
+          updateStatus("❌ Erro", "error");
+        }
+      }
+
+      async function listarEquipamentos() {
+        log("\n📋 Listando equipamentos...", "info");
+
+        try {
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/equipamentos?select=*&order=codigo.asc`,
+            {
+              headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+              },
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data.length === 0) {
+            log("Nenhum equipamento encontrado!", "warning");
+            log("Execute o SQL de inserção dos 22 equipamentos.", "warning");
+            return;
+          }
+
+          log(`${data.length} equipamentos encontrados:\n`, "success");
+
+          // Agrupar por tipo
+          const porTipo = {};
+          data.forEach((eq) => {
+            porTipo[eq.tipo] = (porTipo[eq.tipo] || 0) + 1;
+          });
+
+          log("📊 Distribuição por tipo:", "info");
+          Object.entries(porTipo).forEach(([tipo, count]) => {
+            log(`   • ${tipo}: ${count}`, "info");
+          });
+
+          log("\n📝 Lista completa:", "info");
+          data.forEach((eq) => {
+            const statusIcon = eq.status === "ativo" ? "🟢" : "🔴";
+            log(
+              `   ${statusIcon} ${eq.codigo} - ${eq.nome} (${eq.tipo})`,
+              "info",
+            );
+          });
+        } catch (error) {
+          log(`Erro: ${error.message}`, "error");
+        }
+      }
+
+      async function testarQueryAdmin() {
+        log("\n🔍 Testando query ADMIN (idêntica ao app)...", "info");
+
+        try {
+          // Query EXATA do equipamentoService.js
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/equipamentos?select=*&order=codigo.asc`,
+            {
+              headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+              },
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          const count = data.length;
+
+          log(
+            `Query retornou: ${count} equipamentos`,
+            count > 0 ? "success" : "error",
+          );
+
+          if (count > 0) {
+            log("SUCESSO! A query funciona!", "success");
+            log("\n⚠️ SE O APP AINDA MOSTRA ERRO:", "warning");
+            log("   1. Limpe o cache (Ctrl+Shift+Delete)", "warning");
+            log("   2. Abra em modo anônimo (Ctrl+Shift+N)", "warning");
+            log("   3. Aguarde 2-3 min para Vercel atualizar", "warning");
+
+            log("\n📋 Primeiros 5 equipamentos:", "info");
+            data.slice(0, 5).forEach((eq) => {
+              log(`   • ${eq.codigo} - ${eq.nome}`, "info");
+            });
+          } else {
+            log("Query retornou VAZIA!", "error");
+            log("Execute o SQL de inserção:", "error");
+            log(
+              "https://supabase.com/dashboard/project/earrnuuvdzawclxsyoxk/sql/new",
+              "info",
+            );
+          }
+        } catch (error) {
+          log(`Erro: ${error.message}`, "error");
+          log("Possível problema de RLS (Row Level Security)", "warning");
+        }
+      }
+
+      // Auto-testar ao carregar
+      window.addEventListener("load", () => {
+        log("🚀 Página carregada. Clique em um botão para testar.", "info");
+        setTimeout(testarConexao, 1000);
+      });
+    </script>
+  </body>
+</html>
