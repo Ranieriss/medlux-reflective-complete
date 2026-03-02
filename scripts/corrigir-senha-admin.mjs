@@ -13,7 +13,7 @@ console.log("🔧 Corrigindo senhas dos usuários...\n");
 async function corrigirSenhas() {
   try {
     // Atualizar senha do admin
-    const { data: admin, error: errorAdmin } = await supabase
+    const { error: errorAdmin } = await supabase
       .from("usuarios")
       .update({ senha_hash: "2308" })
       .eq("email", "admin@medlux.com")

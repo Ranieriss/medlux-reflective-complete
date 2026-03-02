@@ -4,11 +4,21 @@
       <v-col cols="12">
         <v-card>
           <v-card-title class="d-flex align-center">
-            <v-icon left color="primary">mdi-circle-outline</v-icon>
+            <v-icon
+              left
+              color="primary"
+            >
+              mdi-circle-outline
+            </v-icon>
             <span>Tachas e Tachões - ABNT NBR 14636 + NBR 15576</span>
             <v-spacer></v-spacer>
-            <v-btn color="primary" @click="dialogNovo = true">
-              <v-icon left>mdi-plus</v-icon>
+            <v-btn
+              color="primary"
+              @click="dialogNovo = true"
+            >
+              <v-icon left>
+                mdi-plus
+              </v-icon>
               Novo Dispositivo
             </v-btn>
           </v-card-title>
@@ -62,7 +72,11 @@
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
-                <v-btn icon size="small" @click="visualizarDispositivo(item)">
+                <v-btn
+                  icon
+                  size="small"
+                  @click="visualizarDispositivo(item)"
+                >
                   <v-icon>mdi-eye</v-icon>
                 </v-btn>
                 <v-btn
@@ -81,7 +95,10 @@
     </v-row>
 
     <!-- Dialog Novo Dispositivo -->
-    <v-dialog v-model="dialogNovo" max-width="900px">
+    <v-dialog
+      v-model="dialogNovo"
+      max-width="900px"
+    >
       <v-card>
         <v-card-title>Novo Dispositivo</v-card-title>
         <v-card-text>
@@ -167,13 +184,23 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="dialogNovo = false">Cancelar</v-btn>
-          <v-btn color="primary" @click="salvarDispositivo">Salvar</v-btn>
+          <v-btn @click="dialogNovo = false">
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            @click="salvarDispositivo"
+          >
+            Salvar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+    >
       {{ snackbar.text }}
     </v-snackbar>
   </v-container>
@@ -235,7 +262,7 @@ async function carregarDispositivos() {
     if (response.success) {
       dispositivos.value = response.data;
     }
-  } catch (error) {
+  } catch {
     mostrarNotificacao("Erro ao carregar dispositivos", "error");
   } finally {
     loading.value = false;
@@ -250,7 +277,7 @@ async function salvarDispositivo() {
       dialogNovo.value = false;
       carregarDispositivos();
     }
-  } catch (error) {
+  } catch {
     mostrarNotificacao("Erro ao salvar dispositivo", "error");
   }
 }

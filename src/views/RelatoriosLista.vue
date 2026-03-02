@@ -2,20 +2,35 @@
   <div>
     <!-- Header -->
     <h1 class="text-h4 font-weight-bold mb-6">
-      <v-icon class="mr-2" color="primary">mdi-file-chart</v-icon>
+      <v-icon
+        class="mr-2"
+        color="primary"
+      >
+        mdi-file-chart
+      </v-icon>
       Relatórios
     </h1>
 
     <!-- Cards de Relatórios -->
     <v-row>
       <!-- Relatório de Equipamentos -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="primary" class="mr-4"
-                >mdi-devices</v-icon
+              <v-icon
+                size="48"
+                color="primary"
+                class="mr-4"
               >
+                mdi-devices
+              </v-icon>
               <div>
                 <div class="text-h5 font-weight-bold">
                   Relatório de Equipamentos
@@ -57,9 +72,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioEquipamentos('pdf')"
               :loading="gerandoEquipamentos"
               class="mb-2"
+              @click="gerarRelatorioEquipamentos('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -67,8 +82,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioEquipamentos('excel')"
               :loading="gerandoEquipamentos"
+              @click="gerarRelatorioEquipamentos('excel')"
             >
               Exportar para Excel
             </v-btn>
@@ -77,13 +92,23 @@
       </v-col>
 
       <!-- Relatório de Vínculos -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="secondary" class="mr-4"
-                >mdi-link-variant</v-icon
+              <v-icon
+                size="48"
+                color="secondary"
+                class="mr-4"
               >
+                mdi-link-variant
+              </v-icon>
               <div>
                 <div class="text-h5 font-weight-bold">
                   Relatório de Vínculos
@@ -136,9 +161,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioVinculos('pdf')"
               :loading="gerandoVinculos"
               class="mb-2"
+              @click="gerarRelatorioVinculos('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -146,8 +171,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioVinculos('excel')"
               :loading="gerandoVinculos"
+              @click="gerarRelatorioVinculos('excel')"
             >
               Exportar para Excel
             </v-btn>
@@ -156,13 +181,23 @@
       </v-col>
 
       <!-- Relatório de Calibração -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="warning" class="mr-4"
-                >mdi-clipboard-check</v-icon
+              <v-icon
+                size="48"
+                color="warning"
+                class="mr-4"
               >
+                mdi-clipboard-check
+              </v-icon>
               <div>
                 <div class="text-h5 font-weight-bold">
                   Relatório de Calibração
@@ -212,9 +247,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioCalibracao('pdf')"
               :loading="gerandoCalibracao"
               class="mb-2"
+              @click="gerarRelatorioCalibracao('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -222,8 +257,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioCalibracao('excel')"
               :loading="gerandoCalibracao"
+              @click="gerarRelatorioCalibracao('excel')"
             >
               Exportar para Excel
             </v-btn>
@@ -232,11 +267,23 @@
       </v-col>
 
       <!-- Relatório de Auditoria -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="info" class="mr-4">mdi-history</v-icon>
+              <v-icon
+                size="48"
+                color="info"
+                class="mr-4"
+              >
+                mdi-history
+              </v-icon>
               <div>
                 <div class="text-h5 font-weight-bold">
                   Relatório de Auditoria
@@ -296,9 +343,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioAuditoria('pdf')"
               :loading="gerandoAuditoria"
               class="mb-2"
+              @click="gerarRelatorioAuditoria('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -306,8 +353,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioAuditoria('excel')"
               :loading="gerandoAuditoria"
+              @click="gerarRelatorioAuditoria('excel')"
             >
               Exportar para Excel
             </v-btn>

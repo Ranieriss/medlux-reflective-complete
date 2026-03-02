@@ -38,7 +38,7 @@ export async function uploadFotoComLocalizacao(file, pasta = "medicoes") {
     const nomeArquivo = `${pasta}/${timestamp}_${file.name.replace(/\s/g, "_")}`;
 
     // Upload para Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("medlux-arquivos")
       .upload(nomeArquivo, file, {
         cacheControl: "3600",
@@ -114,7 +114,7 @@ export async function uploadPDF(file, pasta = "laudos") {
     const nomeArquivo = `${pasta}/${timestamp}_${file.name.replace(/\s/g, "_")}`;
 
     // Upload para Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("medlux-arquivos")
       .upload(nomeArquivo, file, {
         cacheControl: "3600",

@@ -223,14 +223,16 @@ const interceptConsole = () => {
 };
 
 const interceptStorage = () => {
-  if (typeof Storage === "undefined") return;
+  if (typeof window === "undefined") return;
+  const StorageCtor = window.Storage;
+  if (!StorageCtor?.prototype) return;
   const methods = ["setItem", "getItem", "removeItem", "clear"];
 
   methods.forEach((method) => {
-    const original = Storage.prototype[method];
+    const original = StorageCtor.prototype[method];
     if (typeof original !== "function") return;
 
-    Storage.prototype[method] = function storageProxy(...args) {
+    StorageCtor.prototype[method] = function storageProxy(...args) {
       try {
         const key = args[0];
         const value = args[1];
@@ -238,7 +240,8 @@ const interceptStorage = () => {
           debugState.storageOps,
           {
             timestamp: toIso(),
-            storage: this === localStorage ? "localStorage" : "sessionStorage",
+            storage:
+              this === window.localStorage ? "localStorage" : "sessionStorage",
             method,
             key,
             value: sanitizeByKey(key, value),
@@ -622,7 +625,7 @@ export const isDebugEnabled = () => {
   return queryEnabled || storageEnabled;
 };
 
-const createAppWindowState = ({ router, authStore, diagnosticsStore }) => ({
+const createAppWindowState = ({ authStore, diagnosticsStore }) => ({
   get version() {
     return debugState.appVersion;
   },
@@ -774,7 +777,6 @@ export const setupDebugHooks = ({
 
   window.supabase = supabase;
   window.__app__ = createAppWindowState({
-    router,
     authStore,
     diagnosticsStore,
   });

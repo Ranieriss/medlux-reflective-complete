@@ -1,32 +1,53 @@
 <template>
   <div>
     <h1 class="text-h4 font-weight-bold mb-6">
-      <v-icon class="mr-2" color="primary">mdi-file-chart</v-icon>
+      <v-icon
+        class="mr-2"
+        color="primary"
+      >
+        mdi-file-chart
+      </v-icon>
       Relatórios
     </h1>
 
     <v-row>
       <v-col
+        v-for="relatorio in relatorios"
+        :key="relatorio.id"
         cols="12"
         md="6"
         lg="4"
-        v-for="relatorio in relatorios"
-        :key="relatorio.id"
       >
-        <v-card class="glass" hover @click="gerarRelatorio(relatorio)">
+        <v-card
+          class="glass"
+          hover
+          @click="gerarRelatorio(relatorio)"
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon :color="relatorio.cor" size="48" class="mr-4">{{
-                relatorio.icone
-              }}</v-icon>
+              <v-icon
+                :color="relatorio.cor"
+                size="48"
+                class="mr-4"
+              >
+                {{
+                  relatorio.icone
+                }}
+              </v-icon>
               <div>
                 <div class="text-h6 font-weight-bold">
                   {{ relatorio.titulo }}
                 </div>
-                <div class="text-caption">{{ relatorio.descricao }}</div>
+                <div class="text-caption">
+                  {{ relatorio.descricao }}
+                </div>
               </div>
             </div>
-            <v-chip :color="relatorio.cor" size="small" variant="outlined">
+            <v-chip
+              :color="relatorio.cor"
+              size="small"
+              variant="outlined"
+            >
               {{ relatorio.formato }}
             </v-chip>
           </v-card-text>
@@ -34,8 +55,14 @@
       </v-col>
     </v-row>
 
-    <v-dialog v-model="dialogConfigurar" max-width="600px">
-      <v-card v-if="relatorioSelecionado" class="glass">
+    <v-dialog
+      v-model="dialogConfigurar"
+      max-width="600px"
+    >
+      <v-card
+        v-if="relatorioSelecionado"
+        class="glass"
+      >
         <v-card-title>Configurar Relatório</v-card-title>
         <v-card-text>
           <v-form ref="formRef">
@@ -58,15 +85,25 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="dialogConfigurar = false">Cancelar</v-btn>
-          <v-btn color="primary" :loading="gerando" @click="confirmarGeracao"
-            >Gerar</v-btn
+          <v-btn @click="dialogConfigurar = false">
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            :loading="gerando"
+            @click="confirmarGeracao"
           >
+            Gerar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="3000"
+    >
       {{ snackbar.message }}
     </v-snackbar>
   </div>
@@ -161,13 +198,15 @@ const confirmarGeracao = async () => {
     let dados = [];
 
     switch (relatorioSelecionado.value.id) {
-      case 1: // Equipamentos
+      case 1: {
+        // Equipamentos
         const { data: equipamentos } = await supabase
           .from("equipamentos")
           .select("*")
           .order("codigo", { ascending: true });
         dados = equipamentos;
         break;
+      }
       case 2: // Calibrações
         snackbar.value = {
           show: true,
@@ -175,17 +214,21 @@ const confirmarGeracao = async () => {
           color: "info",
         };
         break;
-      case 3: // Vínculos
+      case 3: {
+        // Vínculos
         const { data: vinculos } = await supabase.from("vinculos").select("*");
         dados = vinculos;
         break;
-      case 4: // Auditoria
+      }
+      case 4: {
+        // Auditoria
         const { data: auditoria } = await supabase
           .from("auditoria")
           .select("*")
           .limit(100);
         dados = auditoria;
         break;
+      }
       default:
         snackbar.value = {
           show: true,

@@ -1,23 +1,42 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container
+    fluid
+    class="pa-6"
+  >
     <!-- Cabeçalho -->
-    <v-row align="center" class="mb-6">
-      <v-col cols="12" md="6">
+    <v-row
+      align="center"
+      class="mb-6"
+    >
+      <v-col
+        cols="12"
+        md="6"
+      >
         <h1 class="text-h4 font-weight-bold text-main">
-          <v-icon size="36" color="primary" class="mr-3">mdi-chart-line</v-icon>
+          <v-icon
+            size="36"
+            color="primary"
+            class="mr-3"
+          >
+            mdi-chart-line
+          </v-icon>
           Medições de Retrorrefletância
         </h1>
         <p class="text-subtitle-1 text-medium-emphasis mt-2">
           Registre e valide medições conforme normas ABNT
         </p>
       </v-col>
-      <v-col cols="12" md="6" class="text-right">
+      <v-col
+        cols="12"
+        md="6"
+        class="text-right"
+      >
         <v-btn
           color="success"
           size="large"
           prepend-icon="mdi-plus-circle"
-          @click="abrirDialogNovo"
           class="mr-2"
+          @click="abrirDialogNovo"
         >
           Nova Medição
         </v-btn>
@@ -35,26 +54,44 @@
 
     <!-- Dashboard de Status -->
     <v-row class="mb-6">
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-em-dia" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-em-dia"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-medium-emphasis">Em Dia</p>
+                <p class="text-caption text-medium-emphasis">
+                  Em Dia
+                </p>
                 <h2 class="text-h3 font-weight-bold">
                   {{ stats.em_dia || 0 }}
                 </h2>
               </div>
-              <v-icon size="60" color="success" class="opacity-30"
-                >mdi-check-circle</v-icon
+              <v-icon
+                size="60"
+                color="success"
+                class="opacity-30"
               >
+                mdi-check-circle
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-atencao" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-atencao"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
@@ -65,34 +102,56 @@
                   {{ stats.atencao || 0 }}
                 </h2>
               </div>
-              <v-icon size="60" color="warning" class="opacity-30"
-                >mdi-alert</v-icon
+              <v-icon
+                size="60"
+                color="warning"
+                class="opacity-30"
               >
+                mdi-alert
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-vencida" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-vencida"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-medium-emphasis">Vencidas</p>
+                <p class="text-caption text-medium-emphasis">
+                  Vencidas
+                </p>
                 <h2 class="text-h3 font-weight-bold">
                   {{ stats.vencidas || 0 }}
                 </h2>
               </div>
-              <v-icon size="60" color="error" class="opacity-30"
-                >mdi-close-circle</v-icon
+              <v-icon
+                size="60"
+                color="error"
+                class="opacity-30"
               >
+                mdi-close-circle
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-aprovacao" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-aprovacao"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
@@ -103,9 +162,13 @@
                   {{ stats.media_aprovacao || 0 }}%
                 </h2>
               </div>
-              <v-icon size="60" color="info" class="opacity-30"
-                >mdi-chart-pie</v-icon
+              <v-icon
+                size="60"
+                color="info"
+                class="opacity-30"
               >
+                mdi-chart-pie
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
@@ -113,10 +176,16 @@
     </v-row>
 
     <!-- Filtros -->
-    <v-card class="mb-6" elevation="2">
+    <v-card
+      class="mb-6"
+      elevation="2"
+    >
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-text-field
               v-model="filtros.busca"
               prepend-inner-icon="mdi-magnify"
@@ -128,7 +197,10 @@
             />
           </v-col>
 
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.status"
               :items="statusOptions"
@@ -140,7 +212,10 @@
             />
           </v-col>
 
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.validacao"
               :items="validacaoOptions"
@@ -152,7 +227,10 @@
             />
           </v-col>
 
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.tipo"
               :items="tipoEquipamentoOptions"
@@ -164,12 +242,15 @@
             />
           </v-col>
 
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-btn
               color="primary"
               block
-              @click="aplicarFiltros"
               prepend-icon="mdi-filter"
+              @click="aplicarFiltros"
             >
               Filtrar
             </v-btn>
@@ -221,7 +302,10 @@
                 }}{{ item.dias_vencimento }} dias
               </v-chip>
             </div>
-            <span v-else class="text-medium-emphasis">-</span>
+            <span
+              v-else
+              class="text-medium-emphasis"
+            >-</span>
           </template>
 
           <!-- Status Vencimento -->
@@ -245,19 +329,28 @@
             >
               {{ item.status_validacao }}
             </v-chip>
-            <span v-else class="text-medium-emphasis">-</span>
+            <span
+              v-else
+              class="text-medium-emphasis"
+            >-</span>
           </template>
 
           <!-- Valores -->
           <template v-slot:item.valor_medio="{ item }">
             <div v-if="item.valor_medio">
               <strong>{{ item.valor_medio }}</strong>
-              <v-tooltip activator="parent" location="top">
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
                 Referência: {{ item.valor_minimo_referencia }}<br />
                 Aprovação: {{ item.percentual_aprovacao }}%
               </v-tooltip>
             </div>
-            <span v-else class="text-medium-emphasis">-</span>
+            <span
+              v-else
+              class="text-medium-emphasis"
+            >-</span>
           </template>
 
           <!-- Ações -->
@@ -270,7 +363,10 @@
               @click="gerarLaudoPDF(item)"
             >
               <v-icon>mdi-file-pdf-box</v-icon>
-              <v-tooltip activator="parent" location="top">
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
                 Gerar Laudo PDF (ICDVias)
               </v-tooltip>
             </v-btn>
@@ -283,9 +379,12 @@
               @click="visualizarDetalhes(item)"
             >
               <v-icon>mdi-eye</v-icon>
-              <v-tooltip activator="parent" location="top"
-                >Ver Detalhes</v-tooltip
+              <v-tooltip
+                activator="parent"
+                location="top"
               >
+                Ver Detalhes
+              </v-tooltip>
             </v-btn>
 
             <v-btn
@@ -296,7 +395,12 @@
               @click="editarMedicao(item)"
             >
               <v-icon>mdi-pencil</v-icon>
-              <v-tooltip activator="parent" location="top">Editar</v-tooltip>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Editar
+              </v-tooltip>
             </v-btn>
 
             <v-btn
@@ -307,7 +411,12 @@
               @click="confirmarExclusao(item)"
             >
               <v-icon>mdi-delete</v-icon>
-              <v-tooltip activator="parent" location="top">Excluir</v-tooltip>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Excluir
+              </v-tooltip>
             </v-btn>
           </template>
 
@@ -319,13 +428,20 @@
           <!-- Sem dados -->
           <template v-slot:no-data>
             <div class="text-center py-12">
-              <v-icon size="64" color="grey-lighten-2"
-                >mdi-chart-line-variant</v-icon
+              <v-icon
+                size="64"
+                color="grey-lighten-2"
               >
+                mdi-chart-line-variant
+              </v-icon>
               <p class="text-h6 mt-4 text-medium-emphasis">
                 Nenhuma medição encontrada
               </p>
-              <v-btn color="primary" class="mt-4" @click="abrirDialogNovo">
+              <v-btn
+                color="primary"
+                class="mt-4"
+                @click="abrirDialogNovo"
+              >
                 Criar primeira medição
               </v-btn>
             </div>
@@ -335,11 +451,19 @@
     </v-card>
 
     <!-- Dialog: Nova/Editar Medição -->
-    <v-dialog v-model="dialogMedicao" max-width="1000px" persistent scrollable>
+    <v-dialog
+      v-model="dialogMedicao"
+      max-width="1000px"
+      persistent
+      scrollable
+    >
       <v-card>
         <v-card-title class="bg-primary">
           <span class="text-h5 text-white">
-            <v-icon color="white" class="mr-2">mdi-clipboard-text</v-icon>
+            <v-icon
+              color="white"
+              class="mr-2"
+            >mdi-clipboard-text</v-icon>
             {{
               modoEdicao
                 ? "Editar Medição"
@@ -350,7 +474,10 @@
 
         <v-divider />
 
-        <v-card-text class="pt-6" style="max-height: 600px">
+        <v-card-text
+          class="pt-6"
+          style="max-height: 600px"
+        >
           <!-- Alerta quando não há equipamentos -->
           <v-alert
             v-if="equipamentos.length === 0"
@@ -392,9 +519,9 @@
                   variant="outlined"
                   :rules="[rules.required]"
                   :loading="loadingEquipamentos"
-                  @update:model-value="onEquipamentoChange"
                   :disabled="authStore.isOperador && equipamentos.length === 1"
                   clearable
+                  @update:model-value="onEquipamentoChange"
                 >
                   <template v-slot:item="{ props, item }">
                     <v-list-item v-bind="props">
@@ -406,9 +533,15 @@
                         />
                       </template>
                       <template v-slot:title>
-                        <v-chip size="small" color="primary" class="mr-2">{{
-                          item.raw.codigo
-                        }}</v-chip>
+                        <v-chip
+                          size="small"
+                          color="primary"
+                          class="mr-2"
+                        >
+                          {{
+                            item.raw.codigo
+                          }}
+                        </v-chip>
                         {{ item.raw.nome }}
                       </template>
                       <template v-slot:subtitle>
@@ -426,13 +559,15 @@
                   density="compact"
                   class="mt-2"
                 >
-                  <v-row dense align="center">
+                  <v-row
+                    dense
+                    align="center"
+                  >
                     <v-col cols="auto">
                       <v-icon :icon="tipoEquipamentoDetectado.icon" />
                     </v-col>
                     <v-col>
-                      <strong>{{ tipoEquipamentoDetectado.descricao }}</strong
-                      ><br />
+                      <strong>{{ tipoEquipamentoDetectado.descricao }}</strong><br />
                       <small>
                         Geometria{{
                           tipoEquipamentoDetectado.geometrias.length > 1
@@ -454,7 +589,10 @@
               </v-col>
 
               <!-- Dados da Medição -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="formMedicaoData.data_calibracao"
                   label="Data da Medição *"
@@ -465,7 +603,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="formMedicaoData.proxima_calibracao"
                   label="Próxima Medição *"
@@ -477,7 +618,11 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
+              <v-col
+                v-if="mostrarCamposMaterial"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.tipo_sinalizacao"
                   :items="tipoSinalizacaoOptions"
@@ -487,12 +632,12 @@
                 />
               </v-col>
               <v-col
-                cols="12"
-                md="4"
                 v-if="
                   mostrarCamposMaterial &&
-                  formMedicaoData.tipo_sinalizacao === 'Outro...'
+                    formMedicaoData.tipo_sinalizacao === 'Outro...'
                 "
+                cols="12"
+                md="4"
               >
                 <v-text-field
                   v-model="formMedicaoData.tipo_sinalizacao_outro"
@@ -501,7 +646,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
+              <v-col
+                v-if="mostrarCamposMaterial"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.tipo_material"
                   :items="tipoMaterialHorizontalOptions"
@@ -511,12 +660,12 @@
                 />
               </v-col>
               <v-col
-                cols="12"
-                md="4"
                 v-if="
                   mostrarCamposMaterial &&
-                  formMedicaoData.tipo_material === 'Outro...'
+                    formMedicaoData.tipo_material === 'Outro...'
                 "
+                cols="12"
+                md="4"
               >
                 <v-text-field
                   v-model="formMedicaoData.tipo_material_outro"
@@ -525,7 +674,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
+              <v-col
+                v-if="mostrarCamposMaterial"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.momento_medicao"
                   :items="momentoOptions"
@@ -535,7 +688,11 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.modo_medicao_vertical"
                   :items="[
@@ -547,7 +704,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.classe_pelicula"
                   :items="classePeliculaOptions"
@@ -556,7 +717,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.tipo_pelicula"
                   :items="tipoPeliculaOptions"
@@ -567,7 +732,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="6" v-if="mostrarCamposPelicula">
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="formMedicaoData.marca_pelicula"
                   label="Marca da película *"
@@ -575,7 +744,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="3" v-if="mostrarCamposPelicula">
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="3"
+              >
                 <v-select
                   v-model="formMedicaoData.angulo_observacao"
                   :items="anguloObservacaoOptions"
@@ -584,7 +757,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="3" v-if="mostrarCamposPelicula">
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="3"
+              >
                 <v-select
                   v-model="formMedicaoData.angulo_entrada"
                   :items="anguloEntradaOptions"
@@ -594,7 +771,11 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
+              <v-col
+                v-if="mostrarCamposDispositivos"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.dispositivo"
                   :items="dispositivoOptions"
@@ -603,7 +784,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
+              <v-col
+                v-if="mostrarCamposDispositivos"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.tipo_refletivo"
                   :items="tipoRefletivoOptions"
@@ -612,7 +797,11 @@
                   :rules="[rules.required]"
                 />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
+              <v-col
+                v-if="mostrarCamposDispositivos"
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.direcionalidade"
                   :items="direcionalidadeOptions"
@@ -621,7 +810,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="formMedicaoData.cor_medicao"
                   :items="corOptions"
@@ -633,7 +825,10 @@
               </v-col>
 
               <!-- Geometria -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="formMedicaoData.geometria_medicao"
                   :items="geometriasDisponiveis"
@@ -649,7 +844,10 @@
               </v-col>
 
               <!-- Técnico Responsável -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="formMedicaoData.tecnico_responsavel"
                   label="Técnico Responsável *"
@@ -662,7 +860,11 @@
               </v-col>
 
               <!-- Condições Ambientais (opcional para chuva) -->
-              <v-col v-if="mostrarSimuladorChuva" cols="12" md="6">
+              <v-col
+                v-if="mostrarSimuladorChuva"
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="formMedicaoData.condicoes_medicao"
                   :items="['Seco', 'Simulador de Chuva']"
@@ -675,9 +877,14 @@
 
               <!-- Valores de Medição -->
               <v-col cols="12">
-                <v-card variant="outlined" class="pa-4">
+                <v-card
+                  variant="outlined"
+                  class="pa-4"
+                >
                   <v-card-title class="text-subtitle-1 pb-3">
-                    <v-icon class="mr-2">mdi-numeric</v-icon>
+                    <v-icon class="mr-2">
+                      mdi-numeric
+                    </v-icon>
                     Valores Medidos (cd/(lx·m²) ou mcd/lx)
                   </v-card-title>
                   <v-row>
@@ -709,15 +916,18 @@
                       </v-text-field>
                     </v-col>
 
-                    <v-col cols="12" class="text-center">
+                    <v-col
+                      cols="12"
+                      class="text-center"
+                    >
                       <v-btn
                         color="primary"
                         variant="outlined"
                         prepend-icon="mdi-plus"
-                        @click="adicionarMedicao"
                         :disabled="
                           formMedicaoData.valores_medicoes.length >= 10
                         "
+                        @click="adicionarMedicao"
                       >
                         Adicionar Medição
                       </v-btn>
@@ -731,7 +941,10 @@
               </v-col>
 
               <!-- Condições Ambientais -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model.number="formMedicaoData.temperatura_ambiente"
                   label="Temperatura (°C)"
@@ -742,7 +955,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model.number="formMedicaoData.umidade_relativa"
                   label="Umidade Relativa (%)"
@@ -753,7 +969,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.modo_localizacao"
                   :items="[
@@ -767,9 +986,9 @@
               </v-col>
 
               <v-col
+                v-if="formMedicaoData.modo_localizacao === 'gps'"
                 cols="12"
                 md="4"
-                v-if="formMedicaoData.modo_localizacao === 'gps'"
               >
                 <v-btn
                   block
@@ -782,9 +1001,9 @@
                 </v-btn>
               </v-col>
               <v-col
+                v-if="formMedicaoData.modo_localizacao === 'gps'"
                 cols="12"
                 md="8"
-                v-if="formMedicaoData.modo_localizacao === 'gps'"
               >
                 <div class="text-caption">
                   Latitude: {{ formMedicaoData.latitude || "-" }} • Longitude:
@@ -798,47 +1017,71 @@
               </v-col>
 
               <template v-if="formMedicaoData.modo_localizacao === 'manual'">
-                <v-col cols="12" md="4"
-                  ><v-text-field
+                <v-col
+                  cols="12"
+                  md="4"
+                >
+                  <v-text-field
                     v-model="formMedicaoData.local_rodovia"
                     label="Rodovia *"
                     variant="outlined"
                     :rules="[rules.required]"
-                /></v-col>
-                <v-col cols="12" md="2"
-                  ><v-text-field
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="2"
+                >
+                  <v-text-field
                     v-model="formMedicaoData.local_km"
                     label="KM *"
                     variant="outlined"
                     :rules="[rules.required]"
-                /></v-col>
-                <v-col cols="12" md="3"
-                  ><v-text-field
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="3"
+                >
+                  <v-text-field
                     v-model="formMedicaoData.local_municipio"
                     label="Município *"
                     variant="outlined"
                     :rules="[rules.required]"
-                /></v-col>
-                <v-col cols="12" md="3"
-                  ><v-text-field
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="3"
+                >
+                  <v-text-field
                     v-model="formMedicaoData.local_sentido"
                     label="Sentido *"
                     variant="outlined"
                     :rules="[rules.required]"
-                /></v-col>
-                <v-col cols="12" md="4"
-                  ><v-text-field
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="4"
+                >
+                  <v-text-field
                     v-model="formMedicaoData.local_faixa"
                     label="Faixa *"
                     variant="outlined"
                     :rules="[rules.required]"
-                /></v-col>
-                <v-col cols="12" md="8"
-                  ><v-text-field
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="8"
+                >
+                  <v-text-field
                     v-model="formMedicaoData.local_observacoes"
                     label="Observações da localização"
                     variant="outlined"
-                /></v-col>
+                  />
+                </v-col>
               </template>
 
               <v-col cols="12">
@@ -869,7 +1112,10 @@
               </v-col>
 
               <!-- Resultado da Validação (calculado automaticamente) -->
-              <v-col cols="12" v-if="resultadoValidacao">
+              <v-col
+                v-if="resultadoValidacao"
+                cols="12"
+              >
                 <v-alert
                   :type="
                     resultadoValidacao.status_validacao === 'APROVADO'
@@ -880,12 +1126,18 @@
                   icon="mdi-check-circle"
                 >
                   <v-row align="center">
-                    <v-col cols="12" md="3">
+                    <v-col
+                      cols="12"
+                      md="3"
+                    >
                       <div class="text-h6">
                         {{ resultadoValidacao.status_validacao }}
                       </div>
                     </v-col>
-                    <v-col cols="12" md="9">
+                    <v-col
+                      cols="12"
+                      md="9"
+                    >
                       <div class="text-body-2">
                         <strong>Valor Médio:</strong>
                         {{ resultadoValidacao.valor_medio }} |
@@ -913,8 +1165,8 @@
           <v-btn
             color="grey"
             variant="outlined"
-            @click="fecharDialog"
             :disabled="salvando"
+            @click="fecharDialog"
           >
             Cancelar
           </v-btn>
@@ -922,9 +1174,9 @@
             color="primary"
             variant="outlined"
             prepend-icon="mdi-calculator"
-            @click="calcularValidacao"
             :loading="calculando"
             :disabled="!formValido || salvando"
+            @click="calcularValidacao"
           >
             Calcular Validação
           </v-btn>
@@ -939,9 +1191,9 @@
           <v-btn
             color="success"
             prepend-icon="mdi-content-save"
-            @click="salvarMedicao"
             :loading="salvando"
             :disabled="!formValido || !resultadoValidacao"
+            @click="salvarMedicao"
           >
             Salvar Medição
           </v-btn>
@@ -949,7 +1201,11 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="dialogDiagnostico" max-width="900px" scrollable>
+    <v-dialog
+      v-model="dialogDiagnostico"
+      max-width="900px"
+      scrollable
+    >
       <v-card>
         <v-card-title>Diagnóstico do Sistema</v-card-title>
         <v-card-text>
@@ -967,30 +1223,41 @@
             variant="outlined"
             prepend-icon="mdi-content-copy"
             @click="copiarDiagnostico"
-            >Copiar JSON</v-btn
           >
+            Copiar JSON
+          </v-btn>
           <v-btn
             color="primary"
             prepend-icon="mdi-download"
             @click="baixarDiagnostico"
-            >Baixar JSON</v-btn
           >
+            Baixar JSON
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- Snackbar de notificações -->
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="3000"
+    >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" @click="snackbar.show = false">Fechar</v-btn>
+        <v-btn
+          variant="text"
+          @click="snackbar.show = false"
+        >
+          Fechar
+        </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import calibracaoService from "@/services/calibracaoService";
@@ -1009,9 +1276,6 @@ import supabase, {
   supabaseUrl,
 } from "@/services/supabase";
 import { useDiagnosticsStore } from "@/stores/diagnostics";
-
-// Ambiente
-const IS_DEV = import.meta.env.DEV;
 
 export default {
   name: "CalibracoesLista",
@@ -1037,9 +1301,6 @@ export default {
     const formValido = ref(false);
     const salvando = ref(false);
     const calculando = ref(false);
-
-    // Form refs
-    const formMedicao = ref(null);
 
     // Resultado da validação
     const resultadoValidacao = ref(null);
@@ -1791,6 +2052,7 @@ export default {
       loading,
       loadingEquipamentos,
       medicoes,
+      medicoesFiltradas,
       equipamentos,
       stats,
       equipamentoSelecionado,

@@ -2,13 +2,22 @@
   <div>
     <!-- Título -->
     <h1 class="text-h4 font-weight-bold mb-6">
-      <v-icon class="mr-2" color="primary">mdi-view-dashboard</v-icon>
+      <v-icon
+        class="mr-2"
+        color="primary"
+      >
+        mdi-view-dashboard
+      </v-icon>
       Dashboard
     </h1>
 
     <!-- Cards de resumo -->
     <v-row>
-      <v-col cols="12" sm="6" md="3">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
         <v-card class="glass glass-hover">
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
@@ -20,15 +29,25 @@
                   {{ stats.totalEquipamentos }}
                 </h2>
               </div>
-              <v-avatar size="56" color="primary" class="glow-primary">
-                <v-icon size="32">mdi-devices</v-icon>
+              <v-avatar
+                size="56"
+                color="primary"
+                class="glow-primary"
+              >
+                <v-icon size="32">
+                  mdi-devices
+                </v-icon>
               </v-avatar>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
         <v-card class="glass glass-hover">
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
@@ -40,15 +59,25 @@
                   {{ stats.calibracoesVencidas }}
                 </h2>
               </div>
-              <v-avatar size="56" color="error" class="glow-error">
-                <v-icon size="32">mdi-alert-circle</v-icon>
+              <v-avatar
+                size="56"
+                color="error"
+                class="glow-error"
+              >
+                <v-icon size="32">
+                  mdi-alert-circle
+                </v-icon>
               </v-avatar>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
         <v-card class="glass glass-hover">
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
@@ -60,15 +89,25 @@
                   {{ stats.vinculosAtivos }}
                 </h2>
               </div>
-              <v-avatar size="56" color="success" class="glow-success">
-                <v-icon size="32">mdi-link-variant</v-icon>
+              <v-avatar
+                size="56"
+                color="success"
+                class="glow-success"
+              >
+                <v-icon size="32">
+                  mdi-link-variant
+                </v-icon>
               </v-avatar>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
         <v-card class="glass glass-hover">
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
@@ -80,8 +119,14 @@
                   {{ stats.emManutencao }}
                 </h2>
               </div>
-              <v-avatar size="56" color="warning" class="glow-warning">
-                <v-icon size="32">mdi-wrench</v-icon>
+              <v-avatar
+                size="56"
+                color="warning"
+                class="glow-warning"
+              >
+                <v-icon size="32">
+                  mdi-wrench
+                </v-icon>
               </v-avatar>
             </div>
           </v-card-text>
@@ -94,7 +139,12 @@
       <v-col cols="12">
         <v-card class="glass">
           <v-card-title>
-            <v-icon class="mr-2" color="warning">mdi-alert</v-icon>
+            <v-icon
+              class="mr-2"
+              color="warning"
+            >
+              mdi-alert
+            </v-icon>
             Alertas e Avisos
           </v-card-title>
           <v-card-text>
@@ -118,7 +168,7 @@
             <v-alert
               v-if="
                 stats.calibracoesVencidas === 0 &&
-                stats.calibracoesProximas === 0
+                  stats.calibracoesProximas === 0
               "
               type="success"
               variant="tonal"
@@ -137,7 +187,6 @@ import { ref, onMounted } from "vue";
 import { PERFIS, normalizePerfil } from "@/types/perfis";
 import { useAuthStore } from "@/stores/auth";
 import { buscarEquipamentosDoUsuario } from "@/services/equipamentoService";
-import { obterEstatisticas } from "@/services/calibracaoService";
 
 const authStore = useAuthStore();
 

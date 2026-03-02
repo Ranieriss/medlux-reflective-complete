@@ -3,7 +3,12 @@
     <!-- Header -->
     <div class="d-flex justify-space-between align-center mb-6">
       <h1 class="text-h4 font-weight-bold">
-        <v-icon class="mr-2" color="primary">mdi-link-variant</v-icon>
+        <v-icon
+          class="mr-2"
+          color="primary"
+        >
+          mdi-link-variant
+        </v-icon>
         Vínculos / Custódia
       </h1>
       <v-btn
@@ -20,7 +25,10 @@
     <v-card class="glass mb-6">
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="4">
+          <v-col
+            cols="12"
+            md="4"
+          >
             <v-text-field
               v-model="filtros.busca"
               label="Buscar"
@@ -32,7 +40,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-select
               v-model="filtros.status"
               label="Status"
@@ -43,7 +54,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-text-field
               v-model="filtros.dataInicio"
               label="Data Início"
@@ -54,7 +68,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-btn
               color="primary"
               variant="outlined"
@@ -89,7 +106,9 @@
         <!-- Coluna Equipamento -->
         <template #item.equipamento="{ item }">
           <div class="py-2">
-            <div class="font-weight-bold">{{ item.equipamento_codigo }}</div>
+            <div class="font-weight-bold">
+              {{ item.equipamento_codigo }}
+            </div>
             <div class="text-caption text-secondary">
               {{ item.equipamento_nome }}
             </div>
@@ -99,7 +118,9 @@
         <!-- Coluna Usuário -->
         <template #item.usuario="{ item }">
           <div class="py-2">
-            <div class="font-weight-bold">{{ item.usuario_nome }}</div>
+            <div class="font-weight-bold">
+              {{ item.usuario_nome }}
+            </div>
             <div class="text-caption text-secondary">
               {{ item.usuario_email }}
             </div>
@@ -113,7 +134,10 @@
             size="small"
             variant="flat"
           >
-            <v-icon start size="small">
+            <v-icon
+              start
+              size="small"
+            >
               {{ item.ativo ? "mdi-check-circle" : "mdi-close-circle" }}
             </v-icon>
             {{ item.ativo ? "Ativo" : "Finalizado" }}
@@ -179,10 +203,16 @@
         <!-- No Data -->
         <template #no-data>
           <div class="text-center pa-8">
-            <v-icon size="64" color="secondary" class="mb-4"
-              >mdi-link-variant-off</v-icon
+            <v-icon
+              size="64"
+              color="secondary"
+              class="mb-4"
             >
-            <p class="text-h6">Nenhum vínculo encontrado</p>
+              mdi-link-variant-off
+            </v-icon>
+            <p class="text-h6">
+              Nenhum vínculo encontrado
+            </p>
             <p class="text-secondary">
               Crie o primeiro vínculo clicando no botão acima
             </p>
@@ -192,13 +222,26 @@
     </v-card>
 
     <!-- Dialog Formulário -->
-    <v-dialog v-model="dialogForm" max-width="800" persistent>
+    <v-dialog
+      v-model="dialogForm"
+      max-width="800"
+      persistent
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="primary">mdi-link-variant</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-link-variant
+          </v-icon>
           {{ modoEdicao ? "Editar Vínculo" : "Novo Vínculo" }}
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" @click="fecharDialog" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="fecharDialog"
+          />
         </v-card-title>
 
         <v-divider />
@@ -259,7 +302,10 @@
                   <template #item="{ props, item }">
                     <v-list-item v-bind="props">
                       <template #prepend>
-                        <v-avatar color="primary" size="40">
+                        <v-avatar
+                          color="primary"
+                          size="40"
+                        >
                           <span class="text-white">{{
                             item.raw.nome.substring(0, 2).toUpperCase()
                           }}</span>
@@ -277,7 +323,10 @@
               </v-col>
 
               <!-- Data Início -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="vinculoForm.data_inicio"
                   label="Data Início *"
@@ -290,7 +339,10 @@
               </v-col>
 
               <!-- Data Fim -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="vinculoForm.data_fim"
                   label="Data Fim (Opcional)"
@@ -304,7 +356,10 @@
               </v-col>
 
               <!-- Status -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-switch
                   v-model="vinculoForm.ativo"
                   label="Vínculo Ativo"
@@ -333,15 +388,19 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="fecharDialog" :disabled="salvando">
+          <v-btn
+            variant="text"
+            :disabled="salvando"
+            @click="fecharDialog"
+          >
             Cancelar
           </v-btn>
           <v-btn
             color="primary"
             variant="flat"
-            @click="salvarVinculo"
             :loading="salvando"
             :disabled="!formValido"
+            @click="salvarVinculo"
           >
             Salvar
           </v-btn>
@@ -350,10 +409,18 @@
     </v-dialog>
 
     <!-- Dialog Visualização -->
-    <v-dialog v-model="dialogVisualizacao" max-width="700">
+    <v-dialog
+      v-model="dialogVisualizacao"
+      max-width="700"
+    >
       <v-card v-if="vinculoSelecionado">
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="primary">mdi-eye</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-eye
+          </v-icon>
           Detalhes do Vínculo
           <v-spacer />
           <v-btn
@@ -424,14 +491,24 @@
             </v-col>
 
             <!-- Datas -->
-            <v-col cols="12" md="6">
-              <div class="text-caption text-secondary mb-1">DATA INÍCIO</div>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <div class="text-caption text-secondary mb-1">
+                DATA INÍCIO
+              </div>
               <div class="text-body-1">
                 {{ formatarData(vinculoSelecionado.data_inicio) }}
               </div>
             </v-col>
-            <v-col cols="12" md="6">
-              <div class="text-caption text-secondary mb-1">DATA FIM</div>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <div class="text-caption text-secondary mb-1">
+                DATA FIM
+              </div>
               <div class="text-body-1">
                 {{
                   vinculoSelecionado.data_fim
@@ -443,15 +520,24 @@
 
             <!-- Duração -->
             <v-col cols="12">
-              <v-alert type="info" variant="tonal" density="compact">
+              <v-alert
+                type="info"
+                variant="tonal"
+                density="compact"
+              >
                 <strong>Duração:</strong>
                 {{ calcularDuracao(vinculoSelecionado) }}
               </v-alert>
             </v-col>
 
             <!-- Observações -->
-            <v-col v-if="vinculoSelecionado.observacoes" cols="12">
-              <div class="text-caption text-secondary mb-1">OBSERVAÇÕES</div>
+            <v-col
+              v-if="vinculoSelecionado.observacoes"
+              cols="12"
+            >
+              <div class="text-caption text-secondary mb-1">
+                OBSERVAÇÕES
+              </div>
               <div class="text-body-2">
                 {{ vinculoSelecionado.observacoes }}
               </div>
@@ -474,10 +560,18 @@
     </v-dialog>
 
     <!-- Dialog Confirmar Exclusão -->
-    <v-dialog v-model="dialogExcluir" max-width="500">
+    <v-dialog
+      v-model="dialogExcluir"
+      max-width="500"
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="error">mdi-alert</v-icon>
+          <v-icon
+            class="mr-2"
+            color="error"
+          >
+            mdi-alert
+          </v-icon>
           Confirmar Exclusão
         </v-card-title>
 
@@ -485,7 +579,11 @@
 
         <v-card-text class="pa-6">
           <p>Tem certeza que deseja excluir este vínculo?</p>
-          <v-alert type="warning" variant="tonal" class="mt-4">
+          <v-alert
+            type="warning"
+            variant="tonal"
+            class="mt-4"
+          >
             Esta ação não pode ser desfeita!
           </v-alert>
         </v-card-text>
@@ -496,16 +594,16 @@
           <v-spacer />
           <v-btn
             variant="text"
-            @click="dialogExcluir = false"
             :disabled="excluindo"
+            @click="dialogExcluir = false"
           >
             Cancelar
           </v-btn>
           <v-btn
             color="error"
             variant="flat"
-            @click="excluirVinculo"
             :loading="excluindo"
+            @click="excluirVinculo"
           >
             Excluir
           </v-btn>

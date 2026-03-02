@@ -219,7 +219,7 @@ export async function validarAcessoEquipamento(usuarioId, equipamentoId) {
     }
 
     return !error && data;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

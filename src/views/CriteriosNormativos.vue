@@ -1,10 +1,15 @@
 <!-- src/views/CriteriosNormativos.vue -->
 <template>
-  <v-container fluid class="cn-page">
+  <v-container
+    fluid
+    class="cn-page"
+  >
     <v-row class="mb-4">
       <v-col cols="12">
         <div class="cn-hero glass">
-          <div class="cn-hero__title">Critérios Normativos</div>
+          <div class="cn-hero__title">
+            Critérios Normativos
+          </div>
           <div class="cn-hero__subtitle">
             Tabelas normativas (Supabase) — edição restrita ao Administrador.
           </div>
@@ -19,7 +24,12 @@
               {{ isOnline ? "Online" : "Offline" }}
             </v-chip>
 
-            <v-chip size="small" variant="tonal" color="info" class="mr-2">
+            <v-chip
+              size="small"
+              variant="tonal"
+              color="info"
+              class="mr-2"
+            >
               Perfil: {{ authStore.isAdmin ? "ADMIN" : "OPERADOR" }}
             </v-chip>
 
@@ -52,10 +62,20 @@
     <v-row>
       <v-col cols="12">
         <div class="glass cn-card">
-          <v-tabs v-model="tab" class="cn-tabs" bg-color="transparent">
-            <v-tab value="horizontal">Horizontal</v-tab>
-            <v-tab value="vertical">Vertical</v-tab>
-            <v-tab value="dispositivos">Dispositivos (Tachas)</v-tab>
+          <v-tabs
+            v-model="tab"
+            class="cn-tabs"
+            bg-color="transparent"
+          >
+            <v-tab value="horizontal">
+              Horizontal
+            </v-tab>
+            <v-tab value="vertical">
+              Vertical
+            </v-tab>
+            <v-tab value="dispositivos">
+              Dispositivos (Tachas)
+            </v-tab>
           </v-tabs>
 
           <v-divider class="my-3" />
@@ -97,15 +117,20 @@
                 <template #loading>
                   <div class="cn-empty">
                     <v-progress-circular indeterminate />
-                    <div class="cn-empty__text">Carregando critérios...</div>
+                    <div class="cn-empty__text">
+                      Carregando critérios...
+                    </div>
                   </div>
                 </template>
 
                 <template #no-data>
                   <div class="cn-empty">
-                    <v-icon size="28" class="mb-2"
-                      >mdi-database-off-outline</v-icon
+                    <v-icon
+                      size="28"
+                      class="mb-2"
                     >
+                      mdi-database-off-outline
+                    </v-icon>
                     <div class="cn-empty__title">
                       Nenhum critério cadastrado
                     </div>
@@ -120,19 +145,20 @@
                   <div class="cn-cell">
                     <v-text-field
                       v-if="authStore.isAdmin"
-                      :model-value="
-                        formatNumberDisplay(item?.valor_minimo)
-                      "
-                      @update:modelValue="
-                        (v) => onEditValorMinimo('horizontal', item, v)
-                      "
+                      :model-value="formatNumberDisplay(item?.valor_minimo)"
                       variant="solo-filled"
                       density="compact"
                       hide-details
                       class="cn-input"
                       inputmode="decimal"
+                      @update:modelValue="
+                        (v) => onEditValorMinimo('horizontal', item, v)
+                      "
                     />
-                    <span v-else class="cn-readonly">{{
+                    <span
+                      v-else
+                      class="cn-readonly"
+                    >{{
                       formatNumberDisplay(item?.valor_minimo)
                     }}</span>
                   </div>
@@ -143,13 +169,13 @@
                     <v-switch
                       v-if="authStore.isAdmin"
                       :model-value="!!item?.ativo"
-                      @update:modelValue="
-                        (v) => onToggleAtivo('horizontal', item, v)
-                      "
                       color="success"
                       inset
                       hide-details
                       density="compact"
+                      @update:modelValue="
+                        (v) => onToggleAtivo('horizontal', item, v)
+                      "
                     />
                     <v-chip
                       v-else
@@ -163,9 +189,7 @@
                 </template>
 
                 <template #item.norma_ref="{ item }">
-                  <span class="cn-muted">{{
-                    item?.norma_ref || "-"
-                  }}</span>
+                  <span class="cn-muted">{{ item?.norma_ref || "-" }}</span>
                 </template>
               </v-data-table>
             </v-window-item>
@@ -206,15 +230,20 @@
                 <template #loading>
                   <div class="cn-empty">
                     <v-progress-circular indeterminate />
-                    <div class="cn-empty__text">Carregando critérios...</div>
+                    <div class="cn-empty__text">
+                      Carregando critérios...
+                    </div>
                   </div>
                 </template>
 
                 <template #no-data>
                   <div class="cn-empty">
-                    <v-icon size="28" class="mb-2"
-                      >mdi-database-off-outline</v-icon
+                    <v-icon
+                      size="28"
+                      class="mb-2"
                     >
+                      mdi-database-off-outline
+                    </v-icon>
                     <div class="cn-empty__title">
                       Nenhum critério cadastrado
                     </div>
@@ -228,19 +257,20 @@
                   <div class="cn-cell">
                     <v-text-field
                       v-if="authStore.isAdmin"
-                      :model-value="
-                        formatNumberDisplay(item?.valor_minimo)
-                      "
-                      @update:modelValue="
-                        (v) => onEditValorMinimo('vertical', item, v)
-                      "
+                      :model-value="formatNumberDisplay(item?.valor_minimo)"
                       variant="solo-filled"
                       density="compact"
                       hide-details
                       class="cn-input"
                       inputmode="decimal"
+                      @update:modelValue="
+                        (v) => onEditValorMinimo('vertical', item, v)
+                      "
                     />
-                    <span v-else class="cn-readonly">{{
+                    <span
+                      v-else
+                      class="cn-readonly"
+                    >{{
                       formatNumberDisplay(item?.valor_minimo)
                     }}</span>
                   </div>
@@ -251,13 +281,13 @@
                     <v-switch
                       v-if="authStore.isAdmin"
                       :model-value="!!item?.ativo"
-                      @update:modelValue="
-                        (v) => onToggleAtivo('vertical', item, v)
-                      "
                       color="success"
                       inset
                       hide-details
                       density="compact"
+                      @update:modelValue="
+                        (v) => onToggleAtivo('vertical', item, v)
+                      "
                     />
                     <v-chip
                       v-else
@@ -271,9 +301,15 @@
                 </template>
 
                 <template #item.classe_pelicula="{ item }">
-                  <v-chip size="small" variant="tonal" color="info">{{
-                    item?.classe_pelicula || "-"
-                  }}</v-chip>
+                  <v-chip
+                    size="small"
+                    variant="tonal"
+                    color="info"
+                  >
+                    {{
+                      item?.classe_pelicula || "-"
+                    }}
+                  </v-chip>
                 </template>
 
                 <template #item.angulo_observacao="{ item }">
@@ -289,9 +325,7 @@
                 </template>
 
                 <template #item.norma_ref="{ item }">
-                  <span class="cn-muted">{{
-                    item?.norma_ref || "-"
-                  }}</span>
+                  <span class="cn-muted">{{ item?.norma_ref || "-" }}</span>
                 </template>
               </v-data-table>
 
@@ -337,15 +371,20 @@
                 <template #loading>
                   <div class="cn-empty">
                     <v-progress-circular indeterminate />
-                    <div class="cn-empty__text">Carregando critérios...</div>
+                    <div class="cn-empty__text">
+                      Carregando critérios...
+                    </div>
                   </div>
                 </template>
 
                 <template #no-data>
                   <div class="cn-empty">
-                    <v-icon size="28" class="mb-2"
-                      >mdi-database-off-outline</v-icon
+                    <v-icon
+                      size="28"
+                      class="mb-2"
                     >
+                      mdi-database-off-outline
+                    </v-icon>
                     <div class="cn-empty__title">
                       Nenhum critério cadastrado
                     </div>
@@ -359,19 +398,20 @@
                   <div class="cn-cell">
                     <v-text-field
                       v-if="authStore.isAdmin"
-                      :model-value="
-                        formatNumberDisplay(item?.valor_minimo)
-                      "
-                      @update:modelValue="
-                        (v) => onEditValorMinimo('dispositivos', item, v)
-                      "
+                      :model-value="formatNumberDisplay(item?.valor_minimo)"
                       variant="solo-filled"
                       density="compact"
                       hide-details
                       class="cn-input"
                       inputmode="decimal"
+                      @update:modelValue="
+                        (v) => onEditValorMinimo('dispositivos', item, v)
+                      "
                     />
-                    <span v-else class="cn-readonly">{{
+                    <span
+                      v-else
+                      class="cn-readonly"
+                    >{{
                       formatNumberDisplay(item?.valor_minimo)
                     }}</span>
                   </div>
@@ -382,13 +422,13 @@
                     <v-switch
                       v-if="authStore.isAdmin"
                       :model-value="!!item?.ativo"
-                      @update:modelValue="
-                        (v) => onToggleAtivo('dispositivos', item, v)
-                      "
                       color="success"
                       inset
                       hide-details
                       density="compact"
+                      @update:modelValue="
+                        (v) => onToggleAtivo('dispositivos', item, v)
+                      "
                     />
                     <v-chip
                       v-else
@@ -402,9 +442,15 @@
                 </template>
 
                 <template #item.tipo_lente="{ item }">
-                  <v-chip size="small" variant="tonal" color="primary">{{
-                    item?.tipo_lente || "-"
-                  }}</v-chip>
+                  <v-chip
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                  >
+                    {{
+                      item?.tipo_lente || "-"
+                    }}
+                  </v-chip>
                 </template>
 
                 <template #item.angulo_observacao="{ item }">
@@ -420,9 +466,7 @@
                 </template>
 
                 <template #item.norma_ref="{ item }">
-                  <span class="cn-muted">{{
-                    item?.norma_ref || "-"
-                  }}</span>
+                  <span class="cn-muted">{{ item?.norma_ref || "-" }}</span>
                 </template>
               </v-data-table>
 
@@ -447,52 +491,14 @@
   </v-container>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { supabase } from "@/services/supabase"; // ajuste o caminho se necessário
 
-type TabKey = "horizontal" | "vertical" | "dispositivos";
-
-type HorizontalRow = {
-  id?: string;
-  geometria?: string;
-  material?: string;
-  cor?: string;
-  momento?: string;
-  unidade?: string;
-  valor_minimo?: number | null;
-  norma_ref?: string;
-  ativo?: boolean | null;
-};
-
-type VerticalRow = {
-  id?: string;
-  classe_pelicula?: string;
-  angulo_observacao?: number | null;
-  angulo_entrada?: number | null;
-  cor?: string;
-  valor_minimo?: number | null;
-  unidade?: string;
-  norma_ref?: string;
-  ativo?: boolean | null;
-};
-
-type DispositivoRow = {
-  id?: string;
-  tipo_lente?: string;
-  angulo_observacao?: number | null;
-  angulo_entrada?: number | null;
-  cor?: string;
-  valor_minimo?: number | null;
-  unidade?: string;
-  norma_ref?: string;
-  ativo?: boolean | null;
-};
-
 const authStore = useAuthStore();
 
-const tab = ref<TabKey>("horizontal");
+const tab = ref("horizontal");
 const loading = ref(false);
 const lastLoadAt = ref("");
 
@@ -500,32 +506,29 @@ const isOnline = ref(
   typeof navigator !== "undefined" ? navigator.onLine : true,
 );
 
-const filters = reactive<Record<TabKey, string>>({
+const filters = reactive({
   horizontal: "",
   vertical: "",
   dispositivos: "",
 });
 
-const error = reactive<Record<TabKey, string>>({
+const error = reactive({
   horizontal: "",
   vertical: "",
   dispositivos: "",
 });
 
-const rowsHorizontal = ref<HorizontalRow[]>([]);
-const rowsVertical = ref<VerticalRow[]>([]);
-const rowsDispositivos = ref<DispositivoRow[]>([]);
+const rowsHorizontal = ref([]);
+const rowsVertical = ref([]);
+const rowsDispositivos = ref([]);
 
-const snackbar = reactive<{ show: boolean; text: string; color: string }>({
+const snackbar = reactive({
   show: false,
   text: "",
   color: "success",
 });
 
-function toast(
-  text: string,
-  color: "success" | "error" | "warning" | "info" = "success",
-) {
+function toast(text, color = "success") {
   snackbar.text = text;
   snackbar.color = color;
   snackbar.show = true;
@@ -542,20 +545,20 @@ function nowBR() {
   }
 }
 
-function safeText(v: unknown) {
+function safeText(v) {
   return String(v ?? "")
     .trim()
     .toLowerCase();
 }
 
-function formatNumberDisplay(v: unknown) {
+function formatNumberDisplay(v) {
   if (v === null || v === undefined || v === "") return "";
   const n = Number(v);
   if (Number.isNaN(n)) return String(v);
   return String(n);
 }
 
-function parseNumberInput(v: string): number | null {
+function parseNumberInput(v) {
   const raw = (v ?? "").toString().trim();
   if (!raw) return null;
   const norm = raw.replace(/\./g, "").replace(",", ".");
@@ -563,14 +566,14 @@ function parseNumberInput(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function formatAngle(v: unknown) {
+function formatAngle(v) {
   if (v === null || v === undefined || v === "") return "-";
   const n = Number(v);
   if (Number.isNaN(n)) return String(v);
   return n.toString();
 }
 
-function isVerticalClassAllowed(classe?: string) {
+function isVerticalClassAllowed(classe) {
   const c = (classe ?? "").toString().trim().toUpperCase();
   if (!c) return true;
   if (c === "IV" || c === "V") return false;
@@ -591,8 +594,8 @@ async function loadHorizontal() {
       .order("momento", { ascending: true });
 
     if (err) throw err;
-    rowsHorizontal.value = (data ?? []) as HorizontalRow[];
-  } catch (e: any) {
+    rowsHorizontal.value = data ?? [];
+  } catch (e) {
     rowsHorizontal.value = [];
     error.horizontal = `Falha ao carregar (horizontal): ${e?.message || e}`;
   }
@@ -610,11 +613,11 @@ async function loadVertical() {
       .order("cor", { ascending: true });
 
     if (err) throw err;
-    const all = (data ?? []) as VerticalRow[];
+    const all = data ?? [];
     rowsVertical.value = all.filter((r) =>
       isVerticalClassAllowed(r.classe_pelicula),
     );
-  } catch (e: any) {
+  } catch (e) {
     rowsVertical.value = [];
     error.vertical = `Falha ao carregar (vertical): ${e?.message || e}`;
   }
@@ -632,8 +635,8 @@ async function loadDispositivos() {
       .order("angulo_entrada", { ascending: true });
 
     if (err) throw err;
-    rowsDispositivos.value = (data ?? []) as DispositivoRow[];
-  } catch (e: any) {
+    rowsDispositivos.value = data ?? [];
+  } catch (e) {
     rowsDispositivos.value = [];
     error.dispositivos = `Falha ao carregar (dispositivos): ${e?.message || e}`;
   }
@@ -652,19 +655,13 @@ async function reloadAll() {
   }
 }
 
-type TableKey = TabKey;
-
-function getTableName(key: TableKey) {
+function getTableName(key) {
   if (key === "horizontal") return "norma_criterios_horizontal";
   if (key === "vertical") return "norma_vertical";
   return "norma_dispositivos";
 }
 
-async function onEditValorMinimo(
-  table: TableKey,
-  row: any,
-  inputValue: string,
-) {
+async function onEditValorMinimo(table, row, inputValue) {
   if (!authStore.isAdmin) return;
   if (!row?.id) return;
 
@@ -680,7 +677,7 @@ async function onEditValorMinimo(
       .eq("id", row.id);
     if (err) throw err;
     toast("Valor mínimo atualizado.", "success");
-  } catch (e: any) {
+  } catch (e) {
     toast(`Falha ao atualizar valor mínimo: ${e?.message || e}`, "error");
     if (table === "horizontal") await loadHorizontal();
     if (table === "vertical") await loadVertical();
@@ -688,7 +685,7 @@ async function onEditValorMinimo(
   }
 }
 
-async function onToggleAtivo(table: TableKey, row: any, value: boolean) {
+async function onToggleAtivo(table, row, value) {
   if (!authStore.isAdmin) return;
   if (!row?.id) return;
 
@@ -703,7 +700,7 @@ async function onToggleAtivo(table: TableKey, row: any, value: boolean) {
       .eq("id", row.id);
     if (err) throw err;
     toast("Status atualizado.", "success");
-  } catch (e: any) {
+  } catch (e) {
     toast(`Falha ao atualizar status: ${e?.message || e}`, "error");
     if (table === "horizontal") await loadHorizontal();
     if (table === "vertical") await loadVertical();
@@ -968,4 +965,3 @@ onMounted(async () => {
   color: rgba(255, 255, 255, 0.55);
 }
 </style>
-

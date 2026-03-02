@@ -1,5 +1,8 @@
 <template>
-  <div v-if="error" class="error-boundary">
+  <div
+    v-if="error"
+    class="error-boundary"
+  >
     <v-alert
       type="error"
       prominent
@@ -8,23 +11,38 @@
       @click:close="resetError"
     >
       <v-alert-title>
-        <v-icon class="mr-2">mdi-alert-circle</v-icon>
+        <v-icon class="mr-2">
+          mdi-alert-circle
+        </v-icon>
         Ocorreu um erro inesperado
       </v-alert-title>
 
       <div class="mt-2">
         <p>{{ error.message }}</p>
-        <v-btn size="small" variant="outlined" @click="resetError" class="mt-2">
+        <v-btn
+          size="small"
+          variant="outlined"
+          class="mt-2"
+          @click="resetError"
+        >
           Tentar Novamente
         </v-btn>
-        <v-btn size="small" variant="text" @click="goHome" class="mt-2 ml-2">
+        <v-btn
+          size="small"
+          variant="text"
+          class="mt-2 ml-2"
+          @click="goHome"
+        >
           Voltar ao Início
         </v-btn>
       </div>
 
       <!-- Detalhes técnicos (apenas em dev) -->
       <v-expand-transition>
-        <div v-if="showDetails && isDev" class="mt-4">
+        <div
+          v-if="showDetails && isDev"
+          class="mt-4"
+        >
           <v-divider class="my-2" />
           <pre class="text-caption">{{ error.stack }}</pre>
         </div>
@@ -34,8 +52,8 @@
         v-if="isDev"
         size="small"
         variant="text"
-        @click="showDetails = !showDetails"
         class="mt-2"
+        @click="showDetails = !showDetails"
       >
         {{ showDetails ? "Ocultar" : "Ver" }} Detalhes
       </v-btn>

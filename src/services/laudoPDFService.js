@@ -100,12 +100,12 @@ class LaudoPDFService {
 
       // Normas de referência
       yPos = this.adicionarSecao(doc, yPos + 10, "NORMAS DE REFERÊNCIA");
-      yPos = this.adicionarNormasReferencia(doc, yPos, dadosMedicao);
+      yPos = this.adicionarNormasReferencia(doc, yPos);
 
       // Observações (se houver)
       if (dadosMedicao.observacoes) {
         yPos = this.adicionarSecao(doc, yPos + 10, "OBSERVAÇÕES");
-        yPos = this.adicionarObservacoes(doc, yPos, dadosMedicao);
+        this.adicionarObservacoes(doc, yPos, dadosMedicao);
       }
 
       // Assinatura com QR Code
@@ -121,7 +121,9 @@ class LaudoPDFService {
       return { success: true, nomeArquivo };
     } catch (error) {
       console.error("Erro ao gerar laudo PDF:", error);
-      throw new Error("Falha ao gerar laudo: " + error.message);
+      throw new Error("Falha ao gerar laudo: " + error.message, {
+        cause: error,
+      });
     }
   }
 
@@ -371,7 +373,7 @@ class LaudoPDFService {
   /**
    * Adicionar normas de referência
    */
-  adicionarNormasReferencia(doc, yPos, dados) {
+  adicionarNormasReferencia(doc, yPos) {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...this.cores.texto);

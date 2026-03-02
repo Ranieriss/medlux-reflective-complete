@@ -2,17 +2,27 @@
   <div>
     <!-- Header -->
     <h1 class="text-h4 font-weight-bold mb-6">
-      <v-icon class="mr-2" color="primary">mdi-cog</v-icon>
+      <v-icon
+        class="mr-2"
+        color="primary"
+      >
+        mdi-cog
+      </v-icon>
       Sistema
     </h1>
 
     <!-- Informações do Sistema -->
     <v-row>
       <!-- Info Card -->
-      <v-col cols="12" md="6">
+      <v-col
+        cols="12"
+        md="6"
+      >
         <v-card class="glass">
           <v-card-title class="d-flex align-center">
-            <v-icon class="mr-2">mdi-information</v-icon>
+            <v-icon class="mr-2">
+              mdi-information
+            </v-icon>
             Informações do Sistema
           </v-card-title>
           <v-divider />
@@ -52,18 +62,23 @@
       </v-col>
 
       <!-- Estatísticas -->
-      <v-col cols="12" md="6">
+      <v-col
+        cols="12"
+        md="6"
+      >
         <v-card class="glass">
           <v-card-title class="d-flex align-center">
-            <v-icon class="mr-2">mdi-chart-bar</v-icon>
+            <v-icon class="mr-2">
+              mdi-chart-bar
+            </v-icon>
             Estatísticas
             <v-spacer />
             <v-btn
               icon="mdi-refresh"
               size="small"
               variant="text"
-              @click="carregarEstatisticas"
               :loading="carregandoStats"
+              @click="carregarEstatisticas"
             />
           </v-card-title>
           <v-divider />
@@ -71,39 +86,47 @@
             <v-list density="compact">
               <v-list-item>
                 <template #prepend>
-                  <v-icon color="primary">mdi-devices</v-icon>
+                  <v-icon color="primary">
+                    mdi-devices
+                  </v-icon>
                 </template>
                 <v-list-item-title>Equipamentos</v-list-item-title>
-                <v-list-item-subtitle
-                  >{{ stats.equipamentos }} registros</v-list-item-subtitle
-                >
+                <v-list-item-subtitle>
+                  {{ stats.equipamentos }} registros
+                </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
                 <template #prepend>
-                  <v-icon color="secondary">mdi-account-group</v-icon>
+                  <v-icon color="secondary">
+                    mdi-account-group
+                  </v-icon>
                 </template>
                 <v-list-item-title>Usuários</v-list-item-title>
-                <v-list-item-subtitle
-                  >{{ stats.usuarios }} registros</v-list-item-subtitle
-                >
+                <v-list-item-subtitle>
+                  {{ stats.usuarios }} registros
+                </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
                 <template #prepend>
-                  <v-icon color="success">mdi-link-variant</v-icon>
+                  <v-icon color="success">
+                    mdi-link-variant
+                  </v-icon>
                 </template>
                 <v-list-item-title>Vínculos</v-list-item-title>
-                <v-list-item-subtitle
-                  >{{ stats.vinculos }} registros</v-list-item-subtitle
-                >
+                <v-list-item-subtitle>
+                  {{ stats.vinculos }} registros
+                </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
                 <template #prepend>
-                  <v-icon color="warning">mdi-history</v-icon>
+                  <v-icon color="warning">
+                    mdi-history
+                  </v-icon>
                 </template>
                 <v-list-item-title>Logs de Auditoria</v-list-item-title>
-                <v-list-item-subtitle
-                  >{{ stats.auditoria }} registros</v-list-item-subtitle
-                >
+                <v-list-item-subtitle>
+                  {{ stats.auditoria }} registros
+                </v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </v-card-text>
@@ -114,13 +137,18 @@
       <v-col cols="12">
         <v-card class="glass">
           <v-card-title class="d-flex align-center">
-            <v-icon class="mr-2">mdi-database-arrow-up</v-icon>
+            <v-icon class="mr-2">
+              mdi-database-arrow-up
+            </v-icon>
             Backup e Restauração
           </v-card-title>
           <v-divider />
           <v-card-text>
             <v-row>
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-card variant="outlined">
                   <v-card-title>Exportar Dados</v-card-title>
                   <v-card-text>
@@ -132,8 +160,8 @@
                       color="primary"
                       block
                       prepend-icon="mdi-download"
-                      @click="exportarBackup"
                       :loading="exportando"
+                      @click="exportarBackup"
                     >
                       Exportar Backup Completo
                     </v-btn>
@@ -141,7 +169,10 @@
                 </v-card>
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-card variant="outlined">
                   <v-card-title>Importar Dados</v-card-title>
                   <v-card-text>
@@ -150,7 +181,6 @@
                     </p>
                     <v-file-input
                       v-model="arquivoBackup"
-                      @update:modelValue="analisarBackupSelecionado"
                       label="Selecionar arquivo"
                       accept=".json,.txt"
                       variant="outlined"
@@ -158,6 +188,7 @@
                       prepend-icon="mdi-file"
                       show-size
                       class="mb-2"
+                      @update:modelValue="analisarBackupSelecionado"
                     />
                     <v-alert
                       v-if="previewImportacao"
@@ -216,9 +247,9 @@
                       color="warning"
                       block
                       prepend-icon="mdi-upload"
-                      @click="importarBackup"
                       :loading="importando"
                       :disabled="!arquivoBackup"
+                      @click="importarBackup"
                     >
                       Importar Backup
                     </v-btn>
@@ -234,19 +265,30 @@
       <v-col cols="12">
         <v-card class="glass">
           <v-card-title class="d-flex align-center">
-            <v-icon class="mr-2">mdi-wrench</v-icon>
+            <v-icon class="mr-2">
+              mdi-wrench
+            </v-icon>
             Manutenção
           </v-card-title>
           <v-divider />
           <v-card-text>
             <v-row>
-              <v-col cols="12" md="4">
+              <v-col
+                cols="12"
+                md="4"
+              >
                 <v-card variant="outlined">
                   <v-card-text class="text-center">
-                    <v-icon size="48" color="info" class="mb-3"
-                      >mdi-sync</v-icon
+                    <v-icon
+                      size="48"
+                      color="info"
+                      class="mb-3"
                     >
-                    <div class="text-h6 mb-2">Sincronização</div>
+                      mdi-sync
+                    </v-icon>
+                    <div class="text-h6 mb-2">
+                      Sincronização
+                    </div>
                     <div class="text-caption text-secondary mb-4">
                       Status:
                       <strong
@@ -259,8 +301,8 @@
                       color="info"
                       size="small"
                       block
-                      @click="testarConexao"
                       :loading="testando"
+                      @click="testarConexao"
                     >
                       Testar Conexão
                     </v-btn>
@@ -268,13 +310,22 @@
                 </v-card>
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col
+                cols="12"
+                md="4"
+              >
                 <v-card variant="outlined">
                   <v-card-text class="text-center">
-                    <v-icon size="48" color="warning" class="mb-3"
-                      >mdi-cached</v-icon
+                    <v-icon
+                      size="48"
+                      color="warning"
+                      class="mb-3"
                     >
-                    <div class="text-h6 mb-2">Cache Local</div>
+                      mdi-cached
+                    </v-icon>
+                    <div class="text-h6 mb-2">
+                      Cache Local
+                    </div>
                     <div class="text-caption text-secondary mb-4">
                       Limpar dados temporários
                     </div>
@@ -282,8 +333,8 @@
                       color="warning"
                       size="small"
                       block
-                      @click="limparCache"
                       :loading="limpandoCache"
+                      @click="limparCache"
                     >
                       Limpar Cache
                     </v-btn>
@@ -291,13 +342,22 @@
                 </v-card>
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col
+                cols="12"
+                md="4"
+              >
                 <v-card variant="outlined">
                   <v-card-text class="text-center">
-                    <v-icon size="48" color="error" class="mb-3"
-                      >mdi-alert-octagon</v-icon
+                    <v-icon
+                      size="48"
+                      color="error"
+                      class="mb-3"
                     >
-                    <div class="text-h6 mb-2">Logs de Erro</div>
+                      mdi-alert-octagon
+                    </v-icon>
+                    <div class="text-h6 mb-2">
+                      Logs de Erro
+                    </div>
                     <div class="text-caption text-secondary mb-4">
                       Ver erros do sistema
                     </div>
@@ -321,16 +381,24 @@
       <v-col cols="12">
         <v-card class="glass">
           <v-card-title class="d-flex align-center">
-            <v-icon class="mr-2">mdi-information-outline</v-icon>
+            <v-icon class="mr-2">
+              mdi-information-outline
+            </v-icon>
             Sobre
           </v-card-title>
           <v-divider />
           <v-card-text>
             <div class="text-center py-6">
-              <v-icon size="96" color="primary" class="mb-4"
-                >mdi-factory</v-icon
+              <v-icon
+                size="96"
+                color="primary"
+                class="mb-4"
               >
-              <h2 class="text-h4 font-weight-bold mb-2">MEDLUX Reflective</h2>
+                mdi-factory
+              </v-icon>
+              <h2 class="text-h4 font-weight-bold mb-2">
+                MEDLUX Reflective
+              </h2>
               <p class="text-h6 text-secondary mb-4">
                 Sistema de Gestão de Equipamentos
               </p>
@@ -339,59 +407,112 @@
                 controle de calibração, vínculos de custódia e auditoria
                 integrada. Conforme ISO 9001:2015 e ABNT NBR 14723.
               </p>
-              <v-chip color="primary" class="mr-2 mb-2">Vue 3</v-chip>
-              <v-chip color="secondary" class="mr-2 mb-2">Vuetify 3</v-chip>
-              <v-chip color="success" class="mr-2 mb-2">Supabase</v-chip>
-              <v-chip color="info" class="mb-2">PostgreSQL</v-chip>
+              <v-chip
+                color="primary"
+                class="mr-2 mb-2"
+              >
+                Vue 3
+              </v-chip>
+              <v-chip
+                color="secondary"
+                class="mr-2 mb-2"
+              >
+                Vuetify 3
+              </v-chip>
+              <v-chip
+                color="success"
+                class="mr-2 mb-2"
+              >
+                Supabase
+              </v-chip>
+              <v-chip
+                color="info"
+                class="mb-2"
+              >
+                PostgreSQL
+              </v-chip>
 
               <v-divider class="my-6" />
 
               <div class="mb-6">
-                <h3 class="text-h6 font-weight-bold mb-3">Desenvolvido por:</h3>
+                <h3 class="text-h6 font-weight-bold mb-3">
+                  Desenvolvido por:
+                </h3>
 
-                <v-card class="mx-auto mb-4" max-width="600" variant="outlined">
+                <v-card
+                  class="mx-auto mb-4"
+                  max-width="600"
+                  variant="outlined"
+                >
                   <v-card-text>
                     <div class="d-flex align-center mb-2">
-                      <v-icon color="primary" class="mr-2"
-                        >mdi-account-tie</v-icon
+                      <v-icon
+                        color="primary"
+                        class="mr-2"
                       >
-                      <span class="text-h6 font-weight-bold"
-                        >Paulo Ranieri dos Santos</span
-                      >
+                        mdi-account-tie
+                      </v-icon>
+                      <span class="text-h6 font-weight-bold">Paulo Ranieri dos Santos</span>
                     </div>
                     <div class="text-body-2 text-left">
                       <div class="mb-1">
-                        <v-icon size="small" class="mr-2">mdi-school</v-icon
-                        >Engenheiro Químico
+                        <v-icon
+                          size="small"
+                          class="mr-2"
+                        >
+                          mdi-school
+                        </v-icon>Engenheiro Químico
                       </div>
                       <div class="mb-1">
-                        <v-icon size="small" class="mr-2">mdi-cog</v-icon
-                        >Técnico em Automação Industrial
+                        <v-icon
+                          size="small"
+                          class="mr-2"
+                        >
+                          mdi-cog
+                        </v-icon>Técnico em Automação Industrial
                       </div>
                       <div class="mb-1">
-                        <v-icon size="small" class="mr-2"
-                          >mdi-code-braces</v-icon
-                        >Desenvolvedor de Aplicativos
+                        <v-icon
+                          size="small"
+                          class="mr-2"
+                        >
+                          mdi-code-braces
+                        </v-icon>Desenvolvedor de Aplicativos
                       </div>
                       <div class="mb-1">
-                        <v-icon size="small" class="mr-2">mdi-whatsapp</v-icon
-                        >WhatsApp: +55 (48) 99608-3062
+                        <v-icon
+                          size="small"
+                          class="mr-2"
+                        >
+                          mdi-whatsapp
+                        </v-icon>WhatsApp: +55 (48) 99608-3062
                       </div>
                       <div>
-                        <v-icon size="small" class="mr-2">mdi-email</v-icon
-                        >Email: ranieri.santos16@gmail.com
+                        <v-icon
+                          size="small"
+                          class="mr-2"
+                        >
+                          mdi-email
+                        </v-icon>Email: ranieri.santos16@gmail.com
                       </div>
                     </div>
                   </v-card-text>
                 </v-card>
 
-                <v-card class="mx-auto" max-width="600" variant="outlined">
+                <v-card
+                  class="mx-auto"
+                  max-width="600"
+                  variant="outlined"
+                >
                   <v-card-text>
                     <div class="d-flex align-center mb-2">
-                      <v-icon color="success" class="mr-2">mdi-factory</v-icon>
-                      <span class="text-h6 font-weight-bold"
-                        >I.C.D. Indústria</span
+                      <v-icon
+                        color="success"
+                        class="mr-2"
                       >
+                        mdi-factory
+                      </v-icon>
+                      <span class="text-h6 font-weight-bold">I.C.D. Indústria</span>
                     </div>
                     <div class="text-body-2 text-left">
                       <div class="mb-1">
@@ -406,13 +527,24 @@
                         <strong>Endereço:</strong> Rua Juliano Lucchi, 118 –
                         Jardim Eldorado - Palhoça - SC
                       </div>
-                      <div class="mb-1"><strong>CEP:</strong> 88.133-540</div>
                       <div class="mb-1">
-                        <v-icon size="small" class="mr-2">mdi-phone</v-icon
-                        >Telefone: (48) 2106-3022
+                        <strong>CEP:</strong> 88.133-540
                       </div>
                       <div class="mb-1">
-                        <v-icon size="small" class="mr-2">mdi-web</v-icon>Site:
+                        <v-icon
+                          size="small"
+                          class="mr-2"
+                        >
+                          mdi-phone
+                        </v-icon>Telefone: (48) 2106-3022
+                      </div>
+                      <div class="mb-1">
+                        <v-icon
+                          size="small"
+                          class="mr-2"
+                        >
+                          mdi-web
+                        </v-icon>Site:
                         www.icdvias.com.br
                       </div>
                       <div>
@@ -437,19 +569,36 @@
     </v-row>
 
     <!-- Dialog Logs de Erro -->
-    <v-dialog v-model="dialogLogs" max-width="900" scrollable>
+    <v-dialog
+      v-model="dialogLogs"
+      max-width="900"
+      scrollable
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="error">mdi-alert-octagon</v-icon>
+          <v-icon
+            class="mr-2"
+            color="error"
+          >
+            mdi-alert-octagon
+          </v-icon>
           Logs de Erro
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" @click="dialogLogs = false" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="dialogLogs = false"
+          />
         </v-card-title>
 
         <v-divider />
 
         <v-card-text class="pa-6">
-          <v-alert type="info" variant="tonal" class="mb-4">
+          <v-alert
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
             Últimos 50 erros registrados no sistema
           </v-alert>
 
@@ -480,15 +629,31 @@
             </v-btn>
           </div>
 
-          <div v-if="logs.length === 0" class="text-center py-8">
-            <v-icon size="64" color="success" class="mb-4"
-              >mdi-check-circle</v-icon
+          <div
+            v-if="logs.length === 0"
+            class="text-center py-8"
+          >
+            <v-icon
+              size="64"
+              color="success"
+              class="mb-4"
             >
-            <p class="text-h6">Nenhum erro registrado</p>
-            <p class="text-secondary">Sistema funcionando perfeitamente!</p>
+              mdi-check-circle
+            </v-icon>
+            <p class="text-h6">
+              Nenhum erro registrado
+            </p>
+            <p class="text-secondary">
+              Sistema funcionando perfeitamente!
+            </p>
           </div>
 
-          <v-timeline v-else side="end" density="compact" truncate-line="both">
+          <v-timeline
+            v-else
+            side="end"
+            density="compact"
+            truncate-line="both"
+          >
             <v-timeline-item
               v-for="(log, index) in logs"
               :key="index"
@@ -504,7 +669,10 @@
                   <div class="text-body-2 font-weight-bold mb-1">
                     {{ log.message }}
                   </div>
-                  <div v-if="log.stack" class="text-caption">
+                  <div
+                    v-if="log.stack"
+                    class="text-caption"
+                  >
                     <pre class="log-stack">{{ log.stack }}</pre>
                   </div>
                 </v-card-text>
@@ -1096,7 +1264,7 @@ const copiarDiagnostico = async () => {
       "Diagnóstico copiado para a área de transferência.",
       "success",
     );
-  } catch (error) {
+  } catch {
     mostrarSnackbar("Não foi possível copiar o diagnóstico.", "warning");
   }
 };

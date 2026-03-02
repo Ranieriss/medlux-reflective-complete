@@ -256,9 +256,7 @@ Deno.serve(async (req) => {
     let resolvedAuthUserId = authUserId;
     if (!resolvedAuthUserId) {
       const getByEmailApi = supabaseAdmin.auth.admin as {
-        getUserByEmail?: (
-          email: string,
-        ) => Promise<{
+        getUserByEmail?: (email: string) => Promise<{
           data: { user: { id: string } | null };
           error: { message: string } | null;
         }>;

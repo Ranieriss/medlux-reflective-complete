@@ -3,11 +3,6 @@
 
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // Configuração do Supabase
 const supabaseUrl = "https://earrnuuvdzawclxsyoxk.supabase.co";

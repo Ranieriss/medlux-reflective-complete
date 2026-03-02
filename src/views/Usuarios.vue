@@ -2,7 +2,12 @@
   <div>
     <div class="d-flex align-center justify-space-between mb-6">
       <h1 class="text-h4 font-weight-bold">
-        <v-icon class="mr-2" color="primary">mdi-account-group</v-icon>
+        <v-icon
+          class="mr-2"
+          color="primary"
+        >
+          mdi-account-group
+        </v-icon>
         Usuários
       </h1>
       <v-btn
@@ -11,33 +16,56 @@
         class="glow-primary"
         @click="abrirDialogNovo"
       >
-        <v-icon class="mr-2">mdi-plus</v-icon>
+        <v-icon class="mr-2">
+          mdi-plus
+        </v-icon>
         Novo Usuário
       </v-btn>
     </div>
 
     <v-row class="mb-4">
-      <v-col cols="12" sm="4">
+      <v-col
+        cols="12"
+        sm="4"
+      >
         <v-card class="glass">
           <v-card-text>
-            <div class="text-h6 text-main mb-2">Total</div>
-            <div class="text-h3 font-weight-bold">{{ usuarios.length }}</div>
+            <div class="text-h6 text-main mb-2">
+              Total
+            </div>
+            <div class="text-h3 font-weight-bold">
+              {{ usuarios.length }}
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" sm="4">
+      <v-col
+        cols="12"
+        sm="4"
+      >
         <v-card class="glass">
           <v-card-text>
-            <div class="text-h6 text-success mb-2">Ativos</div>
-            <div class="text-h3 font-weight-bold">{{ usuariosAtivos }}</div>
+            <div class="text-h6 text-success mb-2">
+              Ativos
+            </div>
+            <div class="text-h3 font-weight-bold">
+              {{ usuariosAtivos }}
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" sm="4">
+      <v-col
+        cols="12"
+        sm="4"
+      >
         <v-card class="glass">
           <v-card-text>
-            <div class="text-h6 text-warning mb-2">Inativos</div>
-            <div class="text-h3 font-weight-bold">{{ usuariosInativos }}</div>
+            <div class="text-h6 text-warning mb-2">
+              Inativos
+            </div>
+            <div class="text-h3 font-weight-bold">
+              {{ usuariosInativos }}
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -51,8 +79,12 @@
         :items-per-page="10"
       >
         <template v-slot:item.nome="{ item }">
-          <div class="font-weight-bold">{{ item.nome }}</div>
-          <div class="text-caption">{{ item.email }}</div>
+          <div class="font-weight-bold">
+            {{ item.nome }}
+          </div>
+          <div class="text-caption">
+            {{ item.email }}
+          </div>
         </template>
 
         <template v-slot:item.perfil="{ item }">
@@ -66,13 +98,21 @@
         </template>
 
         <template v-slot:item.ativo="{ item }">
-          <v-chip :color="item.ativo ? 'success' : 'grey'" size="small">
+          <v-chip
+            :color="item.ativo ? 'success' : 'grey'"
+            size="small"
+          >
             {{ item.ativo ? "Ativo" : "Inativo" }}
           </v-chip>
         </template>
 
         <template v-slot:item.actions="{ item }">
-          <v-btn icon size="small" variant="text" @click="editarUsuario(item)">
+          <v-btn
+            icon
+            size="small"
+            variant="text"
+            @click="editarUsuario(item)"
+          >
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
           <v-btn
@@ -82,21 +122,32 @@
             :color="item.ativo ? 'error' : 'success'"
             @click="toggleAtivo(item)"
           >
-            <v-icon>{{
-              item.ativo ? "mdi-account-off" : "mdi-account-check"
-            }}</v-icon>
+            <v-icon>
+              {{
+                item.ativo ? "mdi-account-off" : "mdi-account-check"
+              }}
+            </v-icon>
           </v-btn>
         </template>
       </v-data-table>
     </v-card>
 
-    <v-dialog v-model="dialogForm" max-width="600px" persistent>
+    <v-dialog
+      v-model="dialogForm"
+      max-width="600px"
+      persistent
+    >
       <v-card class="glass">
-        <v-card-title>{{
-          modoEdicao ? "Editar Usuário" : "Novo Usuário"
-        }}</v-card-title>
+        <v-card-title>
+          {{
+            modoEdicao ? "Editar Usuário" : "Novo Usuário"
+          }}
+        </v-card-title>
         <v-card-text>
-          <v-form ref="formRef" v-model="formValido">
+          <v-form
+            ref="formRef"
+            v-model="formValido"
+          >
             <v-text-field
               v-model="usuarioForm.nome"
               label="Nome *"
@@ -130,15 +181,25 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="fecharDialog">Cancelar</v-btn>
-          <v-btn color="primary" :loading="salvando" @click="salvarUsuario"
-            >Salvar</v-btn
+          <v-btn @click="fecharDialog">
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            :loading="salvando"
+            @click="salvarUsuario"
           >
+            Salvar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="3000"
+    >
       {{ snackbar.message }}
     </v-snackbar>
   </div>

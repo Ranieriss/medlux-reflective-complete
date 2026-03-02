@@ -3,7 +3,12 @@
     <!-- Header -->
     <div class="d-flex justify-space-between align-center mb-6">
       <h1 class="text-h4 font-weight-bold">
-        <v-icon class="mr-2" color="primary">mdi-account-group</v-icon>
+        <v-icon
+          class="mr-2"
+          color="primary"
+        >
+          mdi-account-group
+        </v-icon>
         Usuários
       </h1>
       <v-btn
@@ -20,7 +25,10 @@
     <v-card class="glass mb-6">
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="4">
+          <v-col
+            cols="12"
+            md="4"
+          >
             <v-text-field
               v-model="filtros.busca"
               label="Buscar"
@@ -32,7 +40,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-select
               v-model="filtros.perfil"
               label="Perfil"
@@ -43,7 +54,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-select
               v-model="filtros.status"
               label="Status"
@@ -54,7 +68,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-btn
               color="primary"
               variant="outlined"
@@ -78,17 +95,26 @@
         md="6"
         lg="4"
       >
-        <v-card class="glass user-card" hover>
+        <v-card
+          class="glass user-card"
+          hover
+        >
           <v-card-text>
             <!-- Header -->
             <div class="d-flex align-center mb-4">
-              <v-avatar color="primary" size="64" class="mr-4">
+              <v-avatar
+                color="primary"
+                size="64"
+                class="mr-4"
+              >
                 <span class="text-h5 text-white">{{
                   getInitials(usuario.nome)
                 }}</span>
               </v-avatar>
               <div class="flex-grow-1">
-                <div class="text-h6 font-weight-bold">{{ usuario.nome }}</div>
+                <div class="text-h6 font-weight-bold">
+                  {{ usuario.nome }}
+                </div>
                 <div class="text-caption text-secondary">
                   {{ usuario.email }}
                 </div>
@@ -124,11 +150,13 @@
                   <v-divider />
                   <v-list-item @click="confirmarExclusao(usuario)">
                     <template #prepend>
-                      <v-icon color="error">mdi-delete</v-icon>
+                      <v-icon color="error">
+                        mdi-delete
+                      </v-icon>
                     </template>
-                    <v-list-item-title class="text-error"
-                      >Excluir</v-list-item-title
-                    >
+                    <v-list-item-title class="text-error">
+                      Excluir
+                    </v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>
@@ -143,9 +171,14 @@
                 size="small"
                 variant="flat"
               >
-                <v-icon start size="small">{{
-                  getPerfilIcon(usuario.perfil)
-                }}</v-icon>
+                <v-icon
+                  start
+                  size="small"
+                >
+                  {{
+                    getPerfilIcon(usuario.perfil)
+                  }}
+                </v-icon>
                 {{ formatarPerfil(usuario.perfil) }}
               </v-chip>
               <v-chip
@@ -154,7 +187,10 @@
                 variant="flat"
                 class="ml-2"
               >
-                <v-icon start size="small">
+                <v-icon
+                  start
+                  size="small"
+                >
                   {{ usuario.ativo ? "mdi-check-circle" : "mdi-close-circle" }}
                 </v-icon>
                 {{ usuario.ativo ? "Ativo" : "Inativo" }}
@@ -162,20 +198,37 @@
             </div>
 
             <!-- Dados de Contato -->
-            <v-row dense class="mt-3">
-              <v-col v-if="usuario.cpf" cols="12">
+            <v-row
+              dense
+              class="mt-3"
+            >
+              <v-col
+                v-if="usuario.cpf"
+                cols="12"
+              >
                 <div class="d-flex align-center text-caption">
-                  <v-icon size="16" class="mr-1" color="primary"
-                    >mdi-card-account-details</v-icon
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                    color="primary"
                   >
+                    mdi-card-account-details
+                  </v-icon>
                   <span>CPF: {{ formatarCPF(usuario.cpf) }}</span>
                 </div>
               </v-col>
-              <v-col v-if="usuario.telefone" cols="12">
+              <v-col
+                v-if="usuario.telefone"
+                cols="12"
+              >
                 <div class="d-flex align-center text-caption">
-                  <v-icon size="16" class="mr-1" color="success"
-                    >mdi-phone</v-icon
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                    color="success"
                   >
+                    mdi-phone
+                  </v-icon>
                   <span>{{ usuario.telefone }}</span>
                 </div>
               </v-col>
@@ -183,9 +236,9 @@
 
             <!-- Documentos (Foto e Cautela) -->
             <v-row
+              v-if="usuario.foto_url || usuario.cautela_url"
               dense
               class="mt-2"
-              v-if="usuario.foto_url || usuario.cautela_url"
             >
               <v-col cols="12">
                 <v-divider class="mb-2" />
@@ -193,7 +246,10 @@
                   Documentos:
                 </div>
               </v-col>
-              <v-col v-if="usuario.foto_url" cols="6">
+              <v-col
+                v-if="usuario.foto_url"
+                cols="6"
+              >
                 <v-btn
                   size="small"
                   color="info"
@@ -206,7 +262,10 @@
                   Ver Foto
                 </v-btn>
               </v-col>
-              <v-col v-if="usuario.cautela_url" cols="6">
+              <v-col
+                v-if="usuario.cautela_url"
+                cols="6"
+              >
                 <v-btn
                   size="small"
                   color="primary"
@@ -222,21 +281,32 @@
             </v-row>
 
             <!-- Stats -->
-            <v-row dense class="mt-2">
+            <v-row
+              dense
+              class="mt-2"
+            >
               <v-col cols="12">
                 <div class="d-flex align-center text-caption text-secondary">
-                  <v-icon size="16" class="mr-1">mdi-calendar-clock</v-icon>
-                  <span
-                    >Último acesso:
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                  >
+                    mdi-calendar-clock
+                  </v-icon>
+                  <span>Último acesso:
                     {{
                       formatarDataHora(usuario.ultimo_acesso) || "Nunca"
-                    }}</span
-                  >
+                    }}</span>
                 </div>
               </v-col>
               <v-col cols="12">
                 <div class="d-flex align-center text-caption text-secondary">
-                  <v-icon size="16" class="mr-1">mdi-clock-outline</v-icon>
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                  >
+                    mdi-clock-outline
+                  </v-icon>
                   <span>Criado em: {{ formatarData(usuario.created_at) }}</span>
                 </div>
               </v-col>
@@ -248,18 +318,33 @@
 
     <!-- Loading -->
     <v-row v-if="carregando">
-      <v-col v-for="i in 6" :key="i" cols="12" md="6" lg="4">
+      <v-col
+        v-for="i in 6"
+        :key="i"
+        cols="12"
+        md="6"
+        lg="4"
+      >
         <v-skeleton-loader type="card" />
       </v-col>
     </v-row>
 
     <!-- No Data -->
-    <v-card v-if="!carregando && usuariosFiltrados.length === 0" class="glass">
+    <v-card
+      v-if="!carregando && usuariosFiltrados.length === 0"
+      class="glass"
+    >
       <v-card-text class="text-center pa-8">
-        <v-icon size="64" color="secondary" class="mb-4"
-          >mdi-account-off</v-icon
+        <v-icon
+          size="64"
+          color="secondary"
+          class="mb-4"
         >
-        <p class="text-h6">Nenhum usuário encontrado</p>
+          mdi-account-off
+        </v-icon>
+        <p class="text-h6">
+          Nenhum usuário encontrado
+        </p>
         <p class="text-secondary">
           Crie o primeiro usuário clicando no botão acima
         </p>
@@ -267,13 +352,26 @@
     </v-card>
 
     <!-- Dialog Formulário -->
-    <v-dialog v-model="dialogForm" max-width="600" persistent>
+    <v-dialog
+      v-model="dialogForm"
+      max-width="600"
+      persistent
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="primary">mdi-account</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-account
+          </v-icon>
           {{ modoEdicao ? "Editar Usuário" : "Novo Usuário" }}
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" @click="fecharDialog" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="fecharDialog"
+          />
         </v-card-title>
 
         <v-divider />
@@ -298,7 +396,10 @@
               </v-col>
 
               <!-- CPF -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="usuarioForm.cpf"
                   label="CPF *"
@@ -313,7 +414,10 @@
               </v-col>
 
               <!-- Telefone -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="usuarioForm.telefone"
                   label="Telefone *"
@@ -356,18 +460,21 @@
                   density="comfortable"
                   prepend-inner-icon="mdi-lock"
                   :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
-                  @click:append-inner="mostrarSenha = !mostrarSenha"
                   :hint="
                     modoEdicao
                       ? 'Deixe em branco para manter a senha atual'
                       : 'Mínimo 4 caracteres'
                   "
                   persistent-hint
+                  @click:append-inner="mostrarSenha = !mostrarSenha"
                 />
               </v-col>
 
               <!-- Perfil -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="usuarioForm.perfil"
                   label="Perfil *"
@@ -380,7 +487,10 @@
               </v-col>
 
               <!-- Status -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-switch
                   v-model="usuarioForm.ativo"
                   label="Usuário Ativo"
@@ -425,15 +535,19 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="fecharDialog" :disabled="salvando">
+          <v-btn
+            variant="text"
+            :disabled="salvando"
+            @click="fecharDialog"
+          >
             Cancelar
           </v-btn>
           <v-btn
             color="primary"
             variant="flat"
-            @click="salvarUsuario"
             :loading="salvando"
             :disabled="!formValido"
+            @click="salvarUsuario"
           >
             Salvar
           </v-btn>
@@ -442,10 +556,18 @@
     </v-dialog>
 
     <!-- Dialog Visualização -->
-    <v-dialog v-model="dialogVisualizacao" max-width="600">
+    <v-dialog
+      v-model="dialogVisualizacao"
+      max-width="600"
+    >
       <v-card v-if="usuarioSelecionado">
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="primary">mdi-eye</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-eye
+          </v-icon>
           Detalhes do Usuário
           <v-spacer />
           <v-btn
@@ -460,7 +582,11 @@
         <v-card-text class="pa-6">
           <!-- Avatar e Nome -->
           <div class="text-center mb-6">
-            <v-avatar color="primary" size="96" class="mb-4">
+            <v-avatar
+              color="primary"
+              size="96"
+              class="mb-4"
+            >
               <span class="text-h4 text-white">{{
                 getInitials(usuarioSelecionado.nome)
               }}</span>
@@ -481,9 +607,11 @@
               variant="flat"
               class="mr-2"
             >
-              <v-icon start>{{
-                getPerfilIcon(usuarioSelecionado.perfil)
-              }}</v-icon>
+              <v-icon start>
+                {{
+                  getPerfilIcon(usuarioSelecionado.perfil)
+                }}
+              </v-icon>
               {{ formatarPerfil(usuarioSelecionado.perfil) }}
             </v-chip>
             <v-chip
@@ -507,22 +635,28 @@
           <!-- Informações -->
           <v-row>
             <v-col cols="12">
-              <div class="text-caption text-secondary mb-1">ÚLTIMO ACESSO</div>
+              <div class="text-caption text-secondary mb-1">
+                ÚLTIMO ACESSO
+              </div>
               <div class="text-body-1">
                 {{
                   formatarDataHora(usuarioSelecionado.ultimo_acesso) ||
-                  "Nunca acessou"
+                    "Nunca acessou"
                 }}
               </div>
             </v-col>
             <v-col cols="12">
-              <div class="text-caption text-secondary mb-1">CRIADO EM</div>
+              <div class="text-caption text-secondary mb-1">
+                CRIADO EM
+              </div>
               <div class="text-body-1">
                 {{ formatarDataHora(usuarioSelecionado.created_at) }}
               </div>
             </v-col>
             <v-col cols="12">
-              <div class="text-caption text-secondary mb-1">ATUALIZADO EM</div>
+              <div class="text-caption text-secondary mb-1">
+                ATUALIZADO EM
+              </div>
               <div class="text-body-1">
                 {{ formatarDataHora(usuarioSelecionado.updated_at) }}
               </div>
@@ -533,10 +667,18 @@
     </v-dialog>
 
     <!-- Dialog Confirmar Exclusão -->
-    <v-dialog v-model="dialogExcluir" max-width="500">
+    <v-dialog
+      v-model="dialogExcluir"
+      max-width="500"
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="error">mdi-alert</v-icon>
+          <v-icon
+            class="mr-2"
+            color="error"
+          >
+            mdi-alert
+          </v-icon>
           Confirmar Exclusão
         </v-card-title>
 
@@ -544,7 +686,11 @@
 
         <v-card-text class="pa-6">
           <p>Tem certeza que deseja excluir este usuário?</p>
-          <v-alert type="warning" variant="tonal" class="mt-4">
+          <v-alert
+            type="warning"
+            variant="tonal"
+            class="mt-4"
+          >
             Esta ação não pode ser desfeita! Todos os vínculos e históricos
             associados serão removidos.
           </v-alert>
@@ -556,16 +702,16 @@
           <v-spacer />
           <v-btn
             variant="text"
-            @click="dialogExcluir = false"
             :disabled="excluindo"
+            @click="dialogExcluir = false"
           >
             Cancelar
           </v-btn>
           <v-btn
             color="error"
             variant="flat"
-            @click="excluirUsuario"
             :loading="excluindo"
+            @click="excluirUsuario"
           >
             Excluir
           </v-btn>
@@ -574,10 +720,18 @@
     </v-dialog>
 
     <!-- Dialog Resetar Senha -->
-    <v-dialog v-model="dialogResetSenha" max-width="500">
+    <v-dialog
+      v-model="dialogResetSenha"
+      max-width="500"
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="warning">mdi-lock-reset</v-icon>
+          <v-icon
+            class="mr-2"
+            color="warning"
+          >
+            mdi-lock-reset
+          </v-icon>
           Resetar Senha
         </v-card-title>
 
@@ -586,8 +740,7 @@
         <v-card-text class="pa-6">
           <p>
             Será enviado um e-mail de redefinição de senha para
-            <strong>{{ usuarioParaResetSenha?.email }}</strong
-            >.
+            <strong>{{ usuarioParaResetSenha?.email }}</strong>.
           </p>
         </v-card-text>
 
@@ -597,16 +750,16 @@
           <v-spacer />
           <v-btn
             variant="text"
-            @click="dialogResetSenha = false"
             :disabled="resetandoSenha"
+            @click="dialogResetSenha = false"
           >
             Cancelar
           </v-btn>
           <v-btn
             color="warning"
             variant="flat"
-            @click="confirmarResetSenha"
             :loading="resetandoSenha"
+            @click="confirmarResetSenha"
           >
             Resetar
           </v-btn>
@@ -645,8 +798,6 @@ import {
   formatTelefone,
   unformatCPF,
   unformatTelefone,
-  validarCPF,
-  validarTelefone,
 } from "@/utils/formatters";
 import { useDiagnosticsStore } from "@/stores/diagnostics";
 
@@ -1104,10 +1255,6 @@ const formatarTelefoneInput = (event) => {
   setTimeout(() => {
     input.setSelectionRange(formatted.length, formatted.length);
   }, 0);
-};
-
-const formatarCPFDisplay = (cpf) => {
-  return formatCPF(cpf);
 };
 
 // Lifecycle

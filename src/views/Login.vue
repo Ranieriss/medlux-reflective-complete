@@ -1,8 +1,23 @@
 <template>
-  <v-container fluid class="login-container">
-    <v-row align="center" justify="center" class="fill-height">
-      <v-col cols="12" sm="8" md="6" lg="4">
-        <v-card class="glass pa-6" elevation="24">
+  <v-container
+    fluid
+    class="login-container"
+  >
+    <v-row
+      align="center"
+      justify="center"
+      class="fill-height"
+    >
+      <v-col
+        cols="12"
+        sm="8"
+        md="6"
+        lg="4"
+      >
+        <v-card
+          class="glass pa-6"
+          elevation="24"
+        >
           <!-- Logo e Título -->
           <div class="text-center mb-8">
             <div class="logo-container mb-4">
@@ -52,7 +67,9 @@
           >
             <v-expansion-panel>
               <v-expansion-panel-title>
-                <v-icon class="mr-2">mdi-stethoscope</v-icon>
+                <v-icon class="mr-2">
+                  mdi-stethoscope
+                </v-icon>
                 Diagnóstico Supabase
               </v-expansion-panel-title>
               <v-expansion-panel-text>
@@ -123,9 +140,18 @@
             {{ mensagemStatus }}
           </v-alert>
 
-          <v-alert v-if="erro" type="error" variant="tonal" class="mb-4">
-            <div class="font-weight-medium mb-1">{{ erro }}</div>
-            <div class="text-caption">etapa: {{ etapaErro || "n/a" }}</div>
+          <v-alert
+            v-if="erro"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            <div class="font-weight-medium mb-1">
+              {{ erro }}
+            </div>
+            <div class="text-caption">
+              etapa: {{ etapaErro || "n/a" }}
+            </div>
             <div class="text-caption">
               status: {{ erroDetalhes.status ?? "n/a" }}
             </div>
@@ -135,13 +161,19 @@
             <div class="text-caption">
               code: {{ erroDetalhes.code || "n/a" }}
             </div>
-            <div v-if="precisaConfirmarEmail" class="text-caption mt-2">
+            <div
+              v-if="precisaConfirmarEmail"
+              class="text-caption mt-2"
+            >
               Dica: usuário precisa confirmar e-mail no Supabase.
             </div>
           </v-alert>
 
           <!-- Formulário de Login -->
-          <v-form ref="formRef" @submit.prevent="handleLogin">
+          <v-form
+            ref="formRef"
+            @submit.prevent="handleLogin"
+          >
             <v-text-field
               v-model="email"
               label="E-mail"
@@ -179,7 +211,12 @@
               block
               class="mb-4 glow-primary"
             >
-              <v-icon left class="mr-2">mdi-login</v-icon>
+              <v-icon
+                left
+                class="mr-2"
+              >
+                mdi-login
+              </v-icon>
               Entrar
             </v-btn>
 
@@ -191,21 +228,36 @@
                 size="small"
                 @click="abrirRecuperacaoSenha"
               >
-                <v-icon class="mr-1" size="small">mdi-lock-reset</v-icon>
+                <v-icon
+                  class="mr-1"
+                  size="small"
+                >
+                  mdi-lock-reset
+                </v-icon>
                 Esqueci minha senha
               </v-btn>
             </div>
           </v-form>
 
           <!-- Dialog de Recuperação de Senha -->
-          <v-dialog v-model="dialogRecuperacao" max-width="500px">
+          <v-dialog
+            v-model="dialogRecuperacao"
+            max-width="500px"
+          >
             <v-card class="glass">
               <v-card-title class="d-flex align-center justify-space-between">
                 <span class="text-h5">
-                  <v-icon class="mr-2" color="primary">mdi-lock-reset</v-icon>
+                  <v-icon
+                    class="mr-2"
+                    color="primary"
+                  >mdi-lock-reset</v-icon>
                   Recuperar Senha
                 </span>
-                <v-btn icon variant="text" @click="dialogRecuperacao = false">
+                <v-btn
+                  icon
+                  variant="text"
+                  @click="dialogRecuperacao = false"
+                >
                   <v-icon>mdi-close</v-icon>
                 </v-btn>
               </v-card-title>
@@ -244,7 +296,10 @@
 
               <v-card-actions>
                 <v-spacer />
-                <v-btn variant="text" @click="dialogRecuperacao = false">
+                <v-btn
+                  variant="text"
+                  @click="dialogRecuperacao = false"
+                >
                   Cancelar
                 </v-btn>
                 <v-btn
@@ -253,7 +308,9 @@
                   :disabled="enviandoRecuperacao"
                   @click="enviarRecuperacao"
                 >
-                  <v-icon class="mr-2">mdi-email-send</v-icon>
+                  <v-icon class="mr-2">
+                    mdi-email-send
+                  </v-icon>
                   Enviar Link
                 </v-btn>
               </v-card-actions>
@@ -263,10 +320,15 @@
           <!-- Credenciais Demo -->
           <v-divider class="my-4" />
 
-          <v-expansion-panels variant="accordion" class="mt-4">
+          <v-expansion-panels
+            variant="accordion"
+            class="mt-4"
+          >
             <v-expansion-panel>
               <v-expansion-panel-title>
-                <v-icon class="mr-2">mdi-information</v-icon>
+                <v-icon class="mr-2">
+                  mdi-information
+                </v-icon>
                 Credenciais de Acesso Demo
               </v-expansion-panel-title>
               <v-expansion-panel-text>
@@ -457,17 +519,14 @@ const executarDiagnostico = async () => {
     return;
   }
 
-  let usuario = null;
-  let perfilError = null;
-
   const perfilByUserId = await supabase
     .from("usuarios")
     .select("id, perfil, auth_user_id")
     .eq("auth_user_id", authId)
     .maybeSingle();
 
-  usuario = perfilByUserId.data;
-  perfilError = perfilByUserId.error;
+  let usuario = perfilByUserId.data;
+  let perfilError = perfilByUserId.error;
 
   if (!usuario && !perfilError) {
     const perfilById = await supabase

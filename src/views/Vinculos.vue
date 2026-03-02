@@ -3,7 +3,12 @@
     <!-- Cabeçalho -->
     <div class="d-flex align-center justify-space-between mb-6 flex-wrap">
       <h1 class="text-h4 font-weight-bold">
-        <v-icon class="mr-2" color="primary">mdi-link-variant</v-icon>
+        <v-icon
+          class="mr-2"
+          color="primary"
+        >
+          mdi-link-variant
+        </v-icon>
         Vínculos / Custódia
       </h1>
 
@@ -13,17 +18,25 @@
         class="glow-primary"
         @click="abrirDialogNovo"
       >
-        <v-icon class="mr-2">mdi-plus</v-icon>
+        <v-icon class="mr-2">
+          mdi-plus
+        </v-icon>
         Novo Vínculo
       </v-btn>
     </div>
 
     <!-- Cards de Estatísticas -->
     <v-row class="mb-4">
-      <v-col cols="12" sm="6" md="3">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
         <v-card class="glass">
           <v-card-text>
-            <div class="text-h6 text-main mb-2">Vínculos Ativos</div>
+            <div class="text-h6 text-main mb-2">
+              Vínculos Ativos
+            </div>
             <div class="text-h3 font-weight-bold">
               {{ estatisticas.ativos }}
             </div>
@@ -31,10 +44,16 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
+      <v-col
+        cols="12"
+        sm="6"
+        md="3"
+      >
         <v-card class="glass">
           <v-card-text>
-            <div class="text-h6 text-success mb-2">Encerrados</div>
+            <div class="text-h6 text-success mb-2">
+              Encerrados
+            </div>
             <div class="text-h3 font-weight-bold">
               {{ estatisticas.encerrados }}
             </div>
@@ -57,13 +76,19 @@
           <div class="font-weight-bold">
             {{ item.equipamento?.codigo || "N/A" }}
           </div>
-          <div class="text-caption">{{ item.equipamento?.nome || "" }}</div>
+          <div class="text-caption">
+            {{ item.equipamento?.nome || "" }}
+          </div>
         </template>
 
         <!-- Usuário -->
         <template v-slot:item.usuario="{ item }">
-          <div class="font-weight-bold">{{ item.usuario?.nome || "N/A" }}</div>
-          <div class="text-caption">{{ item.usuario?.email || "" }}</div>
+          <div class="font-weight-bold">
+            {{ item.usuario?.nome || "N/A" }}
+          </div>
+          <div class="text-caption">
+            {{ item.usuario?.email || "" }}
+          </div>
         </template>
 
         <!-- Data Início -->
@@ -113,15 +138,27 @@
     </v-card>
 
     <!-- Dialog Novo/Editar Vínculo -->
-    <v-dialog v-model="dialogForm" max-width="600px" persistent>
+    <v-dialog
+      v-model="dialogForm"
+      max-width="600px"
+      persistent
+    >
       <v-card class="glass">
         <v-card-title class="d-flex align-center">
-          <v-icon class="mr-2" color="primary">mdi-link-variant</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-link-variant
+          </v-icon>
           <span>Novo Vínculo</span>
         </v-card-title>
 
         <v-card-text>
-          <v-form ref="formRef" v-model="formValido">
+          <v-form
+            ref="formRef"
+            v-model="formValido"
+          >
             <v-row>
               <!-- Equipamento -->
               <v-col cols="12">
@@ -178,8 +215,14 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="fecharDialog">Cancelar</v-btn>
-          <v-btn color="primary" :loading="salvando" @click="salvarVinculo">
+          <v-btn @click="fecharDialog">
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            :loading="salvando"
+            @click="salvarVinculo"
+          >
             Salvar
           </v-btn>
         </v-card-actions>
@@ -187,10 +230,21 @@
     </v-dialog>
 
     <!-- Dialog Visualização -->
-    <v-dialog v-model="dialogVisualizacao" max-width="600px">
-      <v-card v-if="vinculoSelecionado" class="glass">
+    <v-dialog
+      v-model="dialogVisualizacao"
+      max-width="600px"
+    >
+      <v-card
+        v-if="vinculoSelecionado"
+        class="glass"
+      >
         <v-card-title class="d-flex align-center">
-          <v-icon class="mr-2" color="primary">mdi-link-variant</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-link-variant
+          </v-icon>
           <span>Detalhes do Vínculo</span>
         </v-card-title>
 
@@ -198,33 +252,37 @@
           <v-list>
             <v-list-item>
               <v-list-item-title>Equipamento</v-list-item-title>
-              <v-list-item-subtitle
-                >{{ vinculoSelecionado.equipamento?.codigo }} -
-                {{ vinculoSelecionado.equipamento?.nome }}</v-list-item-subtitle
-              >
+              <v-list-item-subtitle>
+                {{ vinculoSelecionado.equipamento?.codigo }} -
+                {{ vinculoSelecionado.equipamento?.nome }}
+              </v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item>
               <v-list-item-title>Usuário</v-list-item-title>
-              <v-list-item-subtitle
-                >{{ vinculoSelecionado.usuario?.nome }} ({{
+              <v-list-item-subtitle>
+                {{ vinculoSelecionado.usuario?.nome }} ({{
                   vinculoSelecionado.usuario?.email
-                }})</v-list-item-subtitle
-              >
+                }})
+              </v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item>
               <v-list-item-title>Data de Início</v-list-item-title>
-              <v-list-item-subtitle>{{
-                formatarData(vinculoSelecionado.data_inicio)
-              }}</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                {{
+                  formatarData(vinculoSelecionado.data_inicio)
+                }}
+              </v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item v-if="vinculoSelecionado.data_fim">
               <v-list-item-title>Data de Término</v-list-item-title>
-              <v-list-item-subtitle>{{
-                formatarData(vinculoSelecionado.data_fim)
-              }}</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                {{
+                  formatarData(vinculoSelecionado.data_fim)
+                }}
+              </v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item>
@@ -241,16 +299,20 @@
 
             <v-list-item v-if="vinculoSelecionado.observacoes">
               <v-list-item-title>Observações</v-list-item-title>
-              <v-list-item-subtitle>{{
-                vinculoSelecionado.observacoes
-              }}</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                {{
+                  vinculoSelecionado.observacoes
+                }}
+              </v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-card-text>
 
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="dialogVisualizacao = false">Fechar</v-btn>
+          <v-btn @click="dialogVisualizacao = false">
+            Fechar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -438,7 +500,7 @@ const salvarVinculo = async () => {
         : {}),
     };
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("vinculos")
       .insert([payload])
       .select();

@@ -373,7 +373,7 @@ class RelatorioMedicoesService {
   /**
    * Calcular estatísticas por tipo
    */
-  calcularEstatisticasPorTipo(medicoes, tipo) {
+  calcularEstatisticasPorTipo(medicoes) {
     const estatisticas = this.calcularEstatisticas(medicoes);
 
     // Agrupar por película/material

@@ -8,7 +8,7 @@ async function testarConexao() {
   // 1. Testar conexão básica
   console.log("\n1️⃣ TESTANDO CONEXÃO COM SUPABASE...");
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("equipamentos")
       .select("count")
       .limit(1);

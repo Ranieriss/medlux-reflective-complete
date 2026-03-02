@@ -1,18 +1,31 @@
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-app-bar :elevation="0" color="surface" class="glass" height="64">
+    <v-app-bar
+      :elevation="0"
+      color="surface"
+      class="glass"
+      height="64"
+    >
       <v-app-bar-nav-icon @click="drawer = !drawer" />
 
       <v-toolbar-title class="text-h6 font-weight-bold">
-        <v-icon class="mr-2" color="primary">mdi-chart-box</v-icon>
+        <v-icon
+          class="mr-2"
+          color="primary"
+        >
+          mdi-chart-box
+        </v-icon>
         MEDLUX Reflective
       </v-toolbar-title>
 
       <v-spacer />
 
       <!-- Notificações -->
-      <v-btn icon class="mr-2">
+      <v-btn
+        icon
+        class="mr-2"
+      >
         <v-badge
           :content="notificacoesCount"
           :model-value="notificacoesCount > 0"
@@ -25,12 +38,23 @@
       <!-- Menu do usuário -->
       <v-menu>
         <template v-slot:activator="{ props }">
-          <v-btn v-bind="props" class="ml-2">
-            <v-avatar size="32" color="primary" class="mr-2">
-              <v-icon size="20">mdi-account</v-icon>
+          <v-btn
+            v-bind="props"
+            class="ml-2"
+          >
+            <v-avatar
+              size="32"
+              color="primary"
+              class="mr-2"
+            >
+              <v-icon size="20">
+                mdi-account
+              </v-icon>
             </v-avatar>
             <span class="d-none d-sm-inline">{{ authStore.nomeUsuario }}</span>
-            <v-icon class="ml-1">mdi-chevron-down</v-icon>
+            <v-icon class="ml-1">
+              mdi-chevron-down
+            </v-icon>
           </v-btn>
         </template>
 
@@ -73,27 +97,36 @@
       v-model="drawer"
       :rail="rail"
       permanent
-      @click="rail = false"
       class="glass"
+      @click="rail = false"
     >
-      <v-list density="compact" nav>
+      <v-list
+        density="compact"
+        nav
+      >
         <v-list-item
           prepend-icon="mdi-chevron-left"
           title="Menu"
-          @click.stop="rail = !rail"
           class="mb-2"
+          @click.stop="rail = !rail"
         />
       </v-list>
 
       <v-divider />
 
-      <v-list density="compact" nav>
+      <v-list
+        density="compact"
+        nav
+      >
         <template
           v-for="(item, idx) in menuItems"
           :key="`${item.type || 'item'}-${item.to || idx}`"
         >
           <!-- Divider (linha separadora) -->
-          <v-divider v-if="item.type === 'divider'" class="my-2" />
+          <v-divider
+            v-if="item.type === 'divider'"
+            class="my-2"
+          />
 
           <!-- Item normal -->
           <v-list-item
@@ -110,15 +143,25 @@
 
     <!-- Conteúdo Principal -->
     <v-main>
-      <v-container fluid class="pa-4">
-        <transition name="fade" mode="out-in">
+      <v-container
+        fluid
+        class="pa-4"
+      >
+        <transition
+          name="fade"
+          mode="out-in"
+        >
           <router-view />
         </transition>
       </v-container>
     </v-main>
 
     <!-- Rodapé -->
-    <v-footer app class="glass text-center" height="40">
+    <v-footer
+      app
+      class="glass text-center"
+      height="40"
+    >
       <v-col class="text-caption">
         © 2024 MEDLUX Reflective - Todos os direitos reservados
       </v-col>

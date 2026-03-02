@@ -1,10 +1,18 @@
 <template>
   <div>
     <!-- Header -->
-    <v-row align="center" class="mb-6">
+    <v-row
+      align="center"
+      class="mb-6"
+    >
       <v-col>
         <h1 class="text-h4 font-weight-bold">
-          <v-icon class="mr-2" color="primary">mdi-history</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-history
+          </v-icon>
           Auditoria
         </h1>
       </v-col>
@@ -24,7 +32,10 @@
     <v-card class="glass mb-6">
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-text-field
               v-model="filtros.busca"
               label="Buscar"
@@ -36,7 +47,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.entidade"
               label="Entidade"
@@ -47,7 +61,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.acao"
               label="Ação"
@@ -58,7 +75,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-text-field
               v-model="filtros.dataInicio"
               label="Data Início"
@@ -69,7 +89,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-text-field
               v-model="filtros.dataFim"
               label="Data Fim"
@@ -80,7 +103,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="1">
+          <v-col
+            cols="12"
+            md="1"
+          >
             <v-btn
               color="primary"
               variant="outlined"
@@ -97,15 +123,24 @@
 
     <!-- Stats Cards -->
     <v-row class="mb-6">
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <v-card class="glass">
           <v-card-text>
             <div class="d-flex align-center">
-              <v-icon size="40" color="primary" class="mr-3"
-                >mdi-notebook</v-icon
+              <v-icon
+                size="40"
+                color="primary"
+                class="mr-3"
               >
+                mdi-notebook
+              </v-icon>
               <div>
-                <div class="text-h4 font-weight-bold">{{ totalRegistros }}</div>
+                <div class="text-h4 font-weight-bold">
+                  {{ totalRegistros }}
+                </div>
                 <div class="text-caption text-secondary">
                   Total de Registros
                 </div>
@@ -114,52 +149,79 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <v-card class="glass">
           <v-card-text>
             <div class="d-flex align-center">
-              <v-icon size="40" color="success" class="mr-3"
-                >mdi-plus-circle</v-icon
+              <v-icon
+                size="40"
+                color="success"
+                class="mr-3"
               >
+                mdi-plus-circle
+              </v-icon>
               <div>
                 <div class="text-h4 font-weight-bold">
                   {{ contarAcao("INSERT") }}
                 </div>
-                <div class="text-caption text-secondary">Criações</div>
+                <div class="text-caption text-secondary">
+                  Criações
+                </div>
               </div>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <v-card class="glass">
           <v-card-text>
             <div class="d-flex align-center">
-              <v-icon size="40" color="warning" class="mr-3"
-                >mdi-pencil-circle</v-icon
+              <v-icon
+                size="40"
+                color="warning"
+                class="mr-3"
               >
+                mdi-pencil-circle
+              </v-icon>
               <div>
                 <div class="text-h4 font-weight-bold">
                   {{ contarAcao("UPDATE") }}
                 </div>
-                <div class="text-caption text-secondary">Edições</div>
+                <div class="text-caption text-secondary">
+                  Edições
+                </div>
               </div>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <v-card class="glass">
           <v-card-text>
             <div class="d-flex align-center">
-              <v-icon size="40" color="error" class="mr-3"
-                >mdi-delete-circle</v-icon
+              <v-icon
+                size="40"
+                color="error"
+                class="mr-3"
               >
+                mdi-delete-circle
+              </v-icon>
               <div>
                 <div class="text-h4 font-weight-bold">
                   {{ contarAcao("DELETE") }}
                 </div>
-                <div class="text-caption text-secondary">Exclusões</div>
+                <div class="text-caption text-secondary">
+                  Exclusões
+                </div>
               </div>
             </div>
           </v-card-text>
@@ -170,14 +232,16 @@
     <!-- Timeline de Auditoria -->
     <v-card class="glass">
       <v-card-title class="d-flex align-center">
-        <v-icon class="mr-2">mdi-timeline-text</v-icon>
+        <v-icon class="mr-2">
+          mdi-timeline-text
+        </v-icon>
         Linha do Tempo
         <v-spacer />
         <v-btn
           icon="mdi-refresh"
           variant="text"
-          @click="carregarAuditoria"
           :loading="carregando"
+          @click="carregarAuditoria"
         />
       </v-card-title>
 
@@ -187,7 +251,11 @@
         v-if="!carregando && auditoriaFiltrada.length > 0"
         class="pa-6"
       >
-        <v-timeline side="end" density="compact" truncate-line="both">
+        <v-timeline
+          side="end"
+          density="compact"
+          truncate-line="both"
+        >
           <v-timeline-item
             v-for="item in auditoriaFiltrada"
             :key="item.id"
@@ -214,12 +282,21 @@
                     variant="flat"
                     class="mr-2"
                   >
-                    <v-icon start size="x-small">{{
-                      getAcaoIcon(item.acao)
-                    }}</v-icon>
+                    <v-icon
+                      start
+                      size="x-small"
+                    >
+                      {{
+                        getAcaoIcon(item.acao)
+                      }}
+                    </v-icon>
                     {{ formatarAcao(item.acao) }}
                   </v-chip>
-                  <v-chip size="small" variant="outlined" class="mr-2">
+                  <v-chip
+                    size="small"
+                    variant="outlined"
+                    class="mr-2"
+                  >
                     {{ formatarEntidade(item.entidade) }}
                   </v-chip>
                   <v-spacer />
@@ -236,15 +313,22 @@
                 </div>
 
                 <div class="text-caption text-secondary">
-                  <v-icon size="16">mdi-identifier</v-icon>
+                  <v-icon size="16">
+                    mdi-identifier
+                  </v-icon>
                   ID:
                   {{
                     item.entidade_id ? item.entidade_id.substring(0, 8) : "N/A"
                   }}...
                 </div>
 
-                <div v-if="item.ip_address" class="text-caption text-secondary">
-                  <v-icon size="16">mdi-ip</v-icon>
+                <div
+                  v-if="item.ip_address"
+                  class="text-caption text-secondary"
+                >
+                  <v-icon size="16">
+                    mdi-ip
+                  </v-icon>
                   IP: {{ item.ip_address }}
                 </div>
               </v-card-text>
@@ -264,7 +348,10 @@
       </v-card-text>
 
       <!-- Loading -->
-      <v-card-text v-if="carregando" class="pa-6">
+      <v-card-text
+        v-if="carregando"
+        class="pa-6"
+      >
         <v-skeleton-loader type="list-item-avatar-three-line@5" />
       </v-card-text>
 
@@ -273,9 +360,19 @@
         v-if="!carregando && auditoriaFiltrada.length === 0"
         class="text-center pa-8"
       >
-        <v-icon size="64" color="secondary" class="mb-4">mdi-history</v-icon>
-        <p class="text-h6">Nenhum registro de auditoria encontrado</p>
-        <p class="text-secondary">Aguarde as primeiras ações do sistema</p>
+        <v-icon
+          size="64"
+          color="secondary"
+          class="mb-4"
+        >
+          mdi-history
+        </v-icon>
+        <p class="text-h6">
+          Nenhum registro de auditoria encontrado
+        </p>
+        <p class="text-secondary">
+          Aguarde as primeiras ações do sistema
+        </p>
       </v-card-text>
     </v-card>
 
@@ -289,22 +386,34 @@
       <v-card>
         <v-card-title class="bg-success">
           <span class="text-h5 text-white">
-            <v-icon color="white" class="mr-2">mdi-file-chart</v-icon>
+            <v-icon
+              color="white"
+              class="mr-2"
+            >mdi-file-chart</v-icon>
             Emissão de Relatórios de Medições
           </span>
         </v-card-title>
 
         <v-divider />
 
-        <v-card-text class="pt-6" style="max-height: 600px">
-          <v-form ref="formRelatorio" v-model="formRelatorioValido">
+        <v-card-text
+          class="pt-6"
+          style="max-height: 600px"
+        >
+          <v-form
+            ref="formRelatorio"
+            v-model="formRelatorioValido"
+          >
             <!-- Tipo de Relatório -->
             <v-row>
               <v-col cols="12">
                 <v-card variant="outlined">
                   <v-card-subtitle>Tipo de Relatório</v-card-subtitle>
                   <v-card-text>
-                    <v-radio-group v-model="relatorioConfig.tipo" inline>
+                    <v-radio-group
+                      v-model="relatorioConfig.tipo"
+                      inline
+                    >
                       <v-radio
                         label="Relatório Global"
                         value="global"
@@ -341,7 +450,10 @@
               </v-col>
 
               <!-- Equipamento Individual (apenas se tipo = individual) -->
-              <v-col cols="12" v-if="relatorioConfig.tipo === 'individual'">
+              <v-col
+                v-if="relatorioConfig.tipo === 'individual'"
+                cols="12"
+              >
                 <v-autocomplete
                   v-model="relatorioConfig.equipamento_id"
                   :items="equipamentosDisponiveis"
@@ -359,7 +471,11 @@
               </v-col>
 
               <!-- Filtros de Data (exceto relatório de erros) -->
-              <v-col cols="12" md="6" v-if="relatorioConfig.tipo !== 'erros'">
+              <v-col
+                v-if="relatorioConfig.tipo !== 'erros'"
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="relatorioConfig.data_inicio"
                   label="Data Início"
@@ -371,7 +487,11 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6" v-if="relatorioConfig.tipo !== 'erros'">
+              <v-col
+                v-if="relatorioConfig.tipo !== 'erros'"
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="relatorioConfig.data_fim"
                   label="Data Fim"
@@ -384,7 +504,11 @@
               </v-col>
 
               <!-- Datas para Relatório de Erros -->
-              <v-col cols="12" md="6" v-if="relatorioConfig.tipo === 'erros'">
+              <v-col
+                v-if="relatorioConfig.tipo === 'erros'"
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="relatorioConfig.data_inicio"
                   label="Data Início *"
@@ -397,7 +521,11 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6" v-if="relatorioConfig.tipo === 'erros'">
+              <v-col
+                v-if="relatorioConfig.tipo === 'erros'"
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="relatorioConfig.data_fim"
                   label="Data Fim *"
@@ -412,17 +540,20 @@
 
               <!-- Filtros Adicionais (apenas para relatórios normais) -->
               <v-col
-                cols="12"
                 v-if="
                   relatorioConfig.tipo !== 'erros' &&
-                  relatorioConfig.tipo !== 'individual'
+                    relatorioConfig.tipo !== 'individual'
                 "
+                cols="12"
               >
                 <v-expansion-panels>
                   <v-expansion-panel title="Filtros Adicionais (Opcional)">
                     <v-expansion-panel-text>
                       <v-row>
-                        <v-col cols="12" md="6">
+                        <v-col
+                          cols="12"
+                          md="6"
+                        >
                           <v-select
                             v-model="relatorioConfig.status_validacao"
                             :items="statusValidacaoOptions"
@@ -433,7 +564,10 @@
                           />
                         </v-col>
 
-                        <v-col cols="12" md="6">
+                        <v-col
+                          cols="12"
+                          md="6"
+                        >
                           <v-select
                             v-model="relatorioConfig.status_vencimento"
                             :items="statusVencimentoOptions"
@@ -461,32 +595,59 @@
               </v-col>
 
               <!-- Formato de Exportação -->
-              <v-col cols="12" v-if="relatorioConfig.tipo !== 'erros'">
+              <v-col
+                v-if="relatorioConfig.tipo !== 'erros'"
+                cols="12"
+              >
                 <v-card variant="outlined">
                   <v-card-subtitle>Formato de Exportação</v-card-subtitle>
                   <v-card-text>
-                    <v-radio-group v-model="relatorioConfig.formato" inline>
-                      <v-radio label="PDF" value="pdf" color="error">
+                    <v-radio-group
+                      v-model="relatorioConfig.formato"
+                      inline
+                    >
+                      <v-radio
+                        label="PDF"
+                        value="pdf"
+                        color="error"
+                      >
                         <template #label>
-                          <v-icon class="mr-2" color="error"
-                            >mdi-file-pdf-box</v-icon
+                          <v-icon
+                            class="mr-2"
+                            color="error"
                           >
+                            mdi-file-pdf-box
+                          </v-icon>
                           PDF
                         </template>
                       </v-radio>
-                      <v-radio label="Excel" value="excel" color="success">
+                      <v-radio
+                        label="Excel"
+                        value="excel"
+                        color="success"
+                      >
                         <template #label>
-                          <v-icon class="mr-2" color="success"
-                            >mdi-file-excel</v-icon
+                          <v-icon
+                            class="mr-2"
+                            color="success"
                           >
+                            mdi-file-excel
+                          </v-icon>
                           Excel
                         </template>
                       </v-radio>
-                      <v-radio label="JSON (Debug)" value="json" color="info">
+                      <v-radio
+                        label="JSON (Debug)"
+                        value="json"
+                        color="info"
+                      >
                         <template #label>
-                          <v-icon class="mr-2" color="info"
-                            >mdi-code-json</v-icon
+                          <v-icon
+                            class="mr-2"
+                            color="info"
                           >
+                            mdi-code-json
+                          </v-icon>
                           JSON
                         </template>
                       </v-radio>
@@ -496,8 +657,14 @@
               </v-col>
 
               <!-- Informações do Relatório de Erros -->
-              <v-col cols="12" v-if="relatorioConfig.tipo === 'erros'">
-                <v-alert type="info" prominent>
+              <v-col
+                v-if="relatorioConfig.tipo === 'erros'"
+                cols="12"
+              >
+                <v-alert
+                  type="info"
+                  prominent
+                >
                   <v-row align="center">
                     <v-col class="grow">
                       <strong>Relatório de Diagnóstico e Erros</strong><br />
@@ -508,10 +675,8 @@
                         <li>Equipamentos sem medição</li>
                         <li>Medições vencidas</li>
                       </ul>
-                      <small
-                        >Ideal para envio ao suporte técnico para
-                        correções.</small
-                      >
+                      <small>Ideal para envio ao suporte técnico para
+                        correções.</small>
                     </v-col>
                   </v-row>
                 </v-alert>
@@ -527,17 +692,17 @@
           <v-btn
             color="grey"
             variant="outlined"
-            @click="fecharDialogRelatorio"
             :disabled="gerandoRelatorio"
+            @click="fecharDialogRelatorio"
           >
             Cancelar
           </v-btn>
           <v-btn
             color="success"
             prepend-icon="mdi-download"
-            @click="gerarRelatorio"
             :loading="gerandoRelatorio"
             :disabled="!formRelatorioValido"
+            @click="gerarRelatorio"
           >
             Gerar e Baixar Relatório
           </v-btn>
@@ -546,10 +711,17 @@
     </v-dialog>
 
     <!-- Dialog Detalhes -->
-    <v-dialog v-model="dialogDetalhes" max-width="800" scrollable>
+    <v-dialog
+      v-model="dialogDetalhes"
+      max-width="800"
+      scrollable
+    >
       <v-card v-if="itemSelecionado">
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" :color="getAcaoColor(itemSelecionado.acao)">
+          <v-icon
+            class="mr-2"
+            :color="getAcaoColor(itemSelecionado.acao)"
+          >
             {{ getAcaoIcon(itemSelecionado.acao) }}
           </v-icon>
           Detalhes da Auditoria
@@ -568,13 +740,18 @@
             <!-- Informações Básicas -->
             <v-col cols="12">
               <v-card variant="outlined">
-                <v-card-subtitle class="pb-0"
-                  >Informações Básicas</v-card-subtitle
-                >
+                <v-card-subtitle class="pb-0">
+                  Informações Básicas
+                </v-card-subtitle>
                 <v-card-text>
                   <v-row dense>
-                    <v-col cols="12" md="6">
-                      <div class="text-caption text-secondary mb-1">AÇÃO</div>
+                    <v-col
+                      cols="12"
+                      md="6"
+                    >
+                      <div class="text-caption text-secondary mb-1">
+                        AÇÃO
+                      </div>
                       <v-chip
                         :color="getAcaoColor(itemSelecionado.acao)"
                         size="small"
@@ -582,7 +759,10 @@
                         {{ formatarAcao(itemSelecionado.acao) }}
                       </v-chip>
                     </v-col>
-                    <v-col cols="12" md="6">
+                    <v-col
+                      cols="12"
+                      md="6"
+                    >
                       <div class="text-caption text-secondary mb-1">
                         ENTIDADE
                       </div>
@@ -590,7 +770,10 @@
                         {{ formatarEntidade(itemSelecionado.entidade) }}
                       </div>
                     </v-col>
-                    <v-col cols="12" md="6">
+                    <v-col
+                      cols="12"
+                      md="6"
+                    >
                       <div class="text-caption text-secondary mb-1">
                         USUÁRIO
                       </div>
@@ -598,7 +781,10 @@
                         {{ itemSelecionado.usuario_nome || "Sistema" }}
                       </div>
                     </v-col>
-                    <v-col cols="12" md="6">
+                    <v-col
+                      cols="12"
+                      md="6"
+                    >
                       <div class="text-caption text-secondary mb-1">
                         DATA/HORA
                       </div>
@@ -606,13 +792,21 @@
                         {{ formatarDataHora(itemSelecionado.created_at) }}
                       </div>
                     </v-col>
-                    <v-col cols="12" md="6">
-                      <div class="text-caption text-secondary mb-1">IP</div>
+                    <v-col
+                      cols="12"
+                      md="6"
+                    >
+                      <div class="text-caption text-secondary mb-1">
+                        IP
+                      </div>
                       <div class="text-body-2">
                         {{ itemSelecionado.ip_address || "N/A" }}
                       </div>
                     </v-col>
-                    <v-col cols="12" md="6">
+                    <v-col
+                      cols="12"
+                      md="6"
+                    >
                       <div class="text-caption text-secondary mb-1">
                         ID DA ENTIDADE
                       </div>
@@ -626,9 +820,14 @@
             </v-col>
 
             <!-- Dados Anteriores -->
-            <v-col v-if="itemSelecionado.dados_anteriores" cols="12">
+            <v-col
+              v-if="itemSelecionado.dados_anteriores"
+              cols="12"
+            >
               <v-card variant="outlined">
-                <v-card-subtitle class="pb-0">Dados Anteriores</v-card-subtitle>
+                <v-card-subtitle class="pb-0">
+                  Dados Anteriores
+                </v-card-subtitle>
                 <v-card-text>
                   <pre class="json-view">{{
                     JSON.stringify(itemSelecionado.dados_anteriores, null, 2)
@@ -638,9 +837,14 @@
             </v-col>
 
             <!-- Dados Novos -->
-            <v-col v-if="itemSelecionado.dados_novos" cols="12">
+            <v-col
+              v-if="itemSelecionado.dados_novos"
+              cols="12"
+            >
               <v-card variant="outlined">
-                <v-card-subtitle class="pb-0">Dados Novos</v-card-subtitle>
+                <v-card-subtitle class="pb-0">
+                  Dados Novos
+                </v-card-subtitle>
                 <v-card-text>
                   <pre class="json-view">{{
                     JSON.stringify(itemSelecionado.dados_novos, null, 2)
@@ -650,9 +854,14 @@
             </v-col>
 
             <!-- User Agent -->
-            <v-col v-if="itemSelecionado.user_agent" cols="12">
+            <v-col
+              v-if="itemSelecionado.user_agent"
+              cols="12"
+            >
               <v-card variant="outlined">
-                <v-card-subtitle class="pb-0">User Agent</v-card-subtitle>
+                <v-card-subtitle class="pb-0">
+                  User Agent
+                </v-card-subtitle>
                 <v-card-text>
                   <div class="text-caption">
                     {{ itemSelecionado.user_agent }}
@@ -887,15 +1096,6 @@ const getAcaoIcon = (acao) => {
   return icons[acao] || "mdi-help-circle";
 };
 
-const formatarData = (data) => {
-  if (!data) return "-";
-  try {
-    return format(parseISO(data), "dd/MM/yyyy", { locale: ptBR });
-  } catch {
-    return data;
-  }
-};
-
 const formatarDataHora = (data) => {
   if (!data) return "-";
   try {
@@ -984,7 +1184,7 @@ const gerarRelatorio = async () => {
         );
         break;
 
-      case "tachas":
+      case "tachas": {
         // Incluir tachas e tachões
         const resultadoTachas =
           await relatorioMedicoesService.gerarRelatorioPorTipo(
@@ -994,6 +1194,7 @@ const gerarRelatorio = async () => {
           );
         resultado = resultadoTachas;
         break;
+      }
 
       case "individual":
         if (!config.equipamento_id) {

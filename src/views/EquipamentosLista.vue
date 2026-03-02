@@ -3,7 +3,12 @@
     <!-- Cabeçalho -->
     <div class="d-flex align-center justify-space-between mb-6 flex-wrap">
       <h1 class="text-h4 font-weight-bold">
-        <v-icon class="mr-2" color="primary">mdi-devices</v-icon>
+        <v-icon
+          class="mr-2"
+          color="primary"
+        >
+          mdi-devices
+        </v-icon>
         Equipamentos
       </h1>
 
@@ -14,7 +19,9 @@
         class="glow-primary"
         @click="abrirDialogNovo"
       >
-        <v-icon class="mr-2">mdi-plus</v-icon>
+        <v-icon class="mr-2">
+          mdi-plus
+        </v-icon>
         Novo Equipamento
       </v-btn>
     </div>
@@ -23,7 +30,11 @@
     <v-card class="glass mb-4">
       <v-card-text>
         <v-row>
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-text-field
               v-model="filtros.busca"
               label="Buscar"
@@ -35,7 +46,11 @@
             />
           </v-col>
 
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-select
               v-model="filtros.tipo"
               :items="tiposEquipamento"
@@ -47,7 +62,11 @@
             />
           </v-col>
 
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-select
               v-model="filtros.status"
               :items="statusEquipamento"
@@ -59,7 +78,11 @@
             />
           </v-col>
 
-          <v-col cols="12" sm="6" md="3">
+          <v-col
+            cols="12"
+            sm="6"
+            md="3"
+          >
             <v-select
               v-model="filtros.calibracao"
               :items="filtrosCalibracao"
@@ -100,7 +123,9 @@
               variant="text"
               @click="mostrarQRCode(item)"
             >
-              <v-icon size="20">mdi-qrcode</v-icon>
+              <v-icon size="20">
+                mdi-qrcode
+              </v-icon>
             </v-btn>
             <span class="font-weight-bold ml-2">{{ item.codigo }}</span>
           </div>
@@ -108,8 +133,16 @@
 
         <!-- Tipo com ícone -->
         <template v-slot:item.tipo="{ item }">
-          <v-chip :color="getCorTipo(item.tipo)" size="small">
-            <v-icon start size="16">{{ getIconeTipo(item.tipo) }}</v-icon>
+          <v-chip
+            :color="getCorTipo(item.tipo)"
+            size="small"
+          >
+            <v-icon
+              start
+              size="16"
+            >
+              {{ getIconeTipo(item.tipo) }}
+            </v-icon>
             {{ item.tipo }}
           </v-chip>
         </template>
@@ -124,15 +157,25 @@
             color="success"
             @click="abrirCertificado(item)"
           >
-            <v-icon size="20">mdi-file-pdf-box</v-icon>
+            <v-icon size="20">
+              mdi-file-pdf-box
+            </v-icon>
           </v-btn>
 
-          <v-tooltip v-else text="Sem certificado" location="top">
+          <v-tooltip
+            v-else
+            text="Sem certificado"
+            location="top"
+          >
             <template #activator="{ props }">
-              <span v-bind="props" class="d-inline-flex align-center">
-                <v-icon size="20" color="medium-emphasis"
-                  >mdi-file-pdf-box</v-icon
-                >
+              <span
+                v-bind="props"
+                class="d-inline-flex align-center"
+              >
+                <v-icon
+                  size="20"
+                  color="medium-emphasis"
+                >mdi-file-pdf-box</v-icon>
               </span>
             </template>
           </v-tooltip>
@@ -140,7 +183,10 @@
 
         <!-- Status com chip -->
         <template v-slot:item.status="{ item }">
-          <v-chip :color="getCorStatus(item.status)" size="small">
+          <v-chip
+            :color="getCorStatus(item.status)"
+            size="small"
+          >
             {{ getTextoStatus(item.status) }}
           </v-chip>
         </template>
@@ -180,7 +226,9 @@
               color="info"
               @click="visualizarEquipamento(item)"
             >
-              <v-icon size="20">mdi-eye</v-icon>
+              <v-icon size="20">
+                mdi-eye
+              </v-icon>
             </v-btn>
             <v-btn
               v-if="podeGerenciarEquipamentos"
@@ -190,7 +238,9 @@
               color="primary"
               @click="editarEquipamento(item)"
             >
-              <v-icon size="20">mdi-pencil</v-icon>
+              <v-icon size="20">
+                mdi-pencil
+              </v-icon>
             </v-btn>
             <v-btn
               v-if="podeGerenciarEquipamentos"
@@ -200,7 +250,9 @@
               color="error"
               @click="confirmarExclusao(item)"
             >
-              <v-icon size="20">mdi-delete</v-icon>
+              <v-icon size="20">
+                mdi-delete
+              </v-icon>
             </v-btn>
           </div>
         </template>
@@ -208,16 +260,28 @@
     </v-card>
 
     <!-- Dialog de Cadastro/Edição -->
-    <v-dialog v-model="dialogForm" max-width="900px" persistent scrollable>
+    <v-dialog
+      v-model="dialogForm"
+      max-width="900px"
+      persistent
+      scrollable
+    >
       <v-card class="glass">
         <v-card-title class="d-flex align-center justify-space-between pa-4">
           <span class="text-h5">
-            <v-icon class="mr-2" color="primary">
+            <v-icon
+              class="mr-2"
+              color="primary"
+            >
               {{ modoEdicao ? "mdi-pencil" : "mdi-plus" }}
             </v-icon>
             {{ modoEdicao ? "Editar Equipamento" : "Novo Equipamento" }}
           </span>
-          <v-btn icon variant="text" @click="fecharDialog">
+          <v-btn
+            icon
+            variant="text"
+            @click="fecharDialog"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -225,31 +289,42 @@
         <v-divider />
 
         <v-card-text class="pa-4">
-          <v-form ref="formRef" v-model="formValido">
+          <v-form
+            ref="formRef"
+            v-model="formValido"
+          >
             <v-row>
               <!-- Informações Básicas -->
               <v-col cols="12">
                 <h3 class="text-h6 mb-4">
-                  <v-icon class="mr-2">mdi-information</v-icon>
+                  <v-icon class="mr-2">
+                    mdi-information
+                  </v-icon>
                   Informações Básicas
                 </h3>
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.codigo"
                   label="Código *"
                   :rules="[rules.required]"
                   :error-messages="codigoErro"
-                  @blur="validarCodigoDuplicado"
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-barcode"
                   :disabled="modoEdicao"
+                  @blur="validarCodigoDuplicado"
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="equipamentoForm.tipo"
                   :items="tiposEquipamento"
@@ -261,7 +336,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.certificado_url"
                   label="URL do Certificado de Calibração"
@@ -273,7 +351,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.fabricante"
                   label="Marca/Fabricante *"
@@ -284,7 +365,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.modelo"
                   label="Modelo *"
@@ -295,7 +379,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.numero_serie"
                   label="Número de Série *"
@@ -306,7 +393,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.data_aquisicao"
                   label="Data de Aquisição *"
@@ -321,12 +411,17 @@
               <!-- Calibração -->
               <v-col cols="12">
                 <h3 class="text-h6 mb-4 mt-4">
-                  <v-icon class="mr-2">mdi-calendar-check</v-icon>
+                  <v-icon class="mr-2">
+                    mdi-calendar-check
+                  </v-icon>
                   Calibração
                 </h3>
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.ultima_calibracao"
                   label="Última Calibração"
@@ -337,7 +432,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.proxima_calibracao"
                   label="Próxima Calibração"
@@ -352,12 +450,17 @@
               <!-- Status e Localização -->
               <v-col cols="12">
                 <h3 class="text-h6 mb-4 mt-4">
-                  <v-icon class="mr-2">mdi-map-marker</v-icon>
+                  <v-icon class="mr-2">
+                    mdi-map-marker
+                  </v-icon>
                   Status e Localização
                 </h3>
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="equipamentoForm.status"
                   :items="statusEquipamento"
@@ -369,7 +472,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="equipamentoForm.localizacao"
                   label="Localização"
@@ -382,7 +488,9 @@
               <!-- Foto do Equipamento -->
               <v-col cols="12">
                 <h3 class="text-h6 mb-4 mt-4">
-                  <v-icon class="mr-2">mdi-camera</v-icon>
+                  <v-icon class="mr-2">
+                    mdi-camera
+                  </v-icon>
                   Foto do Equipamento
                 </h3>
               </v-col>
@@ -398,8 +506,15 @@
                   @change="processarFoto"
                 >
                   <template v-slot:selection="{ fileNames }">
-                    <template v-for="fileName in fileNames" :key="fileName">
-                      <v-chip size="small" color="primary" class="mr-2">
+                    <template
+                      v-for="fileName in fileNames"
+                      :key="fileName"
+                    >
+                      <v-chip
+                        size="small"
+                        color="primary"
+                        class="mr-2"
+                      >
                         {{ fileName }}
                       </v-chip>
                     </template>
@@ -434,14 +549,21 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="fecharDialog"> Cancelar </v-btn>
+          <v-btn
+            variant="text"
+            @click="fecharDialog"
+          >
+            Cancelar
+          </v-btn>
           <v-btn
             color="primary"
             :loading="salvando"
             :disabled="salvando"
             @click="salvarEquipamento"
           >
-            <v-icon class="mr-2">mdi-content-save</v-icon>
+            <v-icon class="mr-2">
+              mdi-content-save
+            </v-icon>
             Salvar
           </v-btn>
         </v-card-actions>
@@ -449,14 +571,27 @@
     </v-dialog>
 
     <!-- Dialog de Visualização -->
-    <v-dialog v-model="dialogVisualizacao" max-width="700px">
-      <v-card v-if="equipamentoSelecionado" class="glass">
+    <v-dialog
+      v-model="dialogVisualizacao"
+      max-width="700px"
+    >
+      <v-card
+        v-if="equipamentoSelecionado"
+        class="glass"
+      >
         <v-card-title class="d-flex align-center justify-space-between pa-4">
           <span class="text-h5">
-            <v-icon class="mr-2" color="primary">mdi-eye</v-icon>
+            <v-icon
+              class="mr-2"
+              color="primary"
+            >mdi-eye</v-icon>
             Detalhes do Equipamento
           </span>
-          <v-btn icon variant="text" @click="dialogVisualizacao = false">
+          <v-btn
+            icon
+            variant="text"
+            @click="dialogVisualizacao = false"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -475,52 +610,84 @@
 
           <!-- Informações -->
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Código</p>
-                <p class="text-h6">{{ equipamentoSelecionado.codigo }}</p>
+                <p class="text-caption text-secondary mb-1">
+                  Código
+                </p>
+                <p class="text-h6">
+                  {{ equipamentoSelecionado.codigo }}
+                </p>
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Tipo</p>
+                <p class="text-caption text-secondary mb-1">
+                  Tipo
+                </p>
                 <v-chip :color="getCorTipo(equipamentoSelecionado.tipo)">
                   {{ equipamentoSelecionado.tipo }}
                 </v-chip>
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Marca/Fabricante</p>
+                <p class="text-caption text-secondary mb-1">
+                  Marca/Fabricante
+                </p>
                 <p class="text-body-1">
                   {{
                     equipamentoSelecionado.fabricante ||
-                    equipamentoSelecionado.marca ||
-                    "-"
+                      equipamentoSelecionado.marca ||
+                      "-"
                   }}
                 </p>
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Modelo</p>
-                <p class="text-body-1">{{ equipamentoSelecionado.modelo }}</p>
+                <p class="text-caption text-secondary mb-1">
+                  Modelo
+                </p>
+                <p class="text-body-1">
+                  {{ equipamentoSelecionado.modelo }}
+                </p>
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Número de Série</p>
+                <p class="text-caption text-secondary mb-1">
+                  Número de Série
+                </p>
                 <p class="text-body-1">
                   {{ equipamentoSelecionado.numero_serie }}
                 </p>
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
                 <p class="text-caption text-secondary mb-1">
                   Data de Aquisição
@@ -531,7 +698,10 @@
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
                 <p class="text-caption text-secondary mb-1">
                   Última Calibração
@@ -542,7 +712,10 @@
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
                 <p class="text-caption text-secondary mb-1">
                   Próxima Calibração
@@ -560,27 +733,42 @@
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Status</p>
+                <p class="text-caption text-secondary mb-1">
+                  Status
+                </p>
                 <v-chip :color="getCorStatus(equipamentoSelecionado.status)">
                   {{ getTextoStatus(equipamentoSelecionado.status) }}
                 </v-chip>
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Localização</p>
+                <p class="text-caption text-secondary mb-1">
+                  Localização
+                </p>
                 <p class="text-body-1">
                   {{ equipamentoSelecionado.localizacao || "-" }}
                 </p>
               </div>
             </v-col>
 
-            <v-col cols="12" v-if="equipamentoSelecionado.observacoes">
+            <v-col
+              v-if="equipamentoSelecionado.observacoes"
+              cols="12"
+            >
               <div class="mb-4">
-                <p class="text-caption text-secondary mb-1">Observações</p>
+                <p class="text-caption text-secondary mb-1">
+                  Observações
+                </p>
                 <p class="text-body-1">
                   {{ equipamentoSelecionado.observacoes }}
                 </p>
@@ -598,11 +786,16 @@
             variant="text"
             @click="editarEquipamento(equipamentoSelecionado)"
           >
-            <v-icon class="mr-2">mdi-pencil</v-icon>
+            <v-icon class="mr-2">
+              mdi-pencil
+            </v-icon>
             Editar
           </v-btn>
           <v-spacer />
-          <v-btn variant="text" @click="dialogVisualizacao = false">
+          <v-btn
+            variant="text"
+            @click="dialogVisualizacao = false"
+          >
             Fechar
           </v-btn>
         </v-card-actions>
@@ -610,45 +803,83 @@
     </v-dialog>
 
     <!-- Dialog de QR Code -->
-    <v-dialog v-model="dialogQRCode" max-width="400px">
-      <v-card v-if="equipamentoSelecionado" class="glass text-center pa-4">
+    <v-dialog
+      v-model="dialogQRCode"
+      max-width="400px"
+    >
+      <v-card
+        v-if="equipamentoSelecionado"
+        class="glass text-center pa-4"
+      >
         <v-card-title>
-          <v-icon class="mr-2" color="primary">mdi-qrcode</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-qrcode
+          </v-icon>
           QR Code
         </v-card-title>
         <v-card-text>
-          <div id="qrcode" class="d-flex justify-center"></div>
-          <p class="text-h6 mt-4">{{ equipamentoSelecionado.codigo }}</p>
+          <div
+            id="qrcode"
+            class="d-flex justify-center"
+          ></div>
+          <p class="text-h6 mt-4">
+            {{ equipamentoSelecionado.codigo }}
+          </p>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="dialogQRCode = false">Fechar</v-btn>
+          <v-btn
+            variant="text"
+            @click="dialogQRCode = false"
+          >
+            Fechar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- Dialog de Confirmação de Exclusão -->
-    <v-dialog v-model="dialogExclusao" max-width="500px">
+    <v-dialog
+      v-model="dialogExclusao"
+      max-width="500px"
+    >
       <v-card class="glass">
         <v-card-title class="text-h5 text-error">
-          <v-icon class="mr-2">mdi-alert</v-icon>
+          <v-icon class="mr-2">
+            mdi-alert
+          </v-icon>
           Confirmar Exclusão
         </v-card-title>
         <v-card-text>
           <p>Tem certeza que deseja excluir o equipamento?</p>
-          <v-alert type="warning" variant="tonal" class="mt-4">
-            <strong>{{ equipamentoParaExcluir?.codigo }}</strong
-            ><br />
+          <v-alert
+            type="warning"
+            variant="tonal"
+            class="mt-4"
+          >
+            <strong>{{ equipamentoParaExcluir?.codigo }}</strong><br />
             Esta ação não pode ser desfeita!
           </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="dialogExclusao = false">
+          <v-btn
+            variant="text"
+            @click="dialogExclusao = false"
+          >
             Cancelar
           </v-btn>
-          <v-btn color="error" :loading="excluindo" @click="excluirEquipamento">
-            <v-icon class="mr-2">mdi-delete</v-icon>
+          <v-btn
+            color="error"
+            :loading="excluindo"
+            @click="excluirEquipamento"
+          >
+            <v-icon class="mr-2">
+              mdi-delete
+            </v-icon>
             Excluir
           </v-btn>
         </v-card-actions>
@@ -664,7 +895,12 @@
     >
       {{ snackbar.message }}
       <template v-slot:actions>
-        <v-btn variant="text" @click="snackbar.show = false"> Fechar </v-btn>
+        <v-btn
+          variant="text"
+          @click="snackbar.show = false"
+        >
+          Fechar
+        </v-btn>
       </template>
     </v-snackbar>
   </div>

@@ -4,11 +4,21 @@
       <v-col cols="12">
         <v-card>
           <v-card-title class="d-flex align-center">
-            <v-icon left color="primary">mdi-sign-pole</v-icon>
+            <v-icon
+              left
+              color="primary"
+            >
+              mdi-sign-pole
+            </v-icon>
             <span>Medição Vertical - ABNT NBR 15426 + NBR 14644</span>
             <v-spacer></v-spacer>
-            <v-btn color="primary" @click="dialogNovo = true">
-              <v-icon left>mdi-plus</v-icon>
+            <v-btn
+              color="primary"
+              @click="dialogNovo = true"
+            >
+              <v-icon left>
+                mdi-plus
+              </v-icon>
               Nova Placa
             </v-btn>
           </v-card-title>
@@ -35,7 +45,11 @@
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
-                <v-btn icon size="small" @click="visualizarPlaca(item)">
+                <v-btn
+                  icon
+                  size="small"
+                  @click="visualizarPlaca(item)"
+                >
                   <v-icon>mdi-eye</v-icon>
                 </v-btn>
                 <v-btn
@@ -54,7 +68,10 @@
     </v-row>
 
     <!-- Dialog Nova Placa -->
-    <v-dialog v-model="dialogNovo" max-width="900px">
+    <v-dialog
+      v-model="dialogNovo"
+      max-width="900px"
+    >
       <v-card>
         <v-card-title>Nova Medição Vertical</v-card-title>
         <v-card-text>
@@ -98,13 +115,23 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="dialogNovo = false">Cancelar</v-btn>
-          <v-btn color="primary" @click="salvarPlaca">Salvar</v-btn>
+          <v-btn @click="dialogNovo = false">
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            @click="salvarPlaca"
+          >
+            Salvar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+    >
       {{ snackbar.text }}
     </v-snackbar>
   </v-container>
@@ -151,7 +178,7 @@ async function carregarPlacas() {
     if (response.success) {
       placas.value = response.data;
     }
-  } catch (error) {
+  } catch {
     mostrarNotificacao("Erro ao carregar placas", "error");
   } finally {
     loading.value = false;
@@ -166,7 +193,7 @@ async function salvarPlaca() {
       dialogNovo.value = false;
       carregarPlacas();
     }
-  } catch (error) {
+  } catch {
     mostrarNotificacao("Erro ao salvar placa", "error");
   }
 }

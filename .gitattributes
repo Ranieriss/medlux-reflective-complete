@@ -1,0 +1,27 @@
+# Normaliza texto no repositório
+* text=auto
+
+# Arquivos de código sempre LF (melhor para cross-platform)
+*.js  text eol=lf
+*.ts  text eol=lf
+*.vue text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.md  text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh  text eol=lf
+
+# Arquivos Windows podem ser CRLF
+*.ps1 text eol=crlf
+
+# Binários
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.gz  binary
+*.tar binary

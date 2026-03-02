@@ -32,7 +32,7 @@ class PDFService {
       const nomeArquivo = `certificados/${equipamento_id}_${timestamp}.pdf`;
 
       // Upload para o storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("medlux-arquivos")
         .upload(nomeArquivo, arquivo, {
           cacheControl: "3600",
@@ -108,7 +108,7 @@ class PDFService {
       const nomeArquivo = `cautelas/${vinculo_id}_${timestamp}.pdf`;
 
       // Upload para o storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("medlux-arquivos")
         .upload(nomeArquivo, arquivo, {
           cacheControl: "3600",
@@ -189,7 +189,7 @@ class PDFService {
       if (deleteError) throw deleteError;
 
       // Atualizar equipamento removendo dados do certificado
-      const { data, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from("equipamentos")
         .update({
           certificado_url: null,
@@ -251,7 +251,7 @@ class PDFService {
       if (deleteError) throw deleteError;
 
       // Atualizar vínculo removendo dados da cautela
-      const { data, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from("vinculos")
         .update({
           cautela_url: null,

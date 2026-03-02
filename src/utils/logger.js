@@ -12,7 +12,6 @@ class Logger {
 
   _formatMessage(level, message, data) {
     const timestamp = new Date().toISOString();
-    const contextStr = this.context ? `[${this.context}]` : "";
     return {
       timestamp,
       level,

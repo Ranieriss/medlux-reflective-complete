@@ -1,5 +1,4 @@
 import Dexie from "dexie";
-import { format } from "date-fns";
 import { PERFIS } from "@/types/perfis";
 
 // Inicializar banco de dados
@@ -183,7 +182,8 @@ export const validarLogin = async (email, senha) => {
     }
 
     // Remover senha antes de retornar
-    const { senha: _, ...usuarioSemSenha } = usuario;
+    const usuarioSemSenha = { ...usuario };
+    delete usuarioSemSenha.senha;
 
     return {
       sucesso: true,
