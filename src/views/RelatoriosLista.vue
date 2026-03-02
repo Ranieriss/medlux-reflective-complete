@@ -2,21 +2,42 @@
   <div>
     <!-- Header -->
     <h1 class="text-h4 font-weight-bold mb-6">
-      <v-icon class="mr-2" color="primary">mdi-file-chart</v-icon>
+      <v-icon
+        class="mr-2"
+        color="primary"
+      >
+        mdi-file-chart
+      </v-icon>
       Relatórios
     </h1>
 
     <!-- Cards de Relatórios -->
     <v-row>
       <!-- Relatório de Equipamentos -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="primary" class="mr-4">mdi-devices</v-icon>
+              <v-icon
+                size="48"
+                color="primary"
+                class="mr-4"
+              >
+                mdi-devices
+              </v-icon>
               <div>
-                <div class="text-h5 font-weight-bold">Relatório de Equipamentos</div>
-                <div class="text-caption text-secondary">Listagem completa de todos os equipamentos</div>
+                <div class="text-h5 font-weight-bold">
+                  Relatório de Equipamentos
+                </div>
+                <div class="text-caption text-secondary">
+                  Listagem completa de todos os equipamentos
+                </div>
               </div>
             </div>
 
@@ -51,9 +72,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioEquipamentos('pdf')"
               :loading="gerandoEquipamentos"
               class="mb-2"
+              @click="gerarRelatorioEquipamentos('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -61,8 +82,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioEquipamentos('excel')"
               :loading="gerandoEquipamentos"
+              @click="gerarRelatorioEquipamentos('excel')"
             >
               Exportar para Excel
             </v-btn>
@@ -71,14 +92,30 @@
       </v-col>
 
       <!-- Relatório de Vínculos -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="secondary" class="mr-4">mdi-link-variant</v-icon>
+              <v-icon
+                size="48"
+                color="secondary"
+                class="mr-4"
+              >
+                mdi-link-variant
+              </v-icon>
               <div>
-                <div class="text-h5 font-weight-bold">Relatório de Vínculos</div>
-                <div class="text-caption text-secondary">Histórico de vínculos e custódias</div>
+                <div class="text-h5 font-weight-bold">
+                  Relatório de Vínculos
+                </div>
+                <div class="text-caption text-secondary">
+                  Histórico de vínculos e custódias
+                </div>
               </div>
             </div>
 
@@ -108,7 +145,10 @@
                   <v-select
                     v-model="filtrosVinculos.status"
                     label="Status"
-                    :items="[{title: 'Ativo', value: true}, {title: 'Finalizado', value: false}]"
+                    :items="[
+                      { title: 'Ativo', value: true },
+                      { title: 'Finalizado', value: false },
+                    ]"
                     variant="outlined"
                     density="compact"
                     clearable
@@ -121,9 +161,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioVinculos('pdf')"
               :loading="gerandoVinculos"
               class="mb-2"
+              @click="gerarRelatorioVinculos('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -131,8 +171,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioVinculos('excel')"
               :loading="gerandoVinculos"
+              @click="gerarRelatorioVinculos('excel')"
             >
               Exportar para Excel
             </v-btn>
@@ -141,14 +181,30 @@
       </v-col>
 
       <!-- Relatório de Calibração -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="warning" class="mr-4">mdi-clipboard-check</v-icon>
+              <v-icon
+                size="48"
+                color="warning"
+                class="mr-4"
+              >
+                mdi-clipboard-check
+              </v-icon>
               <div>
-                <div class="text-h5 font-weight-bold">Relatório de Calibração</div>
-                <div class="text-caption text-secondary">Status e alertas de calibração</div>
+                <div class="text-h5 font-weight-bold">
+                  Relatório de Calibração
+                </div>
+                <div class="text-caption text-secondary">
+                  Status e alertas de calibração
+                </div>
               </div>
             </div>
 
@@ -191,9 +247,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioCalibracao('pdf')"
               :loading="gerandoCalibracao"
               class="mb-2"
+              @click="gerarRelatorioCalibracao('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -201,8 +257,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioCalibracao('excel')"
               :loading="gerandoCalibracao"
+              @click="gerarRelatorioCalibracao('excel')"
             >
               Exportar para Excel
             </v-btn>
@@ -211,14 +267,30 @@
       </v-col>
 
       <!-- Relatório de Auditoria -->
-      <v-col cols="12" md="6">
-        <v-card class="glass report-card" hover>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-card
+          class="glass report-card"
+          hover
+        >
           <v-card-text>
             <div class="d-flex align-center mb-4">
-              <v-icon size="48" color="info" class="mr-4">mdi-history</v-icon>
+              <v-icon
+                size="48"
+                color="info"
+                class="mr-4"
+              >
+                mdi-history
+              </v-icon>
               <div>
-                <div class="text-h5 font-weight-bold">Relatório de Auditoria</div>
-                <div class="text-caption text-secondary">Logs de ações do sistema</div>
+                <div class="text-h5 font-weight-bold">
+                  Relatório de Auditoria
+                </div>
+                <div class="text-caption text-secondary">
+                  Logs de ações do sistema
+                </div>
               </div>
             </div>
 
@@ -271,9 +343,9 @@
               color="primary"
               block
               prepend-icon="mdi-file-pdf-box"
-              @click="gerarRelatorioAuditoria('pdf')"
               :loading="gerandoAuditoria"
               class="mb-2"
+              @click="gerarRelatorioAuditoria('pdf')"
             >
               Gerar PDF
             </v-btn>
@@ -281,8 +353,8 @@
               color="success"
               block
               prepend-icon="mdi-file-excel"
-              @click="gerarRelatorioAuditoria('excel')"
               :loading="gerandoAuditoria"
+              @click="gerarRelatorioAuditoria('excel')"
             >
               Exportar para Excel
             </v-btn>
@@ -304,215 +376,243 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { supabase } from '@/services/supabase'
+import { ref } from "vue";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { supabase } from "@/services/supabase";
 
 // State
-const gerandoEquipamentos = ref(false)
-const gerandoVinculos = ref(false)
-const gerandoCalibracao = ref(false)
-const gerandoAuditoria = ref(false)
+const gerandoEquipamentos = ref(false);
+const gerandoVinculos = ref(false);
+const gerandoCalibracao = ref(false);
+const gerandoAuditoria = ref(false);
 
 // Filtros
 const filtrosEquipamentos = ref({
   tipo: null,
-  status: null
-})
+  status: null,
+});
 
 const filtrosVinculos = ref({
   dataInicio: null,
   dataFim: null,
-  status: null
-})
+  status: null,
+});
 
 const filtrosCalibracao = ref({
   status: null,
   dataInicio: null,
-  dataFim: null
-})
+  dataFim: null,
+});
 
 const filtrosAuditoria = ref({
   entidade: null,
   acao: null,
   dataInicio: null,
-  dataFim: null
-})
+  dataFim: null,
+});
 
 // Options
-const tiposEquipamento = ['Horizontal', 'Vertical', 'Tachas']
-const statusEquipamento = ['Ativo', 'Manutenção', 'Inativo']
-const statusCalibracao = ['Em dia', 'Próximo ao vencimento', 'Vencida']
+const tiposEquipamento = ["Horizontal", "Vertical", "Tachas"];
+const statusEquipamento = ["Ativo", "Manutenção", "Inativo"];
+const statusCalibracao = ["Em dia", "Próximo ao vencimento", "Vencida"];
 const entidades = [
-  { title: 'Equipamentos', value: 'equipamentos' },
-  { title: 'Usuários', value: 'usuarios' },
-  { title: 'Vínculos', value: 'vinculos' }
-]
+  { title: "Equipamentos", value: "equipamentos" },
+  { title: "Usuários", value: "usuarios" },
+  { title: "Vínculos", value: "vinculos" },
+];
 const acoes = [
-  { title: 'Criação', value: 'INSERT' },
-  { title: 'Atualização', value: 'UPDATE' },
-  { title: 'Exclusão', value: 'DELETE' }
-]
+  { title: "Criação", value: "INSERT" },
+  { title: "Atualização", value: "UPDATE" },
+  { title: "Exclusão", value: "DELETE" },
+];
 
 // Snackbar
 const snackbar = ref({
   show: false,
-  message: '',
-  color: 'success'
-})
+  message: "",
+  color: "success",
+});
 
 // Methods
 const gerarRelatorioEquipamentos = async (formato) => {
   try {
-    gerandoEquipamentos.value = true
+    gerandoEquipamentos.value = true;
 
     // Query base
-    let query = supabase.from('equipamentos').select('*')
+    let query = supabase.from("equipamentos").select("*");
 
     // Aplicar filtros
     if (filtrosEquipamentos.value.tipo) {
-      query = query.eq('tipo', filtrosEquipamentos.value.tipo.toLowerCase())
+      query = query.eq("tipo", filtrosEquipamentos.value.tipo.toLowerCase());
     }
     if (filtrosEquipamentos.value.status) {
-      query = query.eq('status', filtrosEquipamentos.value.status.toLowerCase())
+      query = query.eq(
+        "status",
+        filtrosEquipamentos.value.status.toLowerCase(),
+      );
     }
 
-    const { data, error } = await query.order('codigo', { ascending: true })
-    if (error) throw error
+    const { data, error } = await query.order("codigo", { ascending: true });
+    if (error) throw error;
 
-    if (formato === 'pdf') {
-      gerarPDFEquipamentos(data)
+    if (formato === "pdf") {
+      gerarPDFEquipamentos(data);
     } else {
-      exportarExcelEquipamentos(data)
+      exportarExcelEquipamentos(data);
     }
 
-    mostrarSnackbar(`Relatório de equipamentos gerado com sucesso (${formato.toUpperCase()})!`, 'success')
+    mostrarSnackbar(
+      `Relatório de equipamentos gerado com sucesso (${formato.toUpperCase()})!`,
+      "success",
+    );
   } catch (error) {
-    console.error('❌ Erro ao gerar relatório:', error)
-    mostrarSnackbar('Erro ao gerar relatório', 'error')
+    console.error("❌ Erro ao gerar relatório:", error);
+    mostrarSnackbar("Erro ao gerar relatório", "error");
   } finally {
-    gerandoEquipamentos.value = false
+    gerandoEquipamentos.value = false;
   }
-}
+};
 
 const gerarRelatorioVinculos = async (formato) => {
   try {
-    gerandoVinculos.value = true
+    gerandoVinculos.value = true;
 
-    let query = supabase
-      .from('vinculos')
-      .select(`
+    let query = supabase.from("vinculos").select(`
         *,
         equipamento:equipamentos!vinculos_equipamento_id_fkey(codigo, nome),
         usuario:usuarios!vinculos_usuario_id_fkey(nome, email)
-      `)
+      `);
 
     if (filtrosVinculos.value.dataInicio) {
-      query = query.gte('data_inicio', filtrosVinculos.value.dataInicio)
+      query = query.gte("data_inicio", filtrosVinculos.value.dataInicio);
     }
     if (filtrosVinculos.value.dataFim) {
-      query = query.lte('data_inicio', filtrosVinculos.value.dataFim)
+      query = query.lte("data_inicio", filtrosVinculos.value.dataFim);
     }
     if (filtrosVinculos.value.status !== null) {
-      query = query.eq('ativo', filtrosVinculos.value.status)
+      query = query.eq("ativo", filtrosVinculos.value.status);
     }
 
-    const { data, error } = await query.order('data_inicio', { ascending: false })
-    if (error) throw error
+    const { data, error } = await query.order("data_inicio", {
+      ascending: false,
+    });
+    if (error) throw error;
 
-    if (formato === 'pdf') {
-      gerarPDFVinculos(data)
+    if (formato === "pdf") {
+      gerarPDFVinculos(data);
     } else {
-      exportarExcelVinculos(data)
+      exportarExcelVinculos(data);
     }
 
-    mostrarSnackbar(`Relatório de vínculos gerado com sucesso (${formato.toUpperCase()})!`, 'success')
+    mostrarSnackbar(
+      `Relatório de vínculos gerado com sucesso (${formato.toUpperCase()})!`,
+      "success",
+    );
   } catch (error) {
-    console.error('❌ Erro ao gerar relatório:', error)
-    mostrarSnackbar('Erro ao gerar relatório', 'error')
+    console.error("❌ Erro ao gerar relatório:", error);
+    mostrarSnackbar("Erro ao gerar relatório", "error");
   } finally {
-    gerandoVinculos.value = false
+    gerandoVinculos.value = false;
   }
-}
+};
 
 const gerarRelatorioCalibracao = async (formato) => {
   try {
-    gerandoCalibracao.value = true
+    gerandoCalibracao.value = true;
 
-    let query = supabase.from('equipamentos').select('codigo, nome, tipo, data_ultima_calibracao, proxima_calibracao, certificado_calibracao')
+    let query = supabase
+      .from("equipamentos")
+      .select(
+        "codigo, nome, tipo, data_ultima_calibracao, proxima_calibracao, certificado_calibracao",
+      );
 
     if (filtrosCalibracao.value.dataInicio) {
-      query = query.gte('proxima_calibracao', filtrosCalibracao.value.dataInicio)
+      query = query.gte(
+        "proxima_calibracao",
+        filtrosCalibracao.value.dataInicio,
+      );
     }
     if (filtrosCalibracao.value.dataFim) {
-      query = query.lte('proxima_calibracao', filtrosCalibracao.value.dataFim)
+      query = query.lte("proxima_calibracao", filtrosCalibracao.value.dataFim);
     }
 
-    const { data, error } = await query.order('codigo', { ascending: true })
-    if (error) throw error
+    const { data, error } = await query.order("codigo", { ascending: true });
+    if (error) throw error;
 
-    if (formato === 'pdf') {
-      gerarPDFCalibracao(data)
+    if (formato === "pdf") {
+      gerarPDFCalibracao(data);
     } else {
-      exportarExcelCalibracao(data)
+      exportarExcelCalibracao(data);
     }
 
-    mostrarSnackbar(`Relatório de calibração gerado com sucesso (${formato.toUpperCase()})!`, 'success')
+    mostrarSnackbar(
+      `Relatório de calibração gerado com sucesso (${formato.toUpperCase()})!`,
+      "success",
+    );
   } catch (error) {
-    console.error('❌ Erro ao gerar relatório:', error)
-    mostrarSnackbar('Erro ao gerar relatório', 'error')
+    console.error("❌ Erro ao gerar relatório:", error);
+    mostrarSnackbar("Erro ao gerar relatório", "error");
   } finally {
-    gerandoCalibracao.value = false
+    gerandoCalibracao.value = false;
   }
-}
+};
 
 const gerarRelatorioAuditoria = async (formato) => {
   try {
-    gerandoAuditoria.value = true
+    gerandoAuditoria.value = true;
 
-    let query = supabase
-      .from('auditoria')
-      .select(`
+    let query = supabase.from("auditoria").select(`
         *,
         usuario:usuarios!auditoria_usuario_id_fkey(nome, email)
-      `)
+      `);
 
     if (filtrosAuditoria.value.entidade) {
-      query = query.eq('entidade', filtrosAuditoria.value.entidade)
+      query = query.eq("entidade", filtrosAuditoria.value.entidade);
     }
     if (filtrosAuditoria.value.acao) {
-      query = query.eq('acao', filtrosAuditoria.value.acao)
+      query = query.eq("acao", filtrosAuditoria.value.acao);
     }
     if (filtrosAuditoria.value.dataInicio) {
-      query = query.gte('created_at', `${filtrosAuditoria.value.dataInicio}T00:00:00`)
+      query = query.gte(
+        "created_at",
+        `${filtrosAuditoria.value.dataInicio}T00:00:00`,
+      );
     }
     if (filtrosAuditoria.value.dataFim) {
-      query = query.lte('created_at', `${filtrosAuditoria.value.dataFim}T23:59:59`)
+      query = query.lte(
+        "created_at",
+        `${filtrosAuditoria.value.dataFim}T23:59:59`,
+      );
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false }).limit(1000)
-    if (error) throw error
+    const { data, error } = await query
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    if (error) throw error;
 
-    if (formato === 'pdf') {
-      gerarPDFAuditoria(data)
+    if (formato === "pdf") {
+      gerarPDFAuditoria(data);
     } else {
-      exportarExcelAuditoria(data)
+      exportarExcelAuditoria(data);
     }
 
-    mostrarSnackbar(`Relatório de auditoria gerado com sucesso (${formato.toUpperCase()})!`, 'success')
+    mostrarSnackbar(
+      `Relatório de auditoria gerado com sucesso (${formato.toUpperCase()})!`,
+      "success",
+    );
   } catch (error) {
-    console.error('❌ Erro ao gerar relatório:', error)
-    mostrarSnackbar('Erro ao gerar relatório', 'error')
+    console.error("❌ Erro ao gerar relatório:", error);
+    mostrarSnackbar("Erro ao gerar relatório", "error");
   } finally {
-    gerandoAuditoria.value = false
+    gerandoAuditoria.value = false;
   }
-}
+};
 
 // PDF Generators (Simple HTML to print)
 const gerarPDFEquipamentos = (dados) => {
-  const dataAtual = format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })
-  
+  const dataAtual = format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR });
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -549,17 +649,21 @@ const gerarPDFEquipamentos = (dados) => {
           </tr>
         </thead>
         <tbody>
-          ${dados.map(e => `
+          ${dados
+            .map(
+              (e) => `
             <tr>
-              <td>${e.codigo || ''}</td>
-              <td>${e.nome || ''}</td>
-              <td>${e.tipo || ''}</td>
-              <td>${e.status || ''}</td>
-              <td>${e.fabricante || ''}</td>
-              <td>${e.localizacao || ''}</td>
-              <td>${e.proxima_calibracao ? format(new Date(e.proxima_calibracao), 'dd/MM/yyyy') : '-'}</td>
+              <td>${e.codigo || ""}</td>
+              <td>${e.nome || ""}</td>
+              <td>${e.tipo || ""}</td>
+              <td>${e.status || ""}</td>
+              <td>${e.fabricante || ""}</td>
+              <td>${e.localizacao || ""}</td>
+              <td>${e.proxima_calibracao ? format(new Date(e.proxima_calibracao), "dd/MM/yyyy") : "-"}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
       <div class="footer">
@@ -569,16 +673,16 @@ const gerarPDFEquipamentos = (dados) => {
       
     </body>
     </html>
-  `
+  `;
 
-  const printWindow = window.open('', '_blank')
-  printWindow.document.write(html)
-  printWindow.document.close()
-}
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
 
 const gerarPDFVinculos = (dados) => {
-  const dataAtual = format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })
-  
+  const dataAtual = format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR });
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -614,16 +718,20 @@ const gerarPDFVinculos = (dados) => {
           </tr>
         </thead>
         <tbody>
-          ${dados.map(v => `
+          ${dados
+            .map(
+              (v) => `
             <tr>
-              <td>${v.equipamento?.codigo || 'N/A'} - ${v.equipamento?.nome || ''}</td>
-              <td>${v.usuario?.nome || 'N/A'}<br><small>${v.usuario?.email || ''}</small></td>
-              <td>${v.data_inicio ? format(new Date(v.data_inicio), 'dd/MM/yyyy') : '-'}</td>
-              <td>${v.data_fim ? format(new Date(v.data_fim), 'dd/MM/yyyy') : 'Em andamento'}</td>
-              <td>${v.ativo ? 'Ativo' : 'Finalizado'}</td>
-              <td>${v.observacoes || '-'}</td>
+              <td>${v.equipamento?.codigo || "N/A"} - ${v.equipamento?.nome || ""}</td>
+              <td>${v.usuario?.nome || "N/A"}<br><small>${v.usuario?.email || ""}</small></td>
+              <td>${v.data_inicio ? format(new Date(v.data_inicio), "dd/MM/yyyy") : "-"}</td>
+              <td>${v.data_fim ? format(new Date(v.data_fim), "dd/MM/yyyy") : "Em andamento"}</td>
+              <td>${v.ativo ? "Ativo" : "Finalizado"}</td>
+              <td>${v.observacoes || "-"}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
       <div class="footer">
@@ -633,16 +741,16 @@ const gerarPDFVinculos = (dados) => {
       
     </body>
     </html>
-  `
+  `;
 
-  const printWindow = window.open('', '_blank')
-  printWindow.document.write(html)
-  printWindow.document.close()
-}
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
 
 const gerarPDFCalibracao = (dados) => {
-  const dataAtual = format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })
-  
+  const dataAtual = format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR });
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -679,18 +787,23 @@ const gerarPDFCalibracao = (dados) => {
           </tr>
         </thead>
         <tbody>
-          ${dados.map(e => {
-            const vencida = e.proxima_calibracao && new Date(e.proxima_calibracao) < new Date()
-            return `
-            <tr class="${vencida ? 'vencida' : ''}">
-              <td>${e.codigo || ''}</td>
-              <td>${e.nome || ''}</td>
-              <td>${e.tipo || ''}</td>
-              <td>${e.data_ultima_calibracao ? format(new Date(e.data_ultima_calibracao), 'dd/MM/yyyy') : '-'}</td>
-              <td>${e.proxima_calibracao ? format(new Date(e.proxima_calibracao), 'dd/MM/yyyy') : '-'}</td>
-              <td>${e.certificado_calibracao || '-'}</td>
+          ${dados
+            .map((e) => {
+              const vencida =
+                e.proxima_calibracao &&
+                new Date(e.proxima_calibracao) < new Date();
+              return `
+            <tr class="${vencida ? "vencida" : ""}">
+              <td>${e.codigo || ""}</td>
+              <td>${e.nome || ""}</td>
+              <td>${e.tipo || ""}</td>
+              <td>${e.data_ultima_calibracao ? format(new Date(e.data_ultima_calibracao), "dd/MM/yyyy") : "-"}</td>
+              <td>${e.proxima_calibracao ? format(new Date(e.proxima_calibracao), "dd/MM/yyyy") : "-"}</td>
+              <td>${e.certificado_calibracao || "-"}</td>
             </tr>
-          `}).join('')}
+          `;
+            })
+            .join("")}
         </tbody>
       </table>
       <div class="footer">
@@ -700,16 +813,16 @@ const gerarPDFCalibracao = (dados) => {
       
     </body>
     </html>
-  `
+  `;
 
-  const printWindow = window.open('', '_blank')
-  printWindow.document.write(html)
-  printWindow.document.close()
-}
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
 
 const gerarPDFAuditoria = (dados) => {
-  const dataAtual = format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })
-  
+  const dataAtual = format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR });
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -745,16 +858,20 @@ const gerarPDFAuditoria = (dados) => {
           </tr>
         </thead>
         <tbody>
-          ${dados.map(a => `
+          ${dados
+            .map(
+              (a) => `
             <tr>
-              <td>${a.created_at ? format(new Date(a.created_at), 'dd/MM/yyyy HH:mm:ss') : '-'}</td>
-              <td>${a.usuario?.nome || 'Sistema'}</td>
-              <td>${a.acao || ''}</td>
-              <td>${a.entidade || ''}</td>
-              <td>${a.entidade_id ? a.entidade_id.substring(0, 8) + '...' : '-'}</td>
-              <td>${a.ip_address || '-'}</td>
+              <td>${a.created_at ? format(new Date(a.created_at), "dd/MM/yyyy HH:mm:ss") : "-"}</td>
+              <td>${a.usuario?.nome || "Sistema"}</td>
+              <td>${a.acao || ""}</td>
+              <td>${a.entidade || ""}</td>
+              <td>${a.entidade_id ? a.entidade_id.substring(0, 8) + "..." : "-"}</td>
+              <td>${a.ip_address || "-"}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
       <div class="footer">
@@ -764,101 +881,144 @@ const gerarPDFAuditoria = (dados) => {
       
     </body>
     </html>
-  `
+  `;
 
-  const printWindow = window.open('', '_blank')
-  printWindow.document.write(html)
-  printWindow.document.close()
-}
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
 
 // Excel Exporters (CSV format)
 const exportarExcelEquipamentos = (dados) => {
   const csv = [
-    ['Código', 'Nome', 'Tipo', 'Status', 'Fabricante', 'Modelo', 'Número de Série', 'Localização', 'Data Aquisição', 'Última Calibração', 'Próxima Calibração'],
-    ...dados.map(e => [
-      e.codigo || '',
-      e.nome || '',
-      e.tipo || '',
-      e.status || '',
-      e.fabricante || '',
-      e.modelo || '',
-      e.numero_serie || '',
-      e.localizacao || '',
-      e.data_aquisicao ? format(new Date(e.data_aquisicao), 'dd/MM/yyyy') : '',
-      e.data_ultima_calibracao ? format(new Date(e.data_ultima_calibracao), 'dd/MM/yyyy') : '',
-      e.proxima_calibracao ? format(new Date(e.proxima_calibracao), 'dd/MM/yyyy') : ''
-    ])
-  ].map(row => row.join(';')).join('\n')
+    [
+      "Código",
+      "Nome",
+      "Tipo",
+      "Status",
+      "Fabricante",
+      "Modelo",
+      "Número de Série",
+      "Localização",
+      "Data Aquisição",
+      "Última Calibração",
+      "Próxima Calibração",
+    ],
+    ...dados.map((e) => [
+      e.codigo || "",
+      e.nome || "",
+      e.tipo || "",
+      e.status || "",
+      e.fabricante || "",
+      e.modelo || "",
+      e.numero_serie || "",
+      e.localizacao || "",
+      e.data_aquisicao ? format(new Date(e.data_aquisicao), "dd/MM/yyyy") : "",
+      e.data_ultima_calibracao
+        ? format(new Date(e.data_ultima_calibracao), "dd/MM/yyyy")
+        : "",
+      e.proxima_calibracao
+        ? format(new Date(e.proxima_calibracao), "dd/MM/yyyy")
+        : "",
+    ]),
+  ]
+    .map((row) => row.join(";"))
+    .join("\n");
 
-  downloadCSV(csv, `equipamentos_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`)
-}
+  downloadCSV(csv, `equipamentos_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`);
+};
 
 const exportarExcelVinculos = (dados) => {
   const csv = [
-    ['Equipamento', 'Usuário', 'Email', 'Data Início', 'Data Fim', 'Status', 'Observações'],
-    ...dados.map(v => [
-      (v.equipamento?.codigo || '') + ' - ' + (v.equipamento?.nome || ''),
-      v.usuario?.nome || '',
-      v.usuario?.email || '',
-      v.data_inicio ? format(new Date(v.data_inicio), 'dd/MM/yyyy') : '',
-      v.data_fim ? format(new Date(v.data_fim), 'dd/MM/yyyy') : 'Em andamento',
-      v.ativo ? 'Ativo' : 'Finalizado',
-      v.observacoes || ''
-    ])
-  ].map(row => row.join(';')).join('\n')
+    [
+      "Equipamento",
+      "Usuário",
+      "Email",
+      "Data Início",
+      "Data Fim",
+      "Status",
+      "Observações",
+    ],
+    ...dados.map((v) => [
+      (v.equipamento?.codigo || "") + " - " + (v.equipamento?.nome || ""),
+      v.usuario?.nome || "",
+      v.usuario?.email || "",
+      v.data_inicio ? format(new Date(v.data_inicio), "dd/MM/yyyy") : "",
+      v.data_fim ? format(new Date(v.data_fim), "dd/MM/yyyy") : "Em andamento",
+      v.ativo ? "Ativo" : "Finalizado",
+      v.observacoes || "",
+    ]),
+  ]
+    .map((row) => row.join(";"))
+    .join("\n");
 
-  downloadCSV(csv, `vinculos_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`)
-}
+  downloadCSV(csv, `vinculos_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`);
+};
 
 const exportarExcelCalibracao = (dados) => {
   const csv = [
-    ['Código', 'Nome', 'Tipo', 'Última Calibração', 'Próxima Calibração', 'Certificado'],
-    ...dados.map(e => [
-      e.codigo || '',
-      e.nome || '',
-      e.tipo || '',
-      e.data_ultima_calibracao ? format(new Date(e.data_ultima_calibracao), 'dd/MM/yyyy') : '',
-      e.proxima_calibracao ? format(new Date(e.proxima_calibracao), 'dd/MM/yyyy') : '',
-      e.certificado_calibracao || ''
-    ])
-  ].map(row => row.join(';')).join('\n')
+    [
+      "Código",
+      "Nome",
+      "Tipo",
+      "Última Calibração",
+      "Próxima Calibração",
+      "Certificado",
+    ],
+    ...dados.map((e) => [
+      e.codigo || "",
+      e.nome || "",
+      e.tipo || "",
+      e.data_ultima_calibracao
+        ? format(new Date(e.data_ultima_calibracao), "dd/MM/yyyy")
+        : "",
+      e.proxima_calibracao
+        ? format(new Date(e.proxima_calibracao), "dd/MM/yyyy")
+        : "",
+      e.certificado_calibracao || "",
+    ]),
+  ]
+    .map((row) => row.join(";"))
+    .join("\n");
 
-  downloadCSV(csv, `calibracao_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`)
-}
+  downloadCSV(csv, `calibracao_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`);
+};
 
 const exportarExcelAuditoria = (dados) => {
   const csv = [
-    ['Data/Hora', 'Usuário', 'Ação', 'Entidade', 'ID Entidade', 'IP'],
-    ...dados.map(a => [
-      a.created_at ? format(new Date(a.created_at), 'dd/MM/yyyy HH:mm:ss') : '',
-      a.usuario?.nome || 'Sistema',
-      a.acao || '',
-      a.entidade || '',
-      a.entidade_id || '',
-      a.ip_address || ''
-    ])
-  ].map(row => row.join(';')).join('\n')
+    ["Data/Hora", "Usuário", "Ação", "Entidade", "ID Entidade", "IP"],
+    ...dados.map((a) => [
+      a.created_at ? format(new Date(a.created_at), "dd/MM/yyyy HH:mm:ss") : "",
+      a.usuario?.nome || "Sistema",
+      a.acao || "",
+      a.entidade || "",
+      a.entidade_id || "",
+      a.ip_address || "",
+    ]),
+  ]
+    .map((row) => row.join(";"))
+    .join("\n");
 
-  downloadCSV(csv, `auditoria_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`)
-}
+  downloadCSV(csv, `auditoria_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`);
+};
 
 const downloadCSV = (csv, filename) => {
-  const BOM = '\uFEFF'
-  const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(link.href)
-}
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
 
-const mostrarSnackbar = (message, color = 'success') => {
+const mostrarSnackbar = (message, color = "success") => {
   snackbar.value = {
     show: true,
     message,
-    color
-  }
-}
+    color,
+  };
+};
 </script>
 
 <style scoped>

@@ -3,10 +3,20 @@
     <!-- Header -->
     <div class="d-flex justify-space-between align-center mb-6">
       <h1 class="text-h4 font-weight-bold">
-        <v-icon class="mr-2" color="primary">mdi-account-group</v-icon>
+        <v-icon
+          class="mr-2"
+          color="primary"
+        >
+          mdi-account-group
+        </v-icon>
         Usuários
       </h1>
-      <v-btn color="primary" size="large" prepend-icon="mdi-plus" @click="abrirDialogNovo">
+      <v-btn
+        color="primary"
+        size="large"
+        prepend-icon="mdi-plus"
+        @click="abrirDialogNovo"
+      >
         Novo Usuário
       </v-btn>
     </div>
@@ -15,7 +25,10 @@
     <v-card class="glass mb-6">
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="4">
+          <v-col
+            cols="12"
+            md="4"
+          >
             <v-text-field
               v-model="filtros.busca"
               label="Buscar"
@@ -27,7 +40,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-select
               v-model="filtros.perfil"
               label="Perfil"
@@ -38,7 +54,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-select
               v-model="filtros.status"
               label="Status"
@@ -49,7 +68,10 @@
               clearable
             />
           </v-col>
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-btn
               color="primary"
               variant="outlined"
@@ -73,16 +95,29 @@
         md="6"
         lg="4"
       >
-        <v-card class="glass user-card" hover>
+        <v-card
+          class="glass user-card"
+          hover
+        >
           <v-card-text>
             <!-- Header -->
             <div class="d-flex align-center mb-4">
-              <v-avatar color="primary" size="64" class="mr-4">
-                <span class="text-h5 text-white">{{ getInitials(usuario.nome) }}</span>
+              <v-avatar
+                color="primary"
+                size="64"
+                class="mr-4"
+              >
+                <span class="text-h5 text-white">{{
+                  getInitials(usuario.nome)
+                }}</span>
               </v-avatar>
               <div class="flex-grow-1">
-                <div class="text-h6 font-weight-bold">{{ usuario.nome }}</div>
-                <div class="text-caption text-secondary">{{ usuario.email }}</div>
+                <div class="text-h6 font-weight-bold">
+                  {{ usuario.nome }}
+                </div>
+                <div class="text-caption text-secondary">
+                  {{ usuario.email }}
+                </div>
               </div>
               <v-menu>
                 <template #activator="{ props }">
@@ -115,9 +150,13 @@
                   <v-divider />
                   <v-list-item @click="confirmarExclusao(usuario)">
                     <template #prepend>
-                      <v-icon color="error">mdi-delete</v-icon>
+                      <v-icon color="error">
+                        mdi-delete
+                      </v-icon>
                     </template>
-                    <v-list-item-title class="text-error">Excluir</v-list-item-title>
+                    <v-list-item-title class="text-error">
+                      Excluir
+                    </v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>
@@ -132,7 +171,14 @@
                 size="small"
                 variant="flat"
               >
-                <v-icon start size="small">{{ getPerfilIcon(usuario.perfil) }}</v-icon>
+                <v-icon
+                  start
+                  size="small"
+                >
+                  {{
+                    getPerfilIcon(usuario.perfil)
+                  }}
+                </v-icon>
                 {{ formatarPerfil(usuario.perfil) }}
               </v-chip>
               <v-chip
@@ -141,36 +187,69 @@
                 variant="flat"
                 class="ml-2"
               >
-                <v-icon start size="small">
-                  {{ usuario.ativo ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                <v-icon
+                  start
+                  size="small"
+                >
+                  {{ usuario.ativo ? "mdi-check-circle" : "mdi-close-circle" }}
                 </v-icon>
-                {{ usuario.ativo ? 'Ativo' : 'Inativo' }}
+                {{ usuario.ativo ? "Ativo" : "Inativo" }}
               </v-chip>
             </div>
 
             <!-- Dados de Contato -->
-            <v-row dense class="mt-3">
-              <v-col v-if="usuario.cpf" cols="12">
+            <v-row
+              dense
+              class="mt-3"
+            >
+              <v-col
+                v-if="usuario.cpf"
+                cols="12"
+              >
                 <div class="d-flex align-center text-caption">
-                  <v-icon size="16" class="mr-1" color="primary">mdi-card-account-details</v-icon>
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                    color="primary"
+                  >
+                    mdi-card-account-details
+                  </v-icon>
                   <span>CPF: {{ formatarCPF(usuario.cpf) }}</span>
                 </div>
               </v-col>
-              <v-col v-if="usuario.telefone" cols="12">
+              <v-col
+                v-if="usuario.telefone"
+                cols="12"
+              >
                 <div class="d-flex align-center text-caption">
-                  <v-icon size="16" class="mr-1" color="success">mdi-phone</v-icon>
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                    color="success"
+                  >
+                    mdi-phone
+                  </v-icon>
                   <span>{{ usuario.telefone }}</span>
                 </div>
               </v-col>
             </v-row>
-            
+
             <!-- Documentos (Foto e Cautela) -->
-            <v-row dense class="mt-2" v-if="usuario.foto_url || usuario.cautela_url">
+            <v-row
+              v-if="usuario.foto_url || usuario.cautela_url"
+              dense
+              class="mt-2"
+            >
               <v-col cols="12">
                 <v-divider class="mb-2" />
-                <div class="text-caption text-medium-emphasis mb-2">Documentos:</div>
+                <div class="text-caption text-medium-emphasis mb-2">
+                  Documentos:
+                </div>
               </v-col>
-              <v-col v-if="usuario.foto_url" cols="6">
+              <v-col
+                v-if="usuario.foto_url"
+                cols="6"
+              >
                 <v-btn
                   size="small"
                   color="info"
@@ -183,7 +262,10 @@
                   Ver Foto
                 </v-btn>
               </v-col>
-              <v-col v-if="usuario.cautela_url" cols="6">
+              <v-col
+                v-if="usuario.cautela_url"
+                cols="6"
+              >
                 <v-btn
                   size="small"
                   color="primary"
@@ -197,18 +279,34 @@
                 </v-btn>
               </v-col>
             </v-row>
-            
+
             <!-- Stats -->
-            <v-row dense class="mt-2">
+            <v-row
+              dense
+              class="mt-2"
+            >
               <v-col cols="12">
                 <div class="d-flex align-center text-caption text-secondary">
-                  <v-icon size="16" class="mr-1">mdi-calendar-clock</v-icon>
-                  <span>Último acesso: {{ formatarDataHora(usuario.ultimo_acesso) || 'Nunca' }}</span>
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                  >
+                    mdi-calendar-clock
+                  </v-icon>
+                  <span>Último acesso:
+                    {{
+                      formatarDataHora(usuario.ultimo_acesso) || "Nunca"
+                    }}</span>
                 </div>
               </v-col>
               <v-col cols="12">
                 <div class="d-flex align-center text-caption text-secondary">
-                  <v-icon size="16" class="mr-1">mdi-clock-outline</v-icon>
+                  <v-icon
+                    size="16"
+                    class="mr-1"
+                  >
+                    mdi-clock-outline
+                  </v-icon>
                   <span>Criado em: {{ formatarData(usuario.created_at) }}</span>
                 </div>
               </v-col>
@@ -220,41 +318,77 @@
 
     <!-- Loading -->
     <v-row v-if="carregando">
-      <v-col v-for="i in 6" :key="i" cols="12" md="6" lg="4">
+      <v-col
+        v-for="i in 6"
+        :key="i"
+        cols="12"
+        md="6"
+        lg="4"
+      >
         <v-skeleton-loader type="card" />
       </v-col>
     </v-row>
 
     <!-- No Data -->
-    <v-card v-if="!carregando && usuariosFiltrados.length === 0" class="glass">
+    <v-card
+      v-if="!carregando && usuariosFiltrados.length === 0"
+      class="glass"
+    >
       <v-card-text class="text-center pa-8">
-        <v-icon size="64" color="secondary" class="mb-4">mdi-account-off</v-icon>
-        <p class="text-h6">Nenhum usuário encontrado</p>
-        <p class="text-secondary">Crie o primeiro usuário clicando no botão acima</p>
+        <v-icon
+          size="64"
+          color="secondary"
+          class="mb-4"
+        >
+          mdi-account-off
+        </v-icon>
+        <p class="text-h6">
+          Nenhum usuário encontrado
+        </p>
+        <p class="text-secondary">
+          Crie o primeiro usuário clicando no botão acima
+        </p>
       </v-card-text>
     </v-card>
 
     <!-- Dialog Formulário -->
-    <v-dialog v-model="dialogForm" max-width="600" persistent>
+    <v-dialog
+      v-model="dialogForm"
+      max-width="600"
+      persistent
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="primary">mdi-account</v-icon>
-          {{ modoEdicao ? 'Editar Usuário' : 'Novo Usuário' }}
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-account
+          </v-icon>
+          {{ modoEdicao ? "Editar Usuário" : "Novo Usuário" }}
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" @click="fecharDialog" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="fecharDialog"
+          />
         </v-card-title>
 
         <v-divider />
 
         <v-card-text class="pa-6">
-          <v-form ref="formRef" v-model="formValido" @submit.prevent="salvarUsuario">
+          <v-form
+            ref="formRef"
+            v-model="formValido"
+            @submit.prevent="salvarUsuario"
+          >
             <v-row>
               <!-- Nome -->
               <v-col cols="12">
                 <v-text-field
                   v-model="usuarioForm.nome"
                   label="Nome Completo *"
-                  :rules="[v => !!v || 'Nome é obrigatório']"
+                  :rules="[(v) => !!v || 'Nome é obrigatório']"
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-account"
@@ -262,7 +396,10 @@
               </v-col>
 
               <!-- CPF -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="usuarioForm.cpf"
                   label="CPF *"
@@ -277,7 +414,10 @@
               </v-col>
 
               <!-- Telefone -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="usuarioForm.telefone"
                   label="Telefone *"
@@ -309,26 +449,37 @@
               <v-col cols="12">
                 <v-text-field
                   v-model="usuarioForm.senha"
-                  :label="modoEdicao ? 'Nova Senha (deixe em branco para manter)' : 'Senha *'"
+                  :label="
+                    modoEdicao
+                      ? 'Nova Senha (deixe em branco para manter)'
+                      : 'Senha *'
+                  "
                   :type="mostrarSenha ? 'text' : 'password'"
                   :rules="modoEdicao ? [] : senhaRules"
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-lock"
                   :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
-                  @click:append-inner="mostrarSenha = !mostrarSenha"
-                  :hint="modoEdicao ? 'Deixe em branco para manter a senha atual' : 'Mínimo 4 caracteres'"
+                  :hint="
+                    modoEdicao
+                      ? 'Deixe em branco para manter a senha atual'
+                      : 'Mínimo 4 caracteres'
+                  "
                   persistent-hint
+                  @click:append-inner="mostrarSenha = !mostrarSenha"
                 />
               </v-col>
 
               <!-- Perfil -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="usuarioForm.perfil"
                   label="Perfil *"
                   :items="perfisUsuario"
-                  :rules="[v => !!v || 'Perfil é obrigatório']"
+                  :rules="[(v) => !!v || 'Perfil é obrigatório']"
                   variant="outlined"
                   density="comfortable"
                   prepend-inner-icon="mdi-shield-account"
@@ -336,7 +487,10 @@
               </v-col>
 
               <!-- Status -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-switch
                   v-model="usuarioForm.ativo"
                   label="Usuário Ativo"
@@ -381,15 +535,19 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="fecharDialog" :disabled="salvando">
+          <v-btn
+            variant="text"
+            :disabled="salvando"
+            @click="fecharDialog"
+          >
             Cancelar
           </v-btn>
           <v-btn
             color="primary"
             variant="flat"
-            @click="salvarUsuario"
             :loading="salvando"
             :disabled="!formValido"
+            @click="salvarUsuario"
           >
             Salvar
           </v-btn>
@@ -398,13 +556,25 @@
     </v-dialog>
 
     <!-- Dialog Visualização -->
-    <v-dialog v-model="dialogVisualizacao" max-width="600">
+    <v-dialog
+      v-model="dialogVisualizacao"
+      max-width="600"
+    >
       <v-card v-if="usuarioSelecionado">
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="primary">mdi-eye</v-icon>
+          <v-icon
+            class="mr-2"
+            color="primary"
+          >
+            mdi-eye
+          </v-icon>
           Detalhes do Usuário
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" @click="dialogVisualizacao = false" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="dialogVisualizacao = false"
+          />
         </v-card-title>
 
         <v-divider />
@@ -412,11 +582,21 @@
         <v-card-text class="pa-6">
           <!-- Avatar e Nome -->
           <div class="text-center mb-6">
-            <v-avatar color="primary" size="96" class="mb-4">
-              <span class="text-h4 text-white">{{ getInitials(usuarioSelecionado.nome) }}</span>
+            <v-avatar
+              color="primary"
+              size="96"
+              class="mb-4"
+            >
+              <span class="text-h4 text-white">{{
+                getInitials(usuarioSelecionado.nome)
+              }}</span>
             </v-avatar>
-            <div class="text-h5 font-weight-bold">{{ usuarioSelecionado.nome }}</div>
-            <div class="text-body-2 text-secondary">{{ usuarioSelecionado.email }}</div>
+            <div class="text-h5 font-weight-bold">
+              {{ usuarioSelecionado.nome }}
+            </div>
+            <div class="text-body-2 text-secondary">
+              {{ usuarioSelecionado.email }}
+            </div>
           </div>
 
           <!-- Status e Perfil -->
@@ -427,7 +607,11 @@
               variant="flat"
               class="mr-2"
             >
-              <v-icon start>{{ getPerfilIcon(usuarioSelecionado.perfil) }}</v-icon>
+              <v-icon start>
+                {{
+                  getPerfilIcon(usuarioSelecionado.perfil)
+                }}
+              </v-icon>
               {{ formatarPerfil(usuarioSelecionado.perfil) }}
             </v-chip>
             <v-chip
@@ -436,9 +620,13 @@
               variant="flat"
             >
               <v-icon start>
-                {{ usuarioSelecionado.ativo ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                {{
+                  usuarioSelecionado.ativo
+                    ? "mdi-check-circle"
+                    : "mdi-close-circle"
+                }}
               </v-icon>
-              {{ usuarioSelecionado.ativo ? 'Ativo' : 'Inativo' }}
+              {{ usuarioSelecionado.ativo ? "Ativo" : "Inativo" }}
             </v-chip>
           </div>
 
@@ -447,18 +635,31 @@
           <!-- Informações -->
           <v-row>
             <v-col cols="12">
-              <div class="text-caption text-secondary mb-1">ÚLTIMO ACESSO</div>
+              <div class="text-caption text-secondary mb-1">
+                ÚLTIMO ACESSO
+              </div>
               <div class="text-body-1">
-                {{ formatarDataHora(usuarioSelecionado.ultimo_acesso) || 'Nunca acessou' }}
+                {{
+                  formatarDataHora(usuarioSelecionado.ultimo_acesso) ||
+                    "Nunca acessou"
+                }}
               </div>
             </v-col>
             <v-col cols="12">
-              <div class="text-caption text-secondary mb-1">CRIADO EM</div>
-              <div class="text-body-1">{{ formatarDataHora(usuarioSelecionado.created_at) }}</div>
+              <div class="text-caption text-secondary mb-1">
+                CRIADO EM
+              </div>
+              <div class="text-body-1">
+                {{ formatarDataHora(usuarioSelecionado.created_at) }}
+              </div>
             </v-col>
             <v-col cols="12">
-              <div class="text-caption text-secondary mb-1">ATUALIZADO EM</div>
-              <div class="text-body-1">{{ formatarDataHora(usuarioSelecionado.updated_at) }}</div>
+              <div class="text-caption text-secondary mb-1">
+                ATUALIZADO EM
+              </div>
+              <div class="text-body-1">
+                {{ formatarDataHora(usuarioSelecionado.updated_at) }}
+              </div>
             </v-col>
           </v-row>
         </v-card-text>
@@ -466,10 +667,18 @@
     </v-dialog>
 
     <!-- Dialog Confirmar Exclusão -->
-    <v-dialog v-model="dialogExcluir" max-width="500">
+    <v-dialog
+      v-model="dialogExcluir"
+      max-width="500"
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="error">mdi-alert</v-icon>
+          <v-icon
+            class="mr-2"
+            color="error"
+          >
+            mdi-alert
+          </v-icon>
           Confirmar Exclusão
         </v-card-title>
 
@@ -477,8 +686,13 @@
 
         <v-card-text class="pa-6">
           <p>Tem certeza que deseja excluir este usuário?</p>
-          <v-alert type="warning" variant="tonal" class="mt-4">
-            Esta ação não pode ser desfeita! Todos os vínculos e históricos associados serão removidos.
+          <v-alert
+            type="warning"
+            variant="tonal"
+            class="mt-4"
+          >
+            Esta ação não pode ser desfeita! Todos os vínculos e históricos
+            associados serão removidos.
           </v-alert>
         </v-card-text>
 
@@ -486,14 +700,18 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="dialogExcluir = false" :disabled="excluindo">
+          <v-btn
+            variant="text"
+            :disabled="excluindo"
+            @click="dialogExcluir = false"
+          >
             Cancelar
           </v-btn>
           <v-btn
             color="error"
             variant="flat"
-            @click="excluirUsuario"
             :loading="excluindo"
+            @click="excluirUsuario"
           >
             Excluir
           </v-btn>
@@ -502,10 +720,18 @@
     </v-dialog>
 
     <!-- Dialog Resetar Senha -->
-    <v-dialog v-model="dialogResetSenha" max-width="500">
+    <v-dialog
+      v-model="dialogResetSenha"
+      max-width="500"
+    >
       <v-card>
         <v-card-title class="d-flex align-center py-4">
-          <v-icon class="mr-2" color="warning">mdi-lock-reset</v-icon>
+          <v-icon
+            class="mr-2"
+            color="warning"
+          >
+            mdi-lock-reset
+          </v-icon>
           Resetar Senha
         </v-card-title>
 
@@ -522,15 +748,18 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="dialogResetSenha = false" :disabled="resetandoSenha">
+          <v-btn
+            variant="text"
+            :disabled="resetandoSenha"
+            @click="dialogResetSenha = false"
+          >
             Cancelar
           </v-btn>
           <v-btn
             color="warning"
             variant="flat"
-            @click="confirmarResetSenha"
             :loading="resetandoSenha"
-            
+            @click="confirmarResetSenha"
           >
             Resetar
           </v-btn>
@@ -551,208 +780,229 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { format, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { supabase } from '@/services/supabase'
-import { invokeEdgeFunctionWithAuth } from '@/services/edgeFunctions'
-import { PERFIS, PERFIS_SELECT_ITEMS, formatarPerfil as formatarPerfilLabel, getPerfilColor as mapPerfilColor, getPerfilIcon as mapPerfilIcon, normalizePerfil } from '@/types/perfis'
-import { formatCPF, formatTelefone, unformatCPF, unformatTelefone, validarCPF, validarTelefone } from '@/utils/formatters'
-import { useDiagnosticsStore } from '@/stores/diagnostics'
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { supabase } from "@/services/supabase";
+import { invokeEdgeFunctionWithAuth } from "@/services/edgeFunctions";
+import {
+  PERFIS,
+  PERFIS_SELECT_ITEMS,
+  formatarPerfil as formatarPerfilLabel,
+  getPerfilColor as mapPerfilColor,
+  getPerfilIcon as mapPerfilIcon,
+  normalizePerfil,
+} from "@/types/perfis";
+import {
+  formatCPF,
+  formatTelefone,
+  unformatCPF,
+  unformatTelefone,
+} from "@/utils/formatters";
+import { useDiagnosticsStore } from "@/stores/diagnostics";
 
-const diagnosticsStore = useDiagnosticsStore()
+const diagnosticsStore = useDiagnosticsStore();
 
 // State
-const usuarios = ref([])
-const carregando = ref(false)
-const salvando = ref(false)
-const excluindo = ref(false)
-const resetandoSenha = ref(false)
-const dialogForm = ref(false)
-const dialogVisualizacao = ref(false)
-const dialogExcluir = ref(false)
-const dialogResetSenha = ref(false)
-const modoEdicao = ref(false)
-const formValido = ref(false)
-const formRef = ref(null)
-const usuarioSelecionado = ref(null)
-const usuarioParaExcluir = ref(null)
-const usuarioParaResetSenha = ref(null)
-const mostrarSenha = ref(false)
-const realtimeSubscription = ref(null)
-const erroCarregamento = ref('')
+const usuarios = ref([]);
+const carregando = ref(false);
+const salvando = ref(false);
+const excluindo = ref(false);
+const resetandoSenha = ref(false);
+const dialogForm = ref(false);
+const dialogVisualizacao = ref(false);
+const dialogExcluir = ref(false);
+const dialogResetSenha = ref(false);
+const modoEdicao = ref(false);
+const formValido = ref(false);
+const formRef = ref(null);
+const usuarioSelecionado = ref(null);
+const usuarioParaExcluir = ref(null);
+const usuarioParaResetSenha = ref(null);
+const mostrarSenha = ref(false);
+const realtimeSubscription = ref(null);
+const erroCarregamento = ref("");
 
 // Filtros
 const filtros = ref({
-  busca: '',
+  busca: "",
   perfil: null,
-  status: null
-})
+  status: null,
+});
 
 // Form
 const usuarioForm = ref({
-  nome: '',
-  email: '',
-  cpf: '',
-  telefone: '',
-  senha: '',
+  nome: "",
+  email: "",
+  cpf: "",
+  telefone: "",
+  senha: "",
   perfil: PERFIS.OPERADOR,
   ativo: true,
-  foto_url: '',
-  cautela_url: ''
-})
+  foto_url: "",
+  cautela_url: "",
+});
 
 // Options
-const perfisUsuario = PERFIS_SELECT_ITEMS
+const perfisUsuario = PERFIS_SELECT_ITEMS;
 
 const statusUsuario = [
-  { title: 'Ativo', value: true },
-  { title: 'Inativo', value: false }
-]
+  { title: "Ativo", value: true },
+  { title: "Inativo", value: false },
+];
 
 // Validation Rules
 const emailRules = [
-  v => !!v || 'E-mail é obrigatório',
-  v => /.+@.+\..+/.test(v) || 'E-mail inválido'
-]
+  (v) => !!v || "E-mail é obrigatório",
+  (v) => /.+@.+\..+/.test(v) || "E-mail inválido",
+];
 
 const senhaRules = [
-  v => !!v || 'Senha é obrigatória',
-  v => v.length >= 4 || 'Senha deve ter no mínimo 4 caracteres'
-]
+  (v) => !!v || "Senha é obrigatória",
+  (v) => v.length >= 4 || "Senha deve ter no mínimo 4 caracteres",
+];
 
 const cpfRules = [
-  v => !!v || 'CPF é obrigatório',
-  v => /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(v) || 'CPF inválido'
-]
+  (v) => !!v || "CPF é obrigatório",
+  (v) => /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(v) || "CPF inválido",
+];
 
 const telefoneRules = [
-  v => !!v || 'Telefone é obrigatório',
-  v => /^\(\d{2}\) \d{5}-\d{4}$/.test(v) || 'Telefone inválido'
-]
-
+  (v) => !!v || "Telefone é obrigatório",
+  (v) => /^\(\d{2}\) \d{5}-\d{4}$/.test(v) || "Telefone inválido",
+];
 
 const formatarErroSupabase = (error) => {
-  const details = error?.details || null
-  const status = error?.status || details?.status || null
-  const code = error?.code || details?.code || details?.error || null
-  const requestId = details?.requestId || null
-  const hint = error?.hint || null
-  const message = error?.message || details?.message || 'Erro inesperado.'
+  const details = error?.details || null;
+  const status = error?.status || details?.status || null;
+  const code = error?.code || details?.code || details?.error || null;
+  const requestId = details?.requestId || null;
+  const hint = error?.hint || null;
+  const message = error?.message || details?.message || "Erro inesperado.";
 
-  if (code === '23505') return 'E-mail já cadastrado'
-  if (status === 403) return `Você não tem permissão para criar usuários.${requestId ? ` (requestId=${requestId})` : ''}`
+  if (code === "23505") return "E-mail já cadastrado";
+  if (status === 403)
+    return `Você não tem permissão para criar usuários.${requestId ? ` (requestId=${requestId})` : ""}`;
 
-  return `Erro ao processar solicitação. ${message} (status=${status || 'n/a'}, code=${code || 'n/a'}${requestId ? `, requestId=${requestId}` : ''}${hint ? `, hint=${hint}` : ''})`
-}
+  return `Erro ao processar solicitação. ${message} (status=${status || "n/a"}, code=${code || "n/a"}${requestId ? `, requestId=${requestId}` : ""}${hint ? `, hint=${hint}` : ""})`;
+};
 
 // Snackbar
 const snackbar = ref({
   show: false,
-  message: '',
-  color: 'success'
-})
+  message: "",
+  color: "success",
+});
 
 // Computed
 const usuariosFiltrados = computed(() => {
-  let resultado = [...usuarios.value]
+  let resultado = [...usuarios.value];
 
   // Filtro de busca
   if (filtros.value.busca) {
-    const busca = filtros.value.busca.toLowerCase()
-    resultado = resultado.filter(u => 
-      u.nome?.toLowerCase().includes(busca) ||
-      u.email?.toLowerCase().includes(busca)
-    )
+    const busca = filtros.value.busca.toLowerCase();
+    resultado = resultado.filter(
+      (u) =>
+        u.nome?.toLowerCase().includes(busca) ||
+        u.email?.toLowerCase().includes(busca),
+    );
   }
 
   // Filtro de perfil
   if (filtros.value.perfil) {
-    resultado = resultado.filter(u => u.perfil === filtros.value.perfil)
+    resultado = resultado.filter((u) => u.perfil === filtros.value.perfil);
   }
 
   // Filtro de status
   if (filtros.value.status !== null) {
-    resultado = resultado.filter(u => u.ativo === filtros.value.status)
+    resultado = resultado.filter((u) => u.ativo === filtros.value.status);
   }
 
-  return resultado
-})
+  return resultado;
+});
 
 // Methods
 const carregarUsuarios = async () => {
   try {
-    carregando.value = true
-    erroCarregamento.value = ''
+    carregando.value = true;
+    erroCarregamento.value = "";
     const { data, error } = await supabase
-      .from('usuarios')
-      .select('id, nome, email, cpf, telefone, perfil, ativo, foto_url, cautela_url, ultimo_acesso, created_at, updated_at')
-      .order('nome')
+      .from("usuarios")
+      .select(
+        "id, nome, email, cpf, telefone, perfil, ativo, foto_url, cautela_url, ultimo_acesso, created_at, updated_at",
+      )
+      .order("nome");
 
-    if (error) throw error
+    if (error) throw error;
 
-    usuarios.value = data || []
-    console.log('✅ Usuários carregados:', usuarios.value.length)
+    usuarios.value = data || [];
+    console.log("✅ Usuários carregados:", usuarios.value.length);
   } catch (error) {
-    console.error('❌ Erro ao carregar usuários:', error)
-    const mensagem = formatarErroSupabase(error)
-    erroCarregamento.value = `Não foi possível carregar a lista de usuários. ${mensagem}`
-    diagnosticsStore.pushEvent({ type: 'api_error', source: 'UsuariosLista:carregarUsuarios', message: mensagem, context: { table: 'usuarios' }, error })
-    mostrarSnackbar(mensagem, 'error')
+    console.error("❌ Erro ao carregar usuários:", error);
+    const mensagem = formatarErroSupabase(error);
+    erroCarregamento.value = `Não foi possível carregar a lista de usuários. ${mensagem}`;
+    diagnosticsStore.pushEvent({
+      type: "api_error",
+      source: "UsuariosLista:carregarUsuarios",
+      message: mensagem,
+      context: { table: "usuarios" },
+      error,
+    });
+    mostrarSnackbar(mensagem, "error");
   } finally {
-    carregando.value = false
+    carregando.value = false;
   }
-}
+};
 
 const abrirDialogNovo = () => {
-  modoEdicao.value = false
+  modoEdicao.value = false;
   usuarioForm.value = {
-    nome: '',
-    email: '',
-    cpf: '',
-    telefone: '',
-    senha: '',
+    nome: "",
+    email: "",
+    cpf: "",
+    telefone: "",
+    senha: "",
     perfil: PERFIS.OPERADOR,
     ativo: true,
-    foto_url: '',
-    cautela_url: ''
-  }
-  dialogForm.value = true
-}
+    foto_url: "",
+    cautela_url: "",
+  };
+  dialogForm.value = true;
+};
 
 const editarUsuario = (usuario) => {
-  modoEdicao.value = true
+  modoEdicao.value = true;
   usuarioForm.value = {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
-    cpf: formatCPF(usuario.cpf || ''),
-    telefone: formatTelefone(usuario.telefone || ''),
+    cpf: formatCPF(usuario.cpf || ""),
+    telefone: formatTelefone(usuario.telefone || ""),
     perfil: normalizePerfil(usuario.perfil),
     ativo: usuario.ativo,
-    foto_url: usuario.foto_url || '',
-    cautela_url: usuario.cautela_url || ''
-  }
-  dialogForm.value = true
-}
+    foto_url: usuario.foto_url || "",
+    cautela_url: usuario.cautela_url || "",
+  };
+  dialogForm.value = true;
+};
 
 const salvarUsuario = async () => {
-  if (!formRef.value) return
+  if (!formRef.value) return;
 
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
   try {
-    salvando.value = true
+    salvando.value = true;
 
     // Preparar dados (remover formatação)
-    const cpfLimpo = unformatCPF(usuarioForm.value.cpf)
-    const telefoneLimpo = unformatTelefone(usuarioForm.value.telefone)
+    const cpfLimpo = unformatCPF(usuarioForm.value.cpf);
+    const telefoneLimpo = unformatTelefone(usuarioForm.value.telefone);
 
     if (modoEdicao.value) {
       // Update
       const { error } = await supabase
-        .from('usuarios')
+        .from("usuarios")
         .update({
           nome: usuarioForm.value.nome,
           cpf: cpfLimpo || null,
@@ -760,260 +1010,264 @@ const salvarUsuario = async () => {
           perfil: normalizePerfil(usuarioForm.value.perfil),
           ativo: usuarioForm.value.ativo,
           foto_url: usuarioForm.value.foto_url || null,
-          cautela_url: usuarioForm.value.cautela_url || null
+          cautela_url: usuarioForm.value.cautela_url || null,
         })
-        .eq('id', usuarioForm.value.id)
+        .eq("id", usuarioForm.value.id);
 
-      if (error) throw error
-      mostrarSnackbar('Usuário atualizado com sucesso!', 'success')
+      if (error) throw error;
+      mostrarSnackbar("Usuário atualizado com sucesso!", "success");
     } else {
       const payload = {
-        email: (usuarioForm.value.email || '').trim().toLowerCase(),
+        email: (usuarioForm.value.email || "").trim().toLowerCase(),
         password: usuarioForm.value.senha,
         nome: usuarioForm.value.nome,
         perfil: normalizePerfil(usuarioForm.value.perfil),
         ativo: usuarioForm.value.ativo,
         cpf: cpfLimpo || null,
-        telefone: telefoneLimpo || null
-      }
+        telefone: telefoneLimpo || null,
+      };
 
-      const { data: createUserData, requestId } = await invokeEdgeFunctionWithAuth('create-user', payload)
+      const { data: createUserData, requestId } =
+        await invokeEdgeFunctionWithAuth("create-user", payload);
 
       if (usuarioForm.value.foto_url || usuarioForm.value.cautela_url) {
         const { error: updateProfileError } = await supabase
-          .from('usuarios')
+          .from("usuarios")
           .update({
             foto_url: usuarioForm.value.foto_url || null,
-            cautela_url: usuarioForm.value.cautela_url || null
+            cautela_url: usuarioForm.value.cautela_url || null,
           })
-          .eq('email', payload.email)
+          .eq("email", payload.email);
 
-        if (updateProfileError) throw updateProfileError
+        if (updateProfileError) throw updateProfileError;
       }
 
       if (createUserData?.ok === false) {
-        throw Object.assign(new Error(createUserData?.details?.message || 'Erro desconhecido ao criar usuário'), {
-          code: createUserData?.error || 'create_user_failed',
-          status: 500,
-          details: createUserData
-        })
+        throw Object.assign(
+          new Error(
+            createUserData?.details?.message ||
+              "Erro desconhecido ao criar usuário",
+          ),
+          {
+            code: createUserData?.error || "create_user_failed",
+            status: 500,
+            details: createUserData,
+          },
+        );
       }
 
-      console.info('[usuarios] create-user success', {
+      console.info("[usuarios] create-user success", {
         requestId,
         status: 200,
-        email: payload.email
-      })
+        email: payload.email,
+      });
 
-      mostrarSnackbar('Usuário criado com sucesso.', 'success')
+      mostrarSnackbar("Usuário criado com sucesso.", "success");
     }
 
-    fecharDialog()
-    await carregarUsuarios()
+    fecharDialog();
+    await carregarUsuarios();
   } catch (error) {
-    console.error('❌ Erro ao salvar usuário:', {
+    console.error("❌ Erro ao salvar usuário:", {
       message: error?.message,
       code: error?.code,
       status: error?.status,
       requestId: error?.details?.requestId || null,
-      details: error?.details || null
-    })
-    if (error?.code === '23505') {
-      mostrarSnackbar('E-mail já cadastrado', 'warning')
+      details: error?.details || null,
+    });
+    if (error?.code === "23505") {
+      mostrarSnackbar("E-mail já cadastrado", "warning");
     } else {
-      mostrarSnackbar(formatarErroSupabase(error), 'error')
+      mostrarSnackbar(formatarErroSupabase(error), "error");
     }
   } finally {
-    salvando.value = false
+    salvando.value = false;
   }
-}
+};
 
 const visualizarUsuario = (usuario) => {
-  usuarioSelecionado.value = usuario
-  dialogVisualizacao.value = true
-}
+  usuarioSelecionado.value = usuario;
+  dialogVisualizacao.value = true;
+};
 
 const resetarSenha = (usuario) => {
-  usuarioParaResetSenha.value = usuario
-  dialogResetSenha.value = true
-}
+  usuarioParaResetSenha.value = usuario;
+  dialogResetSenha.value = true;
+};
 
 const confirmarResetSenha = async () => {
-  if (!usuarioParaResetSenha.value?.email) return
+  if (!usuarioParaResetSenha.value?.email) return;
 
   try {
-    resetandoSenha.value = true
+    resetandoSenha.value = true;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(usuarioParaResetSenha.value.email)
-    if (error) throw error
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      usuarioParaResetSenha.value.email,
+    );
+    if (error) throw error;
 
-    mostrarSnackbar('E-mail de redefinição enviado com sucesso!', 'success')
-    dialogResetSenha.value = false
-    usuarioParaResetSenha.value = null
+    mostrarSnackbar("E-mail de redefinição enviado com sucesso!", "success");
+    dialogResetSenha.value = false;
+    usuarioParaResetSenha.value = null;
   } catch (error) {
-    console.error('❌ Erro ao resetar senha:', error)
-    mostrarSnackbar(formatarErroSupabase(error), 'error')
+    console.error("❌ Erro ao resetar senha:", error);
+    mostrarSnackbar(formatarErroSupabase(error), "error");
   } finally {
-    resetandoSenha.value = false
+    resetandoSenha.value = false;
   }
-}
+};
 
 const confirmarExclusao = (usuario) => {
-  usuarioParaExcluir.value = usuario
-  dialogExcluir.value = true
-}
+  usuarioParaExcluir.value = usuario;
+  dialogExcluir.value = true;
+};
 
 const excluirUsuario = async () => {
-  if (!usuarioParaExcluir.value) return
+  if (!usuarioParaExcluir.value) return;
 
   try {
-    excluindo.value = true
+    excluindo.value = true;
 
     const { error } = await supabase
-      .from('usuarios')
+      .from("usuarios")
       .delete()
-      .eq('id', usuarioParaExcluir.value.id)
+      .eq("id", usuarioParaExcluir.value.id);
 
-    if (error) throw error
+    if (error) throw error;
 
-    mostrarSnackbar('Usuário excluído com sucesso!', 'success')
-    dialogExcluir.value = false
-    usuarioParaExcluir.value = null
-    await carregarUsuarios()
+    mostrarSnackbar("Usuário excluído com sucesso!", "success");
+    dialogExcluir.value = false;
+    usuarioParaExcluir.value = null;
+    await carregarUsuarios();
   } catch (error) {
-    console.error('❌ Erro ao excluir usuário:', error)
-    mostrarSnackbar(formatarErroSupabase(error), 'error')
+    console.error("❌ Erro ao excluir usuário:", error);
+    mostrarSnackbar(formatarErroSupabase(error), "error");
   } finally {
-    excluindo.value = false
+    excluindo.value = false;
   }
-}
+};
 
 const fecharDialog = () => {
-  dialogForm.value = false
+  dialogForm.value = false;
   if (formRef.value) {
-    formRef.value.reset()
+    formRef.value.reset();
   }
-}
+};
 
 const limparFiltros = () => {
   filtros.value = {
-    busca: '',
+    busca: "",
     perfil: null,
-    status: null
-  }
-}
+    status: null,
+  };
+};
 
 const getInitials = (nome) => {
-  if (!nome) return '??'
-  const parts = nome.split(' ')
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
+  if (!nome) return "??";
+  const parts = nome.split(" ");
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
 const formatarPerfil = (perfil) => {
-  return formatarPerfilLabel(perfil)
-}
+  return formatarPerfilLabel(perfil);
+};
 
 const getPerfilColor = (perfil) => {
-  return mapPerfilColor(perfil)
-}
+  return mapPerfilColor(perfil);
+};
 
 const getPerfilIcon = (perfil) => {
-  return mapPerfilIcon(perfil)
-}
+  return mapPerfilIcon(perfil);
+};
 
 const formatarCPF = (cpf) => {
-  if (!cpf) return '-'
+  if (!cpf) return "-";
   // Remove tudo que não é dígito
-  const numeros = cpf.replace(/\D/g, '')
+  const numeros = cpf.replace(/\D/g, "");
   // Formata: 000.000.000-00
-  return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-}
-
+  return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+};
 
 const formatarData = (data) => {
-  if (!data) return '-'
+  if (!data) return "-";
   try {
-    return format(parseISO(data), 'dd/MM/yyyy', { locale: ptBR })
+    return format(parseISO(data), "dd/MM/yyyy", { locale: ptBR });
   } catch {
-    return data
+    return data;
   }
-}
+};
 
 const formatarDataHora = (data) => {
-  if (!data) return null
+  if (!data) return null;
   try {
-    return format(parseISO(data), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+    return format(parseISO(data), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   } catch {
-    return data
+    return data;
   }
-}
+};
 
-const mostrarSnackbar = (message, color = 'success') => {
+const mostrarSnackbar = (message, color = "success") => {
   snackbar.value = {
     show: true,
     message,
-    color
-  }
-}
+    color,
+  };
+};
 
 // Realtime subscription
 const setupRealtimeSubscription = () => {
   realtimeSubscription.value = supabase
-    .channel('usuarios-changes')
+    .channel("usuarios-changes")
     .on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*',
-        schema: 'public',
-        table: 'usuarios'
+        event: "*",
+        schema: "public",
+        table: "usuarios",
       },
       (payload) => {
-        console.log('🔄 Usuário atualizado em tempo real:', payload)
-        carregarUsuarios()
-      }
+        console.log("🔄 Usuário atualizado em tempo real:", payload);
+        carregarUsuarios();
+      },
     )
-    .subscribe()
-}
+    .subscribe();
+};
 
 // Formatação de CPF e Telefone
 const formatarCPFInput = (event) => {
-  const input = event.target
-  const value = input.value
-  const formatted = formatCPF(value)
-  usuarioForm.value.cpf = formatted
+  const input = event.target;
+  const value = input.value;
+  const formatted = formatCPF(value);
+  usuarioForm.value.cpf = formatted;
   // Atualizar cursor
   setTimeout(() => {
-    input.setSelectionRange(formatted.length, formatted.length)
-  }, 0)
-}
+    input.setSelectionRange(formatted.length, formatted.length);
+  }, 0);
+};
 
 const formatarTelefoneInput = (event) => {
-  const input = event.target
-  const value = input.value
-  const formatted = formatTelefone(value)
-  usuarioForm.value.telefone = formatted
+  const input = event.target;
+  const value = input.value;
+  const formatted = formatTelefone(value);
+  usuarioForm.value.telefone = formatted;
   // Atualizar cursor
   setTimeout(() => {
-    input.setSelectionRange(formatted.length, formatted.length)
-  }, 0)
-}
-
-const formatarCPFDisplay = (cpf) => {
-  return formatCPF(cpf)
-}
+    input.setSelectionRange(formatted.length, formatted.length);
+  }, 0);
+};
 
 // Lifecycle
 onMounted(async () => {
-  await carregarUsuarios()
-  setupRealtimeSubscription()
-})
+  await carregarUsuarios();
+  setupRealtimeSubscription();
+});
 
 onUnmounted(() => {
   if (realtimeSubscription.value) {
-    supabase.removeChannel(realtimeSubscription.value)
+    supabase.removeChannel(realtimeSubscription.value);
   }
-})
+});
 </script>
 
 <style scoped>
