@@ -1,23 +1,42 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container
+    fluid
+    class="pa-6"
+  >
     <!-- Cabeçalho -->
-    <v-row align="center" class="mb-6">
-      <v-col cols="12" md="6">
+    <v-row
+      align="center"
+      class="mb-6"
+    >
+      <v-col
+        cols="12"
+        md="6"
+      >
         <h1 class="text-h4 font-weight-bold text-main">
-          <v-icon size="36" color="primary" class="mr-3">mdi-chart-line</v-icon>
+          <v-icon
+            size="36"
+            color="primary"
+            class="mr-3"
+          >
+            mdi-chart-line
+          </v-icon>
           Medições de Retrorrefletância
         </h1>
         <p class="text-subtitle-1 text-medium-emphasis mt-2">
           Registre e valide medições conforme normas ABNT
         </p>
       </v-col>
-      <v-col cols="12" md="6" class="text-right">
+      <v-col
+        cols="12"
+        md="6"
+        class="text-right"
+      >
         <v-btn
           color="success"
           size="large"
           prepend-icon="mdi-plus-circle"
-          @click="abrirDialogNovo"
           class="mr-2"
+          @click="abrirDialogNovo"
         >
           Nova Medição
         </v-btn>
@@ -35,57 +54,121 @@
 
     <!-- Dashboard de Status -->
     <v-row class="mb-6">
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-em-dia" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-em-dia"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-medium-emphasis">Em Dia</p>
-                <h2 class="text-h3 font-weight-bold">{{ stats.em_dia || 0 }}</h2>
+                <p class="text-caption text-medium-emphasis">
+                  Em Dia
+                </p>
+                <h2 class="text-h3 font-weight-bold">
+                  {{ stats.em_dia || 0 }}
+                </h2>
               </div>
-              <v-icon size="60" color="success" class="opacity-30">mdi-check-circle</v-icon>
+              <v-icon
+                size="60"
+                color="success"
+                class="opacity-30"
+              >
+                mdi-check-circle
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-atencao" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-atencao"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-medium-emphasis">Atenção (30 dias)</p>
-                <h2 class="text-h3 font-weight-bold">{{ stats.atencao || 0 }}</h2>
+                <p class="text-caption text-medium-emphasis">
+                  Atenção (30 dias)
+                </p>
+                <h2 class="text-h3 font-weight-bold">
+                  {{ stats.atencao || 0 }}
+                </h2>
               </div>
-              <v-icon size="60" color="warning" class="opacity-30">mdi-alert</v-icon>
+              <v-icon
+                size="60"
+                color="warning"
+                class="opacity-30"
+              >
+                mdi-alert
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-vencida" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-vencida"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-medium-emphasis">Vencidas</p>
-                <h2 class="text-h3 font-weight-bold">{{ stats.vencidas || 0 }}</h2>
+                <p class="text-caption text-medium-emphasis">
+                  Vencidas
+                </p>
+                <h2 class="text-h3 font-weight-bold">
+                  {{ stats.vencidas || 0 }}
+                </h2>
               </div>
-              <v-icon size="60" color="error" class="opacity-30">mdi-close-circle</v-icon>
+              <v-icon
+                size="60"
+                color="error"
+                class="opacity-30"
+              >
+                mdi-close-circle
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="3">
-        <v-card class="dashboard-card card-aprovacao" elevation="2">
+      <v-col
+        cols="12"
+        md="3"
+      >
+        <v-card
+          class="dashboard-card card-aprovacao"
+          elevation="2"
+        >
           <v-card-text>
             <div class="d-flex align-center justify-space-between">
               <div>
-                <p class="text-caption text-medium-emphasis">Taxa de Aprovação</p>
-                <h2 class="text-h3 font-weight-bold">{{ stats.media_aprovacao || 0 }}%</h2>
+                <p class="text-caption text-medium-emphasis">
+                  Taxa de Aprovação
+                </p>
+                <h2 class="text-h3 font-weight-bold">
+                  {{ stats.media_aprovacao || 0 }}%
+                </h2>
               </div>
-              <v-icon size="60" color="info" class="opacity-30">mdi-chart-pie</v-icon>
+              <v-icon
+                size="60"
+                color="info"
+                class="opacity-30"
+              >
+                mdi-chart-pie
+              </v-icon>
             </div>
           </v-card-text>
         </v-card>
@@ -93,10 +176,16 @@
     </v-row>
 
     <!-- Filtros -->
-    <v-card class="mb-6" elevation="2">
+    <v-card
+      class="mb-6"
+      elevation="2"
+    >
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-text-field
               v-model="filtros.busca"
               prepend-inner-icon="mdi-magnify"
@@ -108,7 +197,10 @@
             />
           </v-col>
 
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.status"
               :items="statusOptions"
@@ -120,7 +212,10 @@
             />
           </v-col>
 
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.validacao"
               :items="validacaoOptions"
@@ -132,7 +227,10 @@
             />
           </v-col>
 
-          <v-col cols="12" md="2">
+          <v-col
+            cols="12"
+            md="2"
+          >
             <v-select
               v-model="filtros.tipo"
               :items="tipoEquipamentoOptions"
@@ -144,12 +242,15 @@
             />
           </v-col>
 
-          <v-col cols="12" md="3">
+          <v-col
+            cols="12"
+            md="3"
+          >
             <v-btn
               color="primary"
               block
-              @click="aplicarFiltros"
               prepend-icon="mdi-filter"
+              @click="aplicarFiltros"
             >
               Filtrar
             </v-btn>
@@ -171,7 +272,12 @@
           <!-- Código do Equipamento -->
           <template v-slot:item.equipamento_codigo="{ item }">
             <div class="d-flex align-center">
-              <v-chip size="small" color="primary" variant="outlined" class="mr-2">
+              <v-chip
+                size="small"
+                color="primary"
+                variant="outlined"
+                class="mr-2"
+              >
                 {{ item.equipamento_codigo }}
               </v-chip>
               <span class="text-caption">{{ item.equipamento_nome }}</span>
@@ -192,10 +298,14 @@
                 :color="getStatusColor(item.status_vencimento)"
                 class="ml-2"
               >
-                {{ item.dias_vencimento > 0 ? '+' : '' }}{{ item.dias_vencimento }} dias
+                {{ item.dias_vencimento > 0 ? "+" : ""
+                }}{{ item.dias_vencimento }} dias
               </v-chip>
             </div>
-            <span v-else class="text-medium-emphasis">-</span>
+            <span
+              v-else
+              class="text-medium-emphasis"
+            >-</span>
           </template>
 
           <!-- Status Vencimento -->
@@ -219,19 +329,28 @@
             >
               {{ item.status_validacao }}
             </v-chip>
-            <span v-else class="text-medium-emphasis">-</span>
+            <span
+              v-else
+              class="text-medium-emphasis"
+            >-</span>
           </template>
 
           <!-- Valores -->
           <template v-slot:item.valor_medio="{ item }">
             <div v-if="item.valor_medio">
               <strong>{{ item.valor_medio }}</strong>
-              <v-tooltip activator="parent" location="top">
-                Referência: {{ item.valor_minimo_referencia }}<br>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Referência: {{ item.valor_minimo_referencia }}<br />
                 Aprovação: {{ item.percentual_aprovacao }}%
               </v-tooltip>
             </div>
-            <span v-else class="text-medium-emphasis">-</span>
+            <span
+              v-else
+              class="text-medium-emphasis"
+            >-</span>
           </template>
 
           <!-- Ações -->
@@ -244,7 +363,10 @@
               @click="gerarLaudoPDF(item)"
             >
               <v-icon>mdi-file-pdf-box</v-icon>
-              <v-tooltip activator="parent" location="top">
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
                 Gerar Laudo PDF (ICDVias)
               </v-tooltip>
             </v-btn>
@@ -257,7 +379,12 @@
               @click="visualizarDetalhes(item)"
             >
               <v-icon>mdi-eye</v-icon>
-              <v-tooltip activator="parent" location="top">Ver Detalhes</v-tooltip>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Ver Detalhes
+              </v-tooltip>
             </v-btn>
 
             <v-btn
@@ -268,7 +395,12 @@
               @click="editarMedicao(item)"
             >
               <v-icon>mdi-pencil</v-icon>
-              <v-tooltip activator="parent" location="top">Editar</v-tooltip>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Editar
+              </v-tooltip>
             </v-btn>
 
             <v-btn
@@ -279,7 +411,12 @@
               @click="confirmarExclusao(item)"
             >
               <v-icon>mdi-delete</v-icon>
-              <v-tooltip activator="parent" location="top">Excluir</v-tooltip>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Excluir
+              </v-tooltip>
             </v-btn>
           </template>
 
@@ -291,9 +428,20 @@
           <!-- Sem dados -->
           <template v-slot:no-data>
             <div class="text-center py-12">
-              <v-icon size="64" color="grey-lighten-2">mdi-chart-line-variant</v-icon>
-              <p class="text-h6 mt-4 text-medium-emphasis">Nenhuma medição encontrada</p>
-              <v-btn color="primary" class="mt-4" @click="abrirDialogNovo">
+              <v-icon
+                size="64"
+                color="grey-lighten-2"
+              >
+                mdi-chart-line-variant
+              </v-icon>
+              <p class="text-h6 mt-4 text-medium-emphasis">
+                Nenhuma medição encontrada
+              </p>
+              <v-btn
+                color="primary"
+                class="mt-4"
+                @click="abrirDialogNovo"
+              >
                 Criar primeira medição
               </v-btn>
             </div>
@@ -303,18 +451,33 @@
     </v-card>
 
     <!-- Dialog: Nova/Editar Medição -->
-    <v-dialog v-model="dialogMedicao" max-width="1000px" persistent scrollable>
+    <v-dialog
+      v-model="dialogMedicao"
+      max-width="1000px"
+      persistent
+      scrollable
+    >
       <v-card>
         <v-card-title class="bg-primary">
           <span class="text-h5 text-white">
-            <v-icon color="white" class="mr-2">mdi-clipboard-text</v-icon>
-            {{ modoEdicao ? 'Editar Medição' : 'Nova Medição de Retrorrefletância' }}
+            <v-icon
+              color="white"
+              class="mr-2"
+            >mdi-clipboard-text</v-icon>
+            {{
+              modoEdicao
+                ? "Editar Medição"
+                : "Nova Medição de Retrorrefletância"
+            }}
           </span>
         </v-card-title>
 
         <v-divider />
 
-        <v-card-text class="pt-6" style="max-height: 600px;">
+        <v-card-text
+          class="pt-6"
+          style="max-height: 600px"
+        >
           <!-- Alerta quando não há equipamentos -->
           <v-alert
             v-if="equipamentos.length === 0"
@@ -330,14 +493,19 @@
                   Nenhum Equipamento Disponível
                 </div>
                 <p class="mb-0">
-                  Não há equipamentos cadastrados no sistema. 
-                  Por favor, contate o administrador para cadastrar equipamentos antes de criar medições.
+                  Não há equipamentos cadastrados no sistema. Por favor, contate
+                  o administrador para cadastrar equipamentos antes de criar
+                  medições.
                 </p>
               </v-col>
             </v-row>
           </v-alert>
 
-          <v-form ref="formMedicao" v-model="formValido" :disabled="equipamentos.length === 0">
+          <v-form
+            ref="formMedicao"
+            v-model="formValido"
+            :disabled="equipamentos.length === 0"
+          >
             <v-row>
               <!-- Equipamento -->
               <v-col cols="12">
@@ -351,17 +519,29 @@
                   variant="outlined"
                   :rules="[rules.required]"
                   :loading="loadingEquipamentos"
-                  @update:model-value="onEquipamentoChange"
                   :disabled="authStore.isOperador && equipamentos.length === 1"
                   clearable
+                  @update:model-value="onEquipamentoChange"
                 >
                   <template v-slot:item="{ props, item }">
                     <v-list-item v-bind="props">
                       <template v-slot:prepend>
-                        <v-icon :icon="item.raw.tipoDetalhado?.icon || 'mdi-speedometer'" />
+                        <v-icon
+                          :icon="
+                            item.raw.tipoDetalhado?.icon || 'mdi-speedometer'
+                          "
+                        />
                       </template>
                       <template v-slot:title>
-                        <v-chip size="small" color="primary" class="mr-2">{{ item.raw.codigo }}</v-chip>
+                        <v-chip
+                          size="small"
+                          color="primary"
+                          class="mr-2"
+                        >
+                          {{
+                            item.raw.codigo
+                          }}
+                        </v-chip>
                         {{ item.raw.nome }}
                       </template>
                       <template v-slot:subtitle>
@@ -370,7 +550,7 @@
                     </v-list-item>
                   </template>
                 </v-autocomplete>
-                
+
                 <!-- Informações do Equipamento Detectado -->
                 <v-alert
                   v-if="tipoEquipamentoDetectado"
@@ -379,18 +559,28 @@
                   density="compact"
                   class="mt-2"
                 >
-                  <v-row dense align="center">
+                  <v-row
+                    dense
+                    align="center"
+                  >
                     <v-col cols="auto">
                       <v-icon :icon="tipoEquipamentoDetectado.icon" />
                     </v-col>
                     <v-col>
-                      <strong>{{ tipoEquipamentoDetectado.descricao }}</strong><br>
+                      <strong>{{ tipoEquipamentoDetectado.descricao }}</strong><br />
                       <small>
-                        Geometria{{ tipoEquipamentoDetectado.geometrias.length > 1 ? 's' : '' }}: 
-                        {{ tipoEquipamentoDetectado.geometrias.join(', ') }}
-                        • Medições recomendadas: {{ tipoEquipamentoDetectado.quantidadeMedicoes }}
+                        Geometria{{
+                          tipoEquipamentoDetectado.geometrias.length > 1
+                            ? "s"
+                            : ""
+                        }}:
+                        {{ tipoEquipamentoDetectado.geometrias.join(", ") }}
+                        • Medições recomendadas:
+                        {{ tipoEquipamentoDetectado.quantidadeMedicoes }}
                         <span v-if="tipoEquipamentoDetectado.simuladorChuva">
-                          • <v-icon size="small">mdi-weather-rainy</v-icon> Simulador de Chuva
+                          •
+                          <v-icon size="small">mdi-weather-rainy</v-icon>
+                          Simulador de Chuva
                         </span>
                       </small>
                     </v-col>
@@ -399,7 +589,10 @@
               </v-col>
 
               <!-- Dados da Medição -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="formMedicaoData.data_calibracao"
                   label="Data da Medição *"
@@ -410,7 +603,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="formMedicaoData.proxima_calibracao"
                   label="Próxima Medição *"
@@ -422,52 +618,202 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
-                <v-select v-model="formMedicaoData.tipo_sinalizacao" :items="tipoSinalizacaoOptions" label="Tipo de sinalização *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposMaterial"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.tipo_sinalizacao"
+                  :items="tipoSinalizacaoOptions"
+                  label="Tipo de sinalização *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_sinalizacao === 'Outro...'">
-                <v-text-field v-model="formMedicaoData.tipo_sinalizacao_outro" label="Descreva o tipo de sinalização *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="
+                  mostrarCamposMaterial &&
+                    formMedicaoData.tipo_sinalizacao === 'Outro...'
+                "
+                cols="12"
+                md="4"
+              >
+                <v-text-field
+                  v-model="formMedicaoData.tipo_sinalizacao_outro"
+                  label="Descreva o tipo de sinalização *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
-                <v-select v-model="formMedicaoData.tipo_material" :items="tipoMaterialHorizontalOptions" label="Tipo de material horizontal *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposMaterial"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.tipo_material"
+                  :items="tipoMaterialHorizontalOptions"
+                  label="Tipo de material horizontal *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial && formMedicaoData.tipo_material === 'Outro...'">
-                <v-text-field v-model="formMedicaoData.tipo_material_outro" label="Descreva o material *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="
+                  mostrarCamposMaterial &&
+                    formMedicaoData.tipo_material === 'Outro...'
+                "
+                cols="12"
+                md="4"
+              >
+                <v-text-field
+                  v-model="formMedicaoData.tipo_material_outro"
+                  label="Descreva o material *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposMaterial">
-                <v-select v-model="formMedicaoData.momento_medicao" :items="momentoOptions" label="Momento *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposMaterial"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.momento_medicao"
+                  :items="momentoOptions"
+                  label="Momento *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
 
-              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
-                <v-select v-model="formMedicaoData.modo_medicao_vertical" :items="[{ title: 'Ângulo único', value: 'angulo-unico' }, { title: 'Multiângulo', value: 'multi-angulo' }]" label="Modo de medição *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.modo_medicao_vertical"
+                  :items="[
+                    { title: 'Ângulo único', value: 'angulo-unico' },
+                    { title: 'Multiângulo', value: 'multi-angulo' },
+                  ]"
+                  label="Modo de medição *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
-                <v-select v-model="formMedicaoData.classe_pelicula" :items="classePeliculaOptions" label="Classe da película *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.classe_pelicula"
+                  :items="classePeliculaOptions"
+                  label="Classe da película *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposPelicula">
-                <v-select v-model="formMedicaoData.tipo_pelicula" :items="tipoPeliculaOptions" item-title="title" item-value="value" label="Tipo da película *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.tipo_pelicula"
+                  :items="tipoPeliculaOptions"
+                  item-title="title"
+                  item-value="value"
+                  label="Tipo da película *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="6" v-if="mostrarCamposPelicula">
-                <v-text-field v-model="formMedicaoData.marca_pelicula" label="Marca da película *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="6"
+              >
+                <v-text-field
+                  v-model="formMedicaoData.marca_pelicula"
+                  label="Marca da película *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="3" v-if="mostrarCamposPelicula">
-                <v-select v-model="formMedicaoData.angulo_observacao" :items="anguloObservacaoOptions" label="Ângulo observação *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="3"
+              >
+                <v-select
+                  v-model="formMedicaoData.angulo_observacao"
+                  :items="anguloObservacaoOptions"
+                  label="Ângulo observação *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="3" v-if="mostrarCamposPelicula">
-                <v-select v-model="formMedicaoData.angulo_entrada" :items="anguloEntradaOptions" label="Ângulo entrada *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposPelicula"
+                cols="12"
+                md="3"
+              >
+                <v-select
+                  v-model="formMedicaoData.angulo_entrada"
+                  :items="anguloEntradaOptions"
+                  label="Ângulo entrada *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
 
-              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
-                <v-select v-model="formMedicaoData.dispositivo" :items="dispositivoOptions" label="Dispositivo *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposDispositivos"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.dispositivo"
+                  :items="dispositivoOptions"
+                  label="Dispositivo *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
-                <v-select v-model="formMedicaoData.tipo_refletivo" :items="tipoRefletivoOptions" label="Tipo refletivo *" variant="outlined" :rules="[rules.required]" />
+              <v-col
+                v-if="mostrarCamposDispositivos"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.tipo_refletivo"
+                  :items="tipoRefletivoOptions"
+                  label="Tipo refletivo *"
+                  variant="outlined"
+                  :rules="[rules.required]"
+                />
               </v-col>
-              <v-col cols="12" md="4" v-if="mostrarCamposDispositivos">
-                <v-select v-model="formMedicaoData.direcionalidade" :items="direcionalidadeOptions" label="Direcionalidade" variant="outlined" />
+              <v-col
+                v-if="mostrarCamposDispositivos"
+                cols="12"
+                md="4"
+              >
+                <v-select
+                  v-model="formMedicaoData.direcionalidade"
+                  :items="direcionalidadeOptions"
+                  label="Direcionalidade"
+                  variant="outlined"
+                />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="formMedicaoData.cor_medicao"
                   :items="corOptions"
@@ -479,7 +825,10 @@
               </v-col>
 
               <!-- Geometria -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="formMedicaoData.geometria_medicao"
                   :items="geometriasDisponiveis"
@@ -495,7 +844,10 @@
               </v-col>
 
               <!-- Técnico Responsável -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model="formMedicaoData.tecnico_responsavel"
                   label="Técnico Responsável *"
@@ -506,9 +858,13 @@
                   hint="Nome do operador responsável pela medição"
                 />
               </v-col>
-              
+
               <!-- Condições Ambientais (opcional para chuva) -->
-              <v-col v-if="mostrarSimuladorChuva" cols="12" md="6">
+              <v-col
+                v-if="mostrarSimuladorChuva"
+                cols="12"
+                md="6"
+              >
                 <v-select
                   v-model="formMedicaoData.condicoes_medicao"
                   :items="['Seco', 'Simulador de Chuva']"
@@ -521,9 +877,14 @@
 
               <!-- Valores de Medição -->
               <v-col cols="12">
-                <v-card variant="outlined" class="pa-4">
+                <v-card
+                  variant="outlined"
+                  class="pa-4"
+                >
                   <v-card-title class="text-subtitle-1 pb-3">
-                    <v-icon class="mr-2">mdi-numeric</v-icon>
+                    <v-icon class="mr-2">
+                      mdi-numeric
+                    </v-icon>
                     Valores Medidos (cd/(lx·m²) ou mcd/lx)
                   </v-card-title>
                   <v-row>
@@ -555,18 +916,24 @@
                       </v-text-field>
                     </v-col>
 
-                    <v-col cols="12" class="text-center">
+                    <v-col
+                      cols="12"
+                      class="text-center"
+                    >
                       <v-btn
                         color="primary"
                         variant="outlined"
                         prepend-icon="mdi-plus"
+                        :disabled="
+                          formMedicaoData.valores_medicoes.length >= 10
+                        "
                         @click="adicionarMedicao"
-                        :disabled="formMedicaoData.valores_medicoes.length >= 10"
                       >
                         Adicionar Medição
                       </v-btn>
                       <span class="text-caption text-medium-emphasis ml-4">
-                        {{ formMedicaoData.valores_medicoes.length }} / 10 medições
+                        {{ formMedicaoData.valores_medicoes.length }} / 10
+                        medições
                       </span>
                     </v-col>
                   </v-row>
@@ -574,7 +941,10 @@
               </v-col>
 
               <!-- Condições Ambientais -->
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model.number="formMedicaoData.temperatura_ambiente"
                   label="Temperatura (°C)"
@@ -585,7 +955,10 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <v-col
+                cols="12"
+                md="6"
+              >
                 <v-text-field
                   v-model.number="formMedicaoData.umidade_relativa"
                   label="Umidade Relativa (%)"
@@ -596,34 +969,119 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="4">
+              <v-col
+                cols="12"
+                md="4"
+              >
                 <v-select
                   v-model="formMedicaoData.modo_localizacao"
-                  :items="[{ title: 'GPS automático', value: 'gps' }, { title: 'Manual', value: 'manual' }]"
+                  :items="[
+                    { title: 'GPS automático', value: 'gps' },
+                    { title: 'Manual', value: 'manual' },
+                  ]"
                   label="Modo de Localização *"
                   variant="outlined"
                   :rules="[rules.required]"
                 />
               </v-col>
 
-              <v-col cols="12" md="4" v-if="formMedicaoData.modo_localizacao === 'gps'">
-                <v-btn block color="info" variant="outlined" prepend-icon="mdi-crosshairs-gps" @click="capturarGPS">
+              <v-col
+                v-if="formMedicaoData.modo_localizacao === 'gps'"
+                cols="12"
+                md="4"
+              >
+                <v-btn
+                  block
+                  color="info"
+                  variant="outlined"
+                  prepend-icon="mdi-crosshairs-gps"
+                  @click="capturarGPS"
+                >
                   Capturar GPS automático
                 </v-btn>
               </v-col>
-              <v-col cols="12" md="8" v-if="formMedicaoData.modo_localizacao === 'gps'">
+              <v-col
+                v-if="formMedicaoData.modo_localizacao === 'gps'"
+                cols="12"
+                md="8"
+              >
                 <div class="text-caption">
-                  Latitude: {{ formMedicaoData.latitude || '-' }} • Longitude: {{ formMedicaoData.longitude || '-' }} • Precisão: {{ formMedicaoData.precisao_gps ? `${Math.round(formMedicaoData.precisao_gps)}m` : '-' }}
+                  Latitude: {{ formMedicaoData.latitude || "-" }} • Longitude:
+                  {{ formMedicaoData.longitude || "-" }} • Precisão:
+                  {{
+                    formMedicaoData.precisao_gps
+                      ? `${Math.round(formMedicaoData.precisao_gps)}m`
+                      : "-"
+                  }}
                 </div>
               </v-col>
 
               <template v-if="formMedicaoData.modo_localizacao === 'manual'">
-                <v-col cols="12" md="4"><v-text-field v-model="formMedicaoData.local_rodovia" label="Rodovia *" variant="outlined" :rules="[rules.required]" /></v-col>
-                <v-col cols="12" md="2"><v-text-field v-model="formMedicaoData.local_km" label="KM *" variant="outlined" :rules="[rules.required]" /></v-col>
-                <v-col cols="12" md="3"><v-text-field v-model="formMedicaoData.local_municipio" label="Município *" variant="outlined" :rules="[rules.required]" /></v-col>
-                <v-col cols="12" md="3"><v-text-field v-model="formMedicaoData.local_sentido" label="Sentido *" variant="outlined" :rules="[rules.required]" /></v-col>
-                <v-col cols="12" md="4"><v-text-field v-model="formMedicaoData.local_faixa" label="Faixa *" variant="outlined" :rules="[rules.required]" /></v-col>
-                <v-col cols="12" md="8"><v-text-field v-model="formMedicaoData.local_observacoes" label="Observações da localização" variant="outlined" /></v-col>
+                <v-col
+                  cols="12"
+                  md="4"
+                >
+                  <v-text-field
+                    v-model="formMedicaoData.local_rodovia"
+                    label="Rodovia *"
+                    variant="outlined"
+                    :rules="[rules.required]"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="2"
+                >
+                  <v-text-field
+                    v-model="formMedicaoData.local_km"
+                    label="KM *"
+                    variant="outlined"
+                    :rules="[rules.required]"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="3"
+                >
+                  <v-text-field
+                    v-model="formMedicaoData.local_municipio"
+                    label="Município *"
+                    variant="outlined"
+                    :rules="[rules.required]"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="3"
+                >
+                  <v-text-field
+                    v-model="formMedicaoData.local_sentido"
+                    label="Sentido *"
+                    variant="outlined"
+                    :rules="[rules.required]"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="4"
+                >
+                  <v-text-field
+                    v-model="formMedicaoData.local_faixa"
+                    label="Faixa *"
+                    variant="outlined"
+                    :rules="[rules.required]"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="8"
+                >
+                  <v-text-field
+                    v-model="formMedicaoData.local_observacoes"
+                    label="Observações da localização"
+                    variant="outlined"
+                  />
+                </v-col>
               </template>
 
               <v-col cols="12">
@@ -637,7 +1095,7 @@
                   chips
                   show-size
                   :counter="3"
-                  :rules="[v => !v || v.length <= 3 || 'Máximo 3 fotos']"
+                  :rules="[(v) => !v || v.length <= 3 || 'Máximo 3 fotos']"
                 />
               </v-col>
 
@@ -654,23 +1112,43 @@
               </v-col>
 
               <!-- Resultado da Validação (calculado automaticamente) -->
-              <v-col cols="12" v-if="resultadoValidacao">
+              <v-col
+                v-if="resultadoValidacao"
+                cols="12"
+              >
                 <v-alert
-                  :type="resultadoValidacao.status_validacao === 'APROVADO' ? 'success' : 'error'"
+                  :type="
+                    resultadoValidacao.status_validacao === 'APROVADO'
+                      ? 'success'
+                      : 'error'
+                  "
                   prominent
                   icon="mdi-check-circle"
                 >
                   <v-row align="center">
-                    <v-col cols="12" md="3">
-                      <div class="text-h6">{{ resultadoValidacao.status_validacao }}</div>
+                    <v-col
+                      cols="12"
+                      md="3"
+                    >
+                      <div class="text-h6">
+                        {{ resultadoValidacao.status_validacao }}
+                      </div>
                     </v-col>
-                    <v-col cols="12" md="9">
+                    <v-col
+                      cols="12"
+                      md="9"
+                    >
                       <div class="text-body-2">
-                        <strong>Valor Médio:</strong> {{ resultadoValidacao.valor_medio }} |
-                        <strong>Mínimo:</strong> {{ resultadoValidacao.valor_minimo_medido }} |
-                        <strong>Máximo:</strong> {{ resultadoValidacao.valor_maximo_medido }} |
-                        <strong>Referência ABNT:</strong> {{ resultadoValidacao.valor_minimo_referencia }} |
-                        <strong>Taxa Aprovação:</strong> {{ resultadoValidacao.percentual_aprovacao }}%
+                        <strong>Valor Médio:</strong>
+                        {{ resultadoValidacao.valor_medio }} |
+                        <strong>Mínimo:</strong>
+                        {{ resultadoValidacao.valor_minimo_medido }} |
+                        <strong>Máximo:</strong>
+                        {{ resultadoValidacao.valor_maximo_medido }} |
+                        <strong>Referência ABNT:</strong>
+                        {{ resultadoValidacao.valor_minimo_referencia }} |
+                        <strong>Taxa Aprovação:</strong>
+                        {{ resultadoValidacao.percentual_aprovacao }}%
                       </div>
                     </v-col>
                   </v-row>
@@ -687,8 +1165,8 @@
           <v-btn
             color="grey"
             variant="outlined"
-            @click="fecharDialog"
             :disabled="salvando"
+            @click="fecharDialog"
           >
             Cancelar
           </v-btn>
@@ -696,9 +1174,9 @@
             color="primary"
             variant="outlined"
             prepend-icon="mdi-calculator"
-            @click="calcularValidacao"
             :loading="calculando"
             :disabled="!formValido || salvando"
+            @click="calcularValidacao"
           >
             Calcular Validação
           </v-btn>
@@ -713,9 +1191,9 @@
           <v-btn
             color="success"
             prepend-icon="mdi-content-save"
-            @click="salvarMedicao"
             :loading="salvando"
             :disabled="!formValido || !resultadoValidacao"
+            @click="salvarMedicao"
           >
             Salvar Medição
           </v-btn>
@@ -723,8 +1201,11 @@
       </v-card>
     </v-dialog>
 
-
-    <v-dialog v-model="dialogDiagnostico" max-width="900px" scrollable>
+    <v-dialog
+      v-model="dialogDiagnostico"
+      max-width="900px"
+      scrollable
+    >
       <v-card>
         <v-card-title>Diagnóstico do Sistema</v-card-title>
         <v-card-text>
@@ -738,476 +1219,587 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="outlined" prepend-icon="mdi-content-copy" @click="copiarDiagnostico">Copiar JSON</v-btn>
-          <v-btn color="primary" prepend-icon="mdi-download" @click="baixarDiagnostico">Baixar JSON</v-btn>
+          <v-btn
+            variant="outlined"
+            prepend-icon="mdi-content-copy"
+            @click="copiarDiagnostico"
+          >
+            Copiar JSON
+          </v-btn>
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-download"
+            @click="baixarDiagnostico"
+          >
+            Baixar JSON
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- Snackbar de notificações -->
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="3000"
+    >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" @click="snackbar.show = false">Fechar</v-btn>
+        <v-btn
+          variant="text"
+          @click="snackbar.show = false"
+        >
+          Fechar
+        </v-btn>
       </template>
     </v-snackbar>
   </v-container>
 </template>
 
 <script>
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import calibracaoService from '@/services/calibracaoService'
-import { buscarEquipamentosDoUsuario } from '@/services/equipamentoService'
-import { uploadFotosMedicao } from '@/services/uploadService'
-import { detectEquipmentPrefix, GEOMETRY_BY_PREFIX, HORIZONTAL_MATERIAL_OPTIONS, HORIZONTAL_SIGNAL_TYPES, VERTICAL_TYPES } from '@/constants/normativeConfig'
-import supabase, { getCurrentProfile, maskSupabaseKey, supabaseUrl } from '@/services/supabase'
-import { useDiagnosticsStore } from '@/stores/diagnostics'
-
-// Ambiente
-const IS_DEV = import.meta.env.DEV
+import { ref, onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import calibracaoService from "@/services/calibracaoService";
+import { buscarEquipamentosDoUsuario } from "@/services/equipamentoService";
+import { uploadFotosMedicao } from "@/services/uploadService";
+import {
+  detectEquipmentPrefix,
+  GEOMETRY_BY_PREFIX,
+  HORIZONTAL_MATERIAL_OPTIONS,
+  HORIZONTAL_SIGNAL_TYPES,
+  VERTICAL_TYPES,
+} from "@/constants/normativeConfig";
+import supabase, {
+  getCurrentProfile,
+  maskSupabaseKey,
+  supabaseUrl,
+} from "@/services/supabase";
+import { useDiagnosticsStore } from "@/stores/diagnostics";
 
 export default {
-  name: 'CalibracoesLista',
-  
+  name: "CalibracoesLista",
+
   setup() {
     // Auth store
-    const authStore = useAuthStore()
-    const diagnosticsStore = useDiagnosticsStore()
-    const route = useRoute()
-    
+    const authStore = useAuthStore();
+    const diagnosticsStore = useDiagnosticsStore();
+    const route = useRoute();
+
     // Estados
-    const loading = ref(false)
-    const loadingEquipamentos = ref(false)
-    const medicoes = ref([])
-    const equipamentos = ref([])
-    const stats = ref({})
-    const equipamentoSelecionado = ref(null)
-    const tipoEquipamentoDetectado = ref(null)
-    
+    const loading = ref(false);
+    const loadingEquipamentos = ref(false);
+    const medicoes = ref([]);
+    const equipamentos = ref([]);
+    const stats = ref({});
+    const equipamentoSelecionado = ref(null);
+    const tipoEquipamentoDetectado = ref(null);
+
     // Dialogs
-    const dialogMedicao = ref(false)
-    const modoEdicao = ref(false)
-    const formValido = ref(false)
-    const salvando = ref(false)
-    const calculando = ref(false)
-    
-    // Form refs
-    const formMedicao = ref(null)
-    
+    const dialogMedicao = ref(false);
+    const modoEdicao = ref(false);
+    const formValido = ref(false);
+    const salvando = ref(false);
+    const calculando = ref(false);
+
     // Resultado da validação
-    const resultadoValidacao = ref(null)
-    const logsDiagnostico = ref([])
-    const dialogDiagnostico = ref(false)
-    const diagnosticoJson = ref('')
-    
+    const resultadoValidacao = ref(null);
+    const logsDiagnostico = ref([]);
+    const dialogDiagnostico = ref(false);
+    const diagnosticoJson = ref("");
+
     // Formulário
     const formMedicaoInicial = {
       equipamento_id: null,
-      data_calibracao: new Date().toISOString().split('T')[0],
-      proxima_calibracao: '',
+      data_calibracao: new Date().toISOString().split("T")[0],
+      proxima_calibracao: "",
       prefixo_equipamento: null,
-      modo_medicao_vertical: 'angulo-unico',
+      modo_medicao_vertical: "angulo-unico",
       tipo_sinalizacao: null,
-      tipo_sinalizacao_outro: '',
-      metodo_coleta: '',
+      tipo_sinalizacao_outro: "",
+      metodo_coleta: "",
       classe_pelicula: null,
       tipo_pelicula: null,
-      marca_pelicula: '',
-      momento_medicao: 'INICIAL',
+      marca_pelicula: "",
+      momento_medicao: "INICIAL",
       angulo_observacao: null,
       angulo_entrada: null,
       dispositivo: null,
       tipo_refletivo: null,
       direcionalidade: null,
       tipo_material: null,
-      tipo_material_outro: '',
+      tipo_material_outro: "",
       cor_medicao: null,
       geometria_medicao: null,
-      modo_localizacao: 'gps',
+      modo_localizacao: "gps",
       latitude: null,
       longitude: null,
       precisao_gps: null,
-      local_rodovia: '',
-      local_km: '',
-      local_municipio: '',
-      local_sentido: '',
-      local_faixa: '',
-      local_observacoes: '',
+      local_rodovia: "",
+      local_km: "",
+      local_municipio: "",
+      local_sentido: "",
+      local_faixa: "",
+      local_observacoes: "",
       fotos_input: [],
       fotos_medicao: [],
       valores_medicoes: [0, 0, 0, 0, 0],
-      tecnico_responsavel: '',
+      tecnico_responsavel: "",
       temperatura_ambiente: null,
       umidade_relativa: null,
-      observacoes: '',
-    }
-    const formMedicaoData = ref({ ...formMedicaoInicial })
-    
+      observacoes: "",
+    };
+    const formMedicaoData = ref({ ...formMedicaoInicial });
+
     // Filtros
     const filtros = ref({
-      busca: '',
+      busca: "",
       status: null,
       validacao: null,
       tipo: null,
-    })
-    
+    });
+
     // Snackbar
     const snackbar = ref({
       show: false,
-      text: '',
-      color: 'success'
-    })
-    
+      text: "",
+      color: "success",
+    });
+
     // Opções de Select
     const statusOptions = [
-      { title: 'Em Dia', value: 'EM_DIA' },
-      { title: 'Atenção (30 dias)', value: 'ATENCAO' },
-      { title: 'Vencida', value: 'VENCIDA' },
-      { title: 'Sem Medição', value: 'SEM_CALIBRACAO' },
-    ]
-    
+      { title: "Em Dia", value: "EM_DIA" },
+      { title: "Atenção (30 dias)", value: "ATENCAO" },
+      { title: "Vencida", value: "VENCIDA" },
+      { title: "Sem Medição", value: "SEM_CALIBRACAO" },
+    ];
+
     const validacaoOptions = [
-      { title: 'Aprovado', value: 'APROVADO' },
-      { title: 'Reprovado', value: 'REPROVADO' },
-      { title: 'Indeterminado', value: 'INDETERMINADO' },
-    ]
-    
+      { title: "Aprovado", value: "APROVADO" },
+      { title: "Reprovado", value: "REPROVADO" },
+      { title: "Indeterminado", value: "INDETERMINADO" },
+    ];
+
     const tipoEquipamentoOptions = [
-      { title: 'Vertical (Placas)', value: 'vertical' },
-      { title: 'Horizontal (Tintas)', value: 'horizontal' },
-      { title: 'Tachas', value: 'tachas' },
-      { title: 'Tachões', value: 'tachoes' },
-    ]
-    
-    const tipoPeliculaOptions = VERTICAL_TYPES
-    const classePeliculaOptions = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
-    const momentoOptions = ['INICIAL', 'RESIDUAL']
-    const anguloObservacaoOptions = ['0,2°', '0,5°', '1,0°']
-    const anguloEntradaOptions = ['-4°', '+30°']
-    const dispositivoOptions = ['TACHA', 'TACHAO']
-    const tipoRefletivoOptions = ['I', 'II', 'III']
-    const direcionalidadeOptions = ['BIDIRECIONAL', 'MONODIRECIONAL']
-    const tipoSinalizacaoOptions = HORIZONTAL_SIGNAL_TYPES
-    const tipoMaterialHorizontalOptions = HORIZONTAL_MATERIAL_OPTIONS
-    
+      { title: "Vertical (Placas)", value: "vertical" },
+      { title: "Horizontal (Tintas)", value: "horizontal" },
+      { title: "Tachas", value: "tachas" },
+      { title: "Tachões", value: "tachoes" },
+    ];
+
+    const tipoPeliculaOptions = VERTICAL_TYPES;
+    const classePeliculaOptions = [
+      "I",
+      "II",
+      "III",
+      "IV",
+      "V",
+      "VI",
+      "VII",
+      "VIII",
+      "IX",
+      "X",
+    ];
+    const momentoOptions = ["INICIAL", "RESIDUAL"];
+    const anguloObservacaoOptions = ["0,2°", "0,5°", "1,0°"];
+    const anguloEntradaOptions = ["-4°", "+30°"];
+    const dispositivoOptions = ["TACHA", "TACHAO"];
+    const tipoRefletivoOptions = ["I", "II", "III"];
+    const direcionalidadeOptions = ["BIDIRECIONAL", "MONODIRECIONAL"];
+    const tipoSinalizacaoOptions = HORIZONTAL_SIGNAL_TYPES;
+    const tipoMaterialHorizontalOptions = HORIZONTAL_MATERIAL_OPTIONS;
+
     const corOptions = [
-      'Branco', 'Amarelo', 'Vermelho', 'Verde', 'Azul', 'Marrom'
-    ]
-    
-    
+      "Branco",
+      "Amarelo",
+      "Vermelho",
+      "Verde",
+      "Azul",
+      "Marrom",
+    ];
+
     // Headers da tabela
     const headers = [
-      { title: 'Equipamento', key: 'equipamento_codigo', sortable: true },
-      { title: 'Tipo', key: 'equipamento_tipo', sortable: true },
-      { title: 'Data Medição', key: 'data_calibracao', sortable: true },
-      { title: 'Próxima Medição', key: 'proxima_calibracao', sortable: true },
-      { title: 'Status', key: 'status_vencimento', sortable: true },
-      { title: 'Validação', key: 'status_validacao', sortable: true },
-      { title: 'Valor Médio', key: 'valor_medio', sortable: true },
-      { title: 'Ações', key: 'acoes', sortable: false, align: 'center' },
-    ]
-    
+      { title: "Equipamento", key: "equipamento_codigo", sortable: true },
+      { title: "Tipo", key: "equipamento_tipo", sortable: true },
+      { title: "Data Medição", key: "data_calibracao", sortable: true },
+      { title: "Próxima Medição", key: "proxima_calibracao", sortable: true },
+      { title: "Status", key: "status_vencimento", sortable: true },
+      { title: "Validação", key: "status_validacao", sortable: true },
+      { title: "Valor Médio", key: "valor_medio", sortable: true },
+      { title: "Ações", key: "acoes", sortable: false, align: "center" },
+    ];
+
     // Regras de validação
     const rules = {
-      required: value => !!value || 'Campo obrigatório',
-      numeric: value => !isNaN(value) || 'Deve ser um número válido',
-    }
-    
+      required: (value) => !!value || "Campo obrigatório",
+      numeric: (value) => !isNaN(value) || "Deve ser um número válido",
+    };
+
     // Métodos
     const carregarMedicoes = async () => {
-      loading.value = true
+      loading.value = true;
       try {
         // Passar dados do usuário para filtrar medições por operador
-        const usuario = authStore.usuario
-        const response = await calibracaoService.listarCalibracoes(filtros.value, usuario)
-        medicoes.value = response
-        console.log(`✅ ${medicoes.value.length} medições carregadas para ${usuario?.perfil || 'desconhecido'}`)
+        const usuario = authStore.usuario;
+        const response = await calibracaoService.listarCalibracoes(
+          filtros.value,
+          usuario,
+        );
+        medicoes.value = response;
+        console.log(
+          `✅ ${medicoes.value.length} medições carregadas para ${usuario?.perfil || "desconhecido"}`,
+        );
       } catch (error) {
-        mostrarNotificacao('Erro ao carregar medições: ' + error.message, 'error')
+        mostrarNotificacao(
+          "Erro ao carregar medições: " + error.message,
+          "error",
+        );
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
-    
+    };
+
     const carregarStats = async () => {
       try {
-        const usuario = authStore.usuario
-        const response = await calibracaoService.obterEstatisticas(usuario)
-        stats.value = response
-        console.log('✅ Estatísticas carregadas:', response)
+        const usuario = authStore.usuario;
+        const response = await calibracaoService.obterEstatisticas(usuario);
+        stats.value = response;
+        console.log("✅ Estatísticas carregadas:", response);
       } catch (error) {
-        console.error('Erro ao carregar estatísticas:', error)
+        console.error("Erro ao carregar estatísticas:", error);
       }
-    }
-    
+    };
+
     const garantirUsuarioAutenticado = async () => {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
       if (sessionError || !sessionData?.session?.user?.id) {
-        throw new Error('Sessão expirada. Por favor, faça login novamente.')
+        throw new Error("Sessão expirada. Por favor, faça login novamente.");
       }
 
-      const profileResult = await getCurrentProfile()
+      const profileResult = await getCurrentProfile();
       if (!profileResult.success || !profileResult.data) {
-        throw new Error(profileResult.error || 'Perfil de usuário não encontrado.')
+        throw new Error(
+          profileResult.error || "Perfil de usuário não encontrado.",
+        );
       }
 
-      authStore.usuario = profileResult.data
-      return profileResult.data
-    }
+      authStore.usuario = profileResult.data;
+      return profileResult.data;
+    };
 
     const carregarEquipamentos = async () => {
-      loadingEquipamentos.value = true
+      loadingEquipamentos.value = true;
       try {
-        let usuario = authStore.usuario
+        let usuario = authStore.usuario;
 
         if (!usuario?.id) {
-          console.log('🔄 Usuário ausente no store, carregando sessão/perfil...')
-          usuario = await garantirUsuarioAutenticado()
+          console.log(
+            "🔄 Usuário ausente no store, carregando sessão/perfil...",
+          );
+          usuario = await garantirUsuarioAutenticado();
         }
-        
-        console.log('👤 Carregando equipamentos para:', {
+
+        console.log("👤 Carregando equipamentos para:", {
           id: usuario.id,
           perfil: usuario.perfil,
-          nome: usuario.nome
-        })
-        
+          nome: usuario.nome,
+        });
+
         const response = await buscarEquipamentosDoUsuario(
-          usuario.id, 
-          usuario.perfil
-        )
-        
-        console.log('📦 Resposta do servidor:', response?.length || 0, 'equipamentos')
-        
+          usuario.id,
+          usuario.perfil,
+        );
+
+        console.log(
+          "📦 Resposta do servidor:",
+          response?.length || 0,
+          "equipamentos",
+        );
+
         if (!response || response.length === 0) {
-          console.warn('⚠️ Nenhum equipamento encontrado no banco')
-          equipamentos.value = []
+          console.warn("⚠️ Nenhum equipamento encontrado no banco");
+          equipamentos.value = [];
           // Não mostrar notificação aqui, pois é normal não ter medições ainda
-          return
+          return;
         }
-        
-        equipamentos.value = response.map(eq => ({
+
+        equipamentos.value = response.map((eq) => ({
           ...eq,
           nome_completo: `${eq.codigo} - ${eq.nome}`,
-          descricao_tipo: eq.tipoDetalhado?.descricao || eq.nome
-        }))
-        
-        console.log(`✅ ${equipamentos.value.length} equipamentos carregados com sucesso`)
-        
+          descricao_tipo: eq.tipoDetalhado?.descricao || eq.nome,
+        }));
+
+        console.log(
+          `✅ ${equipamentos.value.length} equipamentos carregados com sucesso`,
+        );
+
         // Se for operador com apenas 1 equipamento, selecionar automaticamente
         if (authStore.isOperador && equipamentos.value.length === 1) {
-          formMedicaoData.value.equipamento_id = equipamentos.value[0].id
-          await onEquipamentoChange(equipamentos.value[0].id)
-          console.log('✅ Equipamento auto-selecionado para operador')
+          formMedicaoData.value.equipamento_id = equipamentos.value[0].id;
+          await onEquipamentoChange(equipamentos.value[0].id);
+          console.log("✅ Equipamento auto-selecionado para operador");
         }
-        
       } catch (error) {
-        console.error('❌ Erro ao carregar equipamentos:', error)
-        mostrarNotificacao('Erro ao carregar equipamentos: ' + error.message, 'error')
-        equipamentos.value = []
+        console.error("❌ Erro ao carregar equipamentos:", error);
+        mostrarNotificacao(
+          "Erro ao carregar equipamentos: " + error.message,
+          "error",
+        );
+        equipamentos.value = [];
       } finally {
-        loadingEquipamentos.value = false
+        loadingEquipamentos.value = false;
       }
-    }
+    };
     // Watch para mudanças no equipamento selecionado
     const onEquipamentoChange = async (equipamentoId) => {
-      if (!equipamentoId) return
+      if (!equipamentoId) return;
 
-      const equip = equipamentos.value.find(e => e.id === equipamentoId)
-      if (!equip) return
+      const equip = equipamentos.value.find((e) => e.id === equipamentoId);
+      if (!equip) return;
 
-      equipamentoSelecionado.value = equip
-      const prefixo = detectEquipmentPrefix(equip.codigo)
-      formMedicaoData.value.prefixo_equipamento = prefixo
+      equipamentoSelecionado.value = equip;
+      const prefixo = detectEquipmentPrefix(equip.codigo);
+      formMedicaoData.value.prefixo_equipamento = prefixo;
 
       tipoEquipamentoDetectado.value = {
-        icon: prefixo === 'RH' ? 'mdi-road-variant' : prefixo === 'RV' ? 'mdi-sign-direction' : 'mdi-reflect-horizontal',
-        descricao: prefixo === 'RH'
-          ? 'RH — Retrorrefletância Horizontal'
-          : prefixo === 'RV'
-            ? 'RV — Retrorrefletância Vertical'
-            : 'RT — Tachas e Tachões',
-        geometrias: prefixo === 'RH'
-          ? GEOMETRY_BY_PREFIX.RH.map((g) => g.value)
-          : prefixo === 'RV'
-            ? GEOMETRY_BY_PREFIX.RV_MULTI.map((g) => g.value)
-            : GEOMETRY_BY_PREFIX.RT.map((g) => g.value),
+        icon:
+          prefixo === "RH"
+            ? "mdi-road-variant"
+            : prefixo === "RV"
+              ? "mdi-sign-direction"
+              : "mdi-reflect-horizontal",
+        descricao:
+          prefixo === "RH"
+            ? "RH — Retrorrefletância Horizontal"
+            : prefixo === "RV"
+              ? "RV — Retrorrefletância Vertical"
+              : "RT — Tachas e Tachões",
+        geometrias:
+          prefixo === "RH"
+            ? GEOMETRY_BY_PREFIX.RH.map((g) => g.value)
+            : prefixo === "RV"
+              ? GEOMETRY_BY_PREFIX.RV_MULTI.map((g) => g.value)
+              : GEOMETRY_BY_PREFIX.RT.map((g) => g.value),
         quantidadeMedicoes: 5,
-        simuladorChuva: false
-      }
+        simuladorChuva: false,
+      };
 
-      formMedicaoData.value.valores_medicoes = Array(5).fill(0)
-      formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario
+      formMedicaoData.value.valores_medicoes = Array(5).fill(0);
+      formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario;
 
-      if (prefixo === 'RH') {
-        formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RH[0].value
-        formMedicaoData.value.momento_medicao = 'INICIAL'
+      if (prefixo === "RH") {
+        formMedicaoData.value.geometria_medicao =
+          GEOMETRY_BY_PREFIX.RH[0].value;
+        formMedicaoData.value.momento_medicao = "INICIAL";
       }
-      if (prefixo === 'RV') {
-        formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RV_SINGLE[0].value
-        formMedicaoData.value.angulo_observacao = '0,2°'
-        formMedicaoData.value.angulo_entrada = '-4°'
+      if (prefixo === "RV") {
+        formMedicaoData.value.geometria_medicao =
+          GEOMETRY_BY_PREFIX.RV_SINGLE[0].value;
+        formMedicaoData.value.angulo_observacao = "0,2°";
+        formMedicaoData.value.angulo_entrada = "-4°";
       }
-      if (prefixo === 'RT') {
-        formMedicaoData.value.geometria_medicao = GEOMETRY_BY_PREFIX.RT[0].value
-        formMedicaoData.value.dispositivo = 'TACHA'
-        formMedicaoData.value.tipo_refletivo = 'I'
+      if (prefixo === "RT") {
+        formMedicaoData.value.geometria_medicao =
+          GEOMETRY_BY_PREFIX.RT[0].value;
+        formMedicaoData.value.dispositivo = "TACHA";
+        formMedicaoData.value.tipo_refletivo = "I";
       }
-    }
+    };
 
     const geometriasDisponiveis = computed(() => {
-      const prefixo = formMedicaoData.value.prefixo_equipamento
-      if (prefixo === 'RH') return GEOMETRY_BY_PREFIX.RH
-      if (prefixo === 'RV') {
-        return formMedicaoData.value.modo_medicao_vertical === 'multi-angulo'
+      const prefixo = formMedicaoData.value.prefixo_equipamento;
+      if (prefixo === "RH") return GEOMETRY_BY_PREFIX.RH;
+      if (prefixo === "RV") {
+        return formMedicaoData.value.modo_medicao_vertical === "multi-angulo"
           ? GEOMETRY_BY_PREFIX.RV_MULTI
-          : GEOMETRY_BY_PREFIX.RV_SINGLE
+          : GEOMETRY_BY_PREFIX.RV_SINGLE;
       }
-      if (prefixo === 'RT') return GEOMETRY_BY_PREFIX.RT
-      return []
-    })
+      if (prefixo === "RT") return GEOMETRY_BY_PREFIX.RT;
+      return [];
+    });
 
-    const tipoMedicao = computed(() => formMedicaoData.value.prefixo_equipamento)
+    const tipoMedicao = computed(
+      () => formMedicaoData.value.prefixo_equipamento,
+    );
 
-    const mostrarCamposPelicula = computed(() => tipoMedicao.value === 'RV')
+    const mostrarCamposPelicula = computed(() => tipoMedicao.value === "RV");
 
-    const mostrarCamposMaterial = computed(() => tipoMedicao.value === 'RH')
+    const mostrarCamposMaterial = computed(() => tipoMedicao.value === "RH");
 
-    const mostrarCamposDispositivos = computed(() => tipoMedicao.value === 'RT')
+    const mostrarCamposDispositivos = computed(
+      () => tipoMedicao.value === "RT",
+    );
 
-    const mostrarSimuladorChuva = computed(() => false)
+    const mostrarSimuladorChuva = computed(() => false);
 
-    
     // Filtrar medições baseado nos filtros selecionados
     const medicoesFiltradas = computed(() => {
-      let resultado = medicoes.value
-      
+      let resultado = medicoes.value;
+
       // Filtro de busca (código ou nome do equipamento)
       if (filtros.value.busca && filtros.value.busca.trim()) {
-        const termo = filtros.value.busca.toLowerCase()
-        resultado = resultado.filter(m => 
-          (m.equipamento_codigo && m.equipamento_codigo.toLowerCase().includes(termo)) ||
-          (m.equipamento_nome && m.equipamento_nome.toLowerCase().includes(termo))
-        )
+        const termo = filtros.value.busca.toLowerCase();
+        resultado = resultado.filter(
+          (m) =>
+            (m.equipamento_codigo &&
+              m.equipamento_codigo.toLowerCase().includes(termo)) ||
+            (m.equipamento_nome &&
+              m.equipamento_nome.toLowerCase().includes(termo)),
+        );
       }
-      
+
       // Filtro de status
-      if (filtros.value.status && filtros.value.status !== 'todos') {
-        resultado = resultado.filter(m => m.status_vencimento === filtros.value.status)
+      if (filtros.value.status && filtros.value.status !== "todos") {
+        resultado = resultado.filter(
+          (m) => m.status_vencimento === filtros.value.status,
+        );
       }
-      
+
       // Filtro de validação
-      if (filtros.value.validacao && filtros.value.validacao !== 'todos') {
-        resultado = resultado.filter(m => m.status_validacao === filtros.value.validacao)
+      if (filtros.value.validacao && filtros.value.validacao !== "todos") {
+        resultado = resultado.filter(
+          (m) => m.status_validacao === filtros.value.validacao,
+        );
       }
-      
+
       // Filtro de tipo
-      if (filtros.value.tipo && filtros.value.tipo !== 'todos') {
-        resultado = resultado.filter(m => m.equipamento_tipo === filtros.value.tipo)
+      if (filtros.value.tipo && filtros.value.tipo !== "todos") {
+        resultado = resultado.filter(
+          (m) => m.equipamento_tipo === filtros.value.tipo,
+        );
       }
-      
-      console.log(`🔍 Medições filtradas: ${resultado.length} de ${medicoes.value.length}`)
-      return resultado
-    })
-    
+
+      console.log(
+        `🔍 Medições filtradas: ${resultado.length} de ${medicoes.value.length}`,
+      );
+      return resultado;
+    });
+
     const abrirDialogNovo = async () => {
-      console.log('🔵 Abrindo dialog de nova medição...')
-      
+      console.log("🔵 Abrindo dialog de nova medição...");
+
       // Reset de estado
-      modoEdicao.value = false
-      formMedicaoData.value = { ...formMedicaoInicial }
-      resultadoValidacao.value = null
-      
+      modoEdicao.value = false;
+      formMedicaoData.value = { ...formMedicaoInicial };
+      resultadoValidacao.value = null;
+
       // Preencher técnico responsável automaticamente
-      formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario
-      
+      formMedicaoData.value.tecnico_responsavel = authStore.nomeUsuario;
+
       // Calcular próxima calibração (12 meses)
-      const hoje = new Date()
-      const proxima = new Date(hoje.setFullYear(hoje.getFullYear() + 1))
-      formMedicaoData.value.proxima_calibracao = proxima.toISOString().split('T')[0]
-      
-      console.log('📅 Data de calibração definida:', {
+      const hoje = new Date();
+      const proxima = new Date(hoje.setFullYear(hoje.getFullYear() + 1));
+      formMedicaoData.value.proxima_calibracao = proxima
+        .toISOString()
+        .split("T")[0];
+
+      console.log("📅 Data de calibração definida:", {
         hoje: formMedicaoData.value.data_calibracao,
-        proxima: formMedicaoData.value.proxima_calibracao
-      })
-      
+        proxima: formMedicaoData.value.proxima_calibracao,
+      });
+
       // Carregar equipamentos antes de abrir o dialog
-      console.log('⏳ Carregando equipamentos antes de abrir dialog...')
-      await carregarEquipamentos()
-      
-      console.log(`📊 ${equipamentos.value.length} equipamentos disponíveis`)
-      
+      console.log("⏳ Carregando equipamentos antes de abrir dialog...");
+      await carregarEquipamentos();
+
+      console.log(`📊 ${equipamentos.value.length} equipamentos disponíveis`);
+
       // Se operador com 1 equipamento, selecionar automaticamente
       if (authStore.isOperador && equipamentos.value.length === 1) {
-        console.log('🎯 Operador com 1 equipamento - seleção automática')
-        formMedicaoData.value.equipamento_id = equipamentos.value[0].id
-        await onEquipamentoChange(equipamentos.value[0].id)
-        console.log('✅ Equipamento auto-selecionado:', equipamentos.value[0].codigo)
+        console.log("🎯 Operador com 1 equipamento - seleção automática");
+        formMedicaoData.value.equipamento_id = equipamentos.value[0].id;
+        await onEquipamentoChange(equipamentos.value[0].id);
+        console.log(
+          "✅ Equipamento auto-selecionado:",
+          equipamentos.value[0].codigo,
+        );
       }
-      
+
       // Sempre abrir o dialog, mesmo sem equipamentos
       // O formulário mostrará um aviso apropriado
-      dialogMedicao.value = true
-      console.log('✅ Dialog aberto com sucesso!')
-    }
-    
+      dialogMedicao.value = true;
+      console.log("✅ Dialog aberto com sucesso!");
+    };
+
     const fecharDialog = () => {
-      dialogMedicao.value = false
-      formMedicaoData.value = { ...formMedicaoInicial }
-      resultadoValidacao.value = null
-    }
-    
+      dialogMedicao.value = false;
+      formMedicaoData.value = { ...formMedicaoInicial };
+      resultadoValidacao.value = null;
+    };
+
     const adicionarMedicao = () => {
       if (formMedicaoData.value.valores_medicoes.length < 10) {
-        formMedicaoData.value.valores_medicoes.push(0)
+        formMedicaoData.value.valores_medicoes.push(0);
       }
-    }
-    
+    };
+
     const removerMedicao = (index) => {
-      formMedicaoData.value.valores_medicoes.splice(index, 1)
-    }
-    
+      formMedicaoData.value.valores_medicoes.splice(index, 1);
+    };
+
     const capturarGPS = async () => {
       if (!navigator.geolocation) {
-        mostrarNotificacao('Geolocalização não suportada neste dispositivo.', 'warning')
-        return
+        mostrarNotificacao(
+          "Geolocalização não suportada neste dispositivo.",
+          "warning",
+        );
+        return;
       }
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          formMedicaoData.value.latitude = position.coords.latitude
-          formMedicaoData.value.longitude = position.coords.longitude
-          formMedicaoData.value.precisao_gps = position.coords.accuracy
-          mostrarNotificacao('GPS capturado com sucesso.', 'success')
+          formMedicaoData.value.latitude = position.coords.latitude;
+          formMedicaoData.value.longitude = position.coords.longitude;
+          formMedicaoData.value.precisao_gps = position.coords.accuracy;
+          mostrarNotificacao("GPS capturado com sucesso.", "success");
         },
-        (error) => mostrarNotificacao(`Falha no GPS: ${error.message}`, 'warning'),
-        { enableHighAccuracy: true, timeout: 10000 }
-      )
-    }
+        (error) =>
+          mostrarNotificacao(`Falha no GPS: ${error.message}`, "warning"),
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+    };
 
     const calcularValidacao = async () => {
-      calculando.value = true
-      logsDiagnostico.value = []
+      calculando.value = true;
+      logsDiagnostico.value = [];
       try {
-        const equipamento = equipamentos.value.find((eq) => eq.id === formMedicaoData.value.equipamento_id)
-        if (!equipamento) throw new Error('Selecione um equipamento')
+        const equipamento = equipamentos.value.find(
+          (eq) => eq.id === formMedicaoData.value.equipamento_id,
+        );
+        if (!equipamento) throw new Error("Selecione um equipamento");
 
-        if (formMedicaoData.value.prefixo_equipamento === 'RH') {
-          formMedicaoData.value.metodo_coleta = ['Marca longitudinal', 'Linha de bordo', 'Eixo'].includes(formMedicaoData.value.tipo_sinalizacao)
-            ? 'Método por extensão da pintura'
-            : ['Legenda', 'Pictograma'].includes(formMedicaoData.value.tipo_sinalizacao)
-              ? 'Método por área/pontos distribuídos'
-              : 'Método técnico padrão horizontal'
+        if (formMedicaoData.value.prefixo_equipamento === "RH") {
+          formMedicaoData.value.metodo_coleta = [
+            "Marca longitudinal",
+            "Linha de bordo",
+            "Eixo",
+          ].includes(formMedicaoData.value.tipo_sinalizacao)
+            ? "Método por extensão da pintura"
+            : ["Legenda", "Pictograma"].includes(
+                  formMedicaoData.value.tipo_sinalizacao,
+                )
+              ? "Método por área/pontos distribuídos"
+              : "Método técnico padrão horizontal";
         }
 
-        diagnosticsStore.pushRequest({ service: 'calcularValidacao', payload: { prefixo: formMedicaoData.value.prefixo_equipamento, geometria: formMedicaoData.value.geometria_medicao } })
+        diagnosticsStore.pushRequest({
+          service: "calcularValidacao",
+          payload: {
+            prefixo: formMedicaoData.value.prefixo_equipamento,
+            geometria: formMedicaoData.value.geometria_medicao,
+          },
+        });
 
         const resultado = await calibracaoService.calcularValidacao({
           tipo_equipamento: equipamento.tipo,
           prefixo_equipamento: formMedicaoData.value.prefixo_equipamento,
           tipo_sinalizacao: formMedicaoData.value.tipo_sinalizacao,
-          tipo_material: formMedicaoData.value.tipo_material === 'Outro...' ? formMedicaoData.value.tipo_material_outro : formMedicaoData.value.tipo_material,
+          tipo_material:
+            formMedicaoData.value.tipo_material === "Outro..."
+              ? formMedicaoData.value.tipo_material_outro
+              : formMedicaoData.value.tipo_material,
           modo_medicao: formMedicaoData.value.modo_medicao_vertical,
           classe_pelicula: formMedicaoData.value.classe_pelicula,
           angulo_observacao: formMedicaoData.value.angulo_observacao,
@@ -1221,30 +1813,41 @@ export default {
           cor: formMedicaoData.value.cor_medicao,
           geometria: formMedicaoData.value.geometria_medicao,
           valores_medicoes: formMedicaoData.value.valores_medicoes,
-        })
+        });
 
-        logsDiagnostico.value.push('Validação executada com sucesso no motor dinâmico.')
-        resultadoValidacao.value = { ...resultado, status_validacao: resultado.status }
+        logsDiagnostico.value.push(
+          "Validação executada com sucesso no motor dinâmico.",
+        );
+        resultadoValidacao.value = {
+          ...resultado,
+          status_validacao: resultado.status,
+        };
 
         if (resultado.criterio_nao_encontrado) {
-          mostrarNotificacao('Critério normativo não cadastrado para esta combinação. Solicite cadastro na tabela de normas.', 'warning')
+          mostrarNotificacao(
+            "Critério normativo não cadastrado para esta combinação. Solicite cadastro na tabela de normas.",
+            "warning",
+          );
         } else {
-          mostrarNotificacao('Validação calculada com sucesso!', 'success')
+          mostrarNotificacao("Validação calculada com sucesso!", "success");
         }
       } catch (error) {
-        logsDiagnostico.value.push(`Falha de validação: ${error.message}`)
-        mostrarNotificacao('Erro ao calcular validação: ' + error.message, 'error')
+        logsDiagnostico.value.push(`Falha de validação: ${error.message}`);
+        mostrarNotificacao(
+          "Erro ao calcular validação: " + error.message,
+          "error",
+        );
       } finally {
-        calculando.value = false
+        calculando.value = false;
       }
-    }
+    };
 
     const gerarDiagnosticoTecnico = async () => {
       const payload = {
-        versao_app: import.meta.env.VITE_APP_VERSION || 'dev',
+        versao_app: import.meta.env.VITE_APP_VERSION || "dev",
         build_time: import.meta.env.VITE_BUILD_TIME || null,
-        commit_hash: import.meta.env.VITE_COMMIT_HASH || 'local',
-        ambiente: import.meta.env.PROD ? 'production' : 'preview/local',
+        commit_hash: import.meta.env.VITE_COMMIT_HASH || "local",
+        ambiente: import.meta.env.PROD ? "production" : "preview/local",
         rota_atual: route.fullPath,
         equipamento: equipamentoSelecionado.value?.nome,
         codigo_equipamento: equipamentoSelecionado.value?.codigo,
@@ -1261,199 +1864,219 @@ export default {
         ultimos_erros: diagnosticsStore.events,
         ultimas_requests: diagnosticsStore.requests,
         status_supabase: {
-          url_mascarada: supabaseUrl ? `${new URL(supabaseUrl).origin}/***` : 'não configurada',
-          anon_key_mascarada: maskSupabaseKey(import.meta.env.VITE_SUPABASE_ANON_KEY || ''),
-          conectado: !!supabase
+          url_mascarada: supabaseUrl
+            ? `${new URL(supabaseUrl).origin}/***`
+            : "não configurada",
+          anon_key_mascarada: maskSupabaseKey(
+            import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+          ),
+          conectado: !!supabase,
         },
         usuario_logado: authStore.usuario,
         timestamp: new Date().toISOString(),
         dispositivo: {
           userAgent: navigator.userAgent,
           platform: navigator.platform,
-          language: navigator.language
-        }
-      }
+          language: navigator.language,
+        },
+      };
 
-      diagnosticoJson.value = JSON.stringify(payload, null, 2)
-      dialogDiagnostico.value = true
-      mostrarNotificacao('Diagnóstico completo gerado.', 'success')
-    }
+      diagnosticoJson.value = JSON.stringify(payload, null, 2);
+      dialogDiagnostico.value = true;
+      mostrarNotificacao("Diagnóstico completo gerado.", "success");
+    };
 
     const copiarDiagnostico = async () => {
-      if (!diagnosticoJson.value) return
-      await navigator.clipboard.writeText(diagnosticoJson.value)
-      mostrarNotificacao('JSON copiado para a área de transferência.', 'success')
-    }
+      if (!diagnosticoJson.value) return;
+      await navigator.clipboard.writeText(diagnosticoJson.value);
+      mostrarNotificacao(
+        "JSON copiado para a área de transferência.",
+        "success",
+      );
+    };
 
     const baixarDiagnostico = () => {
-      if (!diagnosticoJson.value) return
-      const blob = new Blob([diagnosticoJson.value], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `diagnostico-tecnico-${Date.now()}.json`
-      link.click()
-      URL.revokeObjectURL(url)
-    }
-
+      if (!diagnosticoJson.value) return;
+      const blob = new Blob([diagnosticoJson.value], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `diagnostico-tecnico-${Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
 
     const salvarMedicao = async () => {
       if (!formValido.value || !resultadoValidacao.value) {
-        mostrarNotificacao('Preencha todos os campos e calcule a validação', 'warning')
-        return
+        mostrarNotificacao(
+          "Preencha todos os campos e calcule a validação",
+          "warning",
+        );
+        return;
       }
 
-      salvando.value = true
+      salvando.value = true;
       try {
-        let fotosUpload = []
+        let fotosUpload = [];
         if (formMedicaoData.value.fotos_input?.length) {
-          fotosUpload = await uploadFotosMedicao(formMedicaoData.value.fotos_input, {
-            tipoEquipamento: formMedicaoData.value.prefixo_equipamento || 'SEM_PREFIXO',
-            equipamentoId: formMedicaoData.value.equipamento_id || 'SEM_EQUIPAMENTO',
-            medicaoId: `medicao-${Date.now()}`
-          })
+          fotosUpload = await uploadFotosMedicao(
+            formMedicaoData.value.fotos_input,
+            {
+              tipoEquipamento:
+                formMedicaoData.value.prefixo_equipamento || "SEM_PREFIXO",
+              equipamentoId:
+                formMedicaoData.value.equipamento_id || "SEM_EQUIPAMENTO",
+              medicaoId: `medicao-${Date.now()}`,
+            },
+          );
         }
 
         const dados = {
           ...formMedicaoData.value,
           ...resultadoValidacao.value,
-          fotos_medicao: fotosUpload
-        }
+          fotos_medicao: fotosUpload,
+        };
 
-        diagnosticsStore.pushRequest({ service: 'registrarCalibracao', payload: { equipamento_id: dados.equipamento_id } })
-        await calibracaoService.registrarCalibracao(dados)
-        mostrarNotificacao('Medição salva com sucesso!', 'success')
-        fecharDialog()
-        carregarMedicoes()
-        carregarStats()
+        diagnosticsStore.pushRequest({
+          service: "registrarCalibracao",
+          payload: { equipamento_id: dados.equipamento_id },
+        });
+        await calibracaoService.registrarCalibracao(dados);
+        mostrarNotificacao("Medição salva com sucesso!", "success");
+        fecharDialog();
+        carregarMedicoes();
+        carregarStats();
       } catch (error) {
-        mostrarNotificacao('Erro ao salvar medição: ' + error.message, 'error')
+        mostrarNotificacao("Erro ao salvar medição: " + error.message, "error");
       } finally {
-        salvando.value = false
+        salvando.value = false;
       }
-    }
+    };
 
     const gerarLaudoPDF = async (item) => {
       try {
-        mostrarNotificacao('Gerando laudo em PDF...', 'info')
-        await calibracaoService.gerarLaudoPDF(item.calibracao_id)
-        mostrarNotificacao('Laudo gerado com sucesso!', 'success')
+        mostrarNotificacao("Gerando laudo em PDF...", "info");
+        await calibracaoService.gerarLaudoPDF(item.calibracao_id);
+        mostrarNotificacao("Laudo gerado com sucesso!", "success");
       } catch (error) {
-        mostrarNotificacao('Erro ao gerar laudo: ' + error.message, 'error')
+        mostrarNotificacao("Erro ao gerar laudo: " + error.message, "error");
       }
-    }
-    
+    };
+
     const aplicarFiltros = () => {
-      carregarMedicoes()
-    }
-    
-    const mostrarNotificacao = (text, color = 'success') => {
-      snackbar.value = { show: true, text, color }
-    }
-    
+      carregarMedicoes();
+    };
+
+    const mostrarNotificacao = (text, color = "success") => {
+      snackbar.value = { show: true, text, color };
+    };
+
     // Helpers
     const formatarData = (data) => {
-      if (!data) return '-'
-      return new Date(data).toLocaleDateString('pt-BR')
-    }
-    
+      if (!data) return "-";
+      return new Date(data).toLocaleDateString("pt-BR");
+    };
+
     const getStatusColor = (status) => {
       const colors = {
-        'EM_DIA': 'success',
-        'ATENCAO': 'warning',
-        'VENCIDA': 'error',
-        'SEM_CALIBRACAO': 'grey',
-      }
-      return colors[status] || 'grey'
-    }
-    
+        EM_DIA: "success",
+        ATENCAO: "warning",
+        VENCIDA: "error",
+        SEM_CALIBRACAO: "grey",
+      };
+      return colors[status] || "grey";
+    };
+
     const getStatusIcon = (status) => {
       const icons = {
-        'EM_DIA': 'mdi-check-circle',
-        'ATENCAO': 'mdi-alert',
-        'VENCIDA': 'mdi-close-circle',
-        'SEM_CALIBRACAO': 'mdi-help-circle',
-      }
-      return icons[status] || 'mdi-help-circle'
-    }
-    
+        EM_DIA: "mdi-check-circle",
+        ATENCAO: "mdi-alert",
+        VENCIDA: "mdi-close-circle",
+        SEM_CALIBRACAO: "mdi-help-circle",
+      };
+      return icons[status] || "mdi-help-circle";
+    };
+
     const getStatusLabel = (status) => {
       const labels = {
-        'EM_DIA': 'Em Dia',
-        'ATENCAO': 'Atenção',
-        'VENCIDA': 'Vencida',
-        'SEM_CALIBRACAO': 'Sem Medição',
-      }
-      return labels[status] || status
-    }
-    
+        EM_DIA: "Em Dia",
+        ATENCAO: "Atenção",
+        VENCIDA: "Vencida",
+        SEM_CALIBRACAO: "Sem Medição",
+      };
+      return labels[status] || status;
+    };
+
     const getValidacaoColor = (validacao) => {
       const colors = {
-        'APROVADO': 'success',
-        'REPROVADO': 'error',
-        'INDETERMINADO': 'warning',
-      }
-      return colors[validacao] || 'grey'
-    }
-    
+        APROVADO: "success",
+        REPROVADO: "error",
+        INDETERMINADO: "warning",
+      };
+      return colors[validacao] || "grey";
+    };
+
     const getValidacaoIcon = (validacao) => {
       const icons = {
-        'APROVADO': 'mdi-check-circle',
-        'REPROVADO': 'mdi-close-circle',
-        'INDETERMINADO': 'mdi-help-circle',
-      }
-      return icons[validacao] || 'mdi-help-circle'
-    }
-    
+        APROVADO: "mdi-check-circle",
+        REPROVADO: "mdi-close-circle",
+        INDETERMINADO: "mdi-help-circle",
+      };
+      return icons[validacao] || "mdi-help-circle";
+    };
+
     // Lifecycle
     onMounted(async () => {
       // Garantir que a sessão está restaurada antes de carregar dados
       if (!authStore.isAuthenticated) {
-        console.log('⏳ Aguardando restauração de sessão...')
-        await authStore.restaurarSessao()
+        console.log("⏳ Aguardando restauração de sessão...");
+        await authStore.restaurarSessao();
       }
-      
-      console.log('🔄 Iniciando carregamento de dados...')
+
+      console.log("🔄 Iniciando carregamento de dados...");
       await Promise.all([
         carregarMedicoes(),
         carregarStats(),
-        carregarEquipamentos()
-      ])
-      console.log('✅ Todos os dados carregados!')
-    })
-    
+        carregarEquipamentos(),
+      ]);
+      console.log("✅ Todos os dados carregados!");
+    });
+
     return {
       // Auth
       authStore,
-      
+
       // Estados
       loading,
       loadingEquipamentos,
       medicoes,
+      medicoesFiltradas,
       equipamentos,
       stats,
       equipamentoSelecionado,
       tipoEquipamentoDetectado,
-      
+
       // Dialogs
       dialogMedicao,
       modoEdicao,
       formValido,
       salvando,
       calculando,
-      
+
       // Form
       formMedicaoData: formMedicaoData,
       resultadoValidacao,
       dialogDiagnostico,
       diagnosticoJson,
-      
+
       // Filtros
       filtros,
       statusOptions,
       validacaoOptions,
       tipoEquipamentoOptions,
-      
+
       // Opções Dinâmicas
       tipoPeliculaOptions,
       classePeliculaOptions,
@@ -1472,16 +2095,16 @@ export default {
       mostrarCamposMaterial,
       mostrarCamposDispositivos,
       mostrarSimuladorChuva,
-      
+
       // Headers
       headers,
-      
+
       // Regras
       rules,
-      
+
       // Snackbar
       snackbar,
-      
+
       // Métodos
       abrirDialogNovo,
       fecharDialog,
@@ -1496,7 +2119,7 @@ export default {
       gerarLaudoPDF,
       aplicarFiltros,
       onEquipamentoChange,
-      
+
       // Helpers
       formatarData,
       getStatusColor,
@@ -1504,9 +2127,9 @@ export default {
       getStatusLabel,
       getValidacaoColor,
       getValidacaoIcon,
-    }
-  }
-}
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -1516,7 +2139,7 @@ export default {
 
 .dashboard-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
 }
 
 .card-em-dia {

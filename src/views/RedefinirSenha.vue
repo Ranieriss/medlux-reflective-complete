@@ -1,8 +1,23 @@
 <template>
-  <v-container fluid class="reset-password-container">
-    <v-row align="center" justify="center" class="fill-height">
-      <v-col cols="12" sm="8" md="6" lg="4">
-        <v-card class="glass pa-6" elevation="24">
+  <v-container
+    fluid
+    class="reset-password-container"
+  >
+    <v-row
+      align="center"
+      justify="center"
+      class="fill-height"
+    >
+      <v-col
+        cols="12"
+        sm="8"
+        md="6"
+        lg="4"
+      >
+        <v-card
+          class="glass pa-6"
+          elevation="24"
+        >
           <!-- Logo e Título -->
           <div class="text-center mb-8">
             <div class="logo-container mb-4">
@@ -14,7 +29,12 @@
               />
             </div>
             <h2 class="text-h5 font-weight-bold mb-2">
-              <v-icon class="mr-2" color="primary">mdi-lock-reset</v-icon>
+              <v-icon
+                class="mr-2"
+                color="primary"
+              >
+                mdi-lock-reset
+              </v-icon>
               Redefinir Senha
             </h2>
             <p class="text-subtitle-1 text-secondary mt-2">
@@ -69,7 +89,12 @@
               block
               class="mb-4 glow-primary"
             >
-              <v-icon left class="mr-2">mdi-check-circle</v-icon>
+              <v-icon
+                left
+                class="mr-2"
+              >
+                mdi-check-circle
+              </v-icon>
               Redefinir Senha
             </v-btn>
 
@@ -81,7 +106,12 @@
                 size="small"
                 @click="voltarParaLogin"
               >
-                <v-icon class="mr-1" size="small">mdi-arrow-left</v-icon>
+                <v-icon
+                  class="mr-1"
+                  size="small"
+                >
+                  mdi-arrow-left
+                </v-icon>
                 Voltar para Login
               </v-btn>
             </div>

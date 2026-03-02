@@ -4,11 +4,21 @@
       <v-col cols="12">
         <v-card>
           <v-card-title class="d-flex align-center">
-            <v-icon left color="primary">mdi-circle-outline</v-icon>
+            <v-icon
+              left
+              color="primary"
+            >
+              mdi-circle-outline
+            </v-icon>
             <span>Tachas e Tachões - ABNT NBR 14636 + NBR 15576</span>
             <v-spacer></v-spacer>
-            <v-btn color="primary" @click="dialogNovo = true">
-              <v-icon left>mdi-plus</v-icon>
+            <v-btn
+              color="primary"
+              @click="dialogNovo = true"
+            >
+              <v-icon left>
+                mdi-plus
+              </v-icon>
               Novo Dispositivo
             </v-btn>
           </v-card-title>
@@ -62,10 +72,19 @@
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
-                <v-btn icon size="small" @click="visualizarDispositivo(item)">
+                <v-btn
+                  icon
+                  size="small"
+                  @click="visualizarDispositivo(item)"
+                >
                   <v-icon>mdi-eye</v-icon>
                 </v-btn>
-                <v-btn icon size="small" color="error" @click="excluirDispositivo(item)">
+                <v-btn
+                  icon
+                  size="small"
+                  color="error"
+                  @click="excluirDispositivo(item)"
+                >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -76,7 +95,10 @@
     </v-row>
 
     <!-- Dialog Novo Dispositivo -->
-    <v-dialog v-model="dialogNovo" max-width="900px">
+    <v-dialog
+      v-model="dialogNovo"
+      max-width="900px"
+    >
       <v-card>
         <v-card-title>Novo Dispositivo</v-card-title>
         <v-card-text>
@@ -94,7 +116,7 @@
                   v-model="formData.categoria"
                   :items="[
                     { title: 'Tacha', value: 'tacha' },
-                    { title: 'Tachão', value: 'tachao' }
+                    { title: 'Tachão', value: 'tachao' },
                   ]"
                   label="Categoria *"
                   required
@@ -125,7 +147,7 @@
                       'I-polimero',
                       'II-polimero-anti-abrasivo',
                       'III-polimero-vidro',
-                      'IV-esferas-vidro'
+                      'IV-esferas-vidro',
                     ]"
                     label="Tipo de Lente *"
                   ></v-select>
@@ -162,97 +184,109 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="dialogNovo = false">Cancelar</v-btn>
-          <v-btn color="primary" @click="salvarDispositivo">Salvar</v-btn>
+          <v-btn @click="dialogNovo = false">
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            @click="salvarDispositivo"
+          >
+            Salvar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+    >
       {{ snackbar.text }}
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import dispositivosService from '@/services/dispositivosService'
+import { ref, onMounted } from "vue";
+import dispositivosService from "@/services/dispositivosService";
 
-const loading = ref(false)
-const dialogNovo = ref(false)
-const dispositivos = ref([])
-const snackbar = ref({ show: false, text: '', color: 'success' })
+const loading = ref(false);
+const dialogNovo = ref(false);
+const dispositivos = ref([]);
+const snackbar = ref({ show: false, text: "", color: "success" });
 
 const filtros = ref({
   categoria: null,
   cor: null,
-  status_final: null
-})
+  status_final: null,
+});
 
 const headers = [
-  { title: 'Código', value: 'codigo' },
-  { title: 'Categoria', value: 'categoria' },
-  { title: 'Fabricante', value: 'fabricante' },
-  { title: 'Modelo', value: 'modelo' },
-  { title: 'Cor', value: 'cor' },
-  { title: 'Status', value: 'status_final' },
-  { title: 'Data Medição', value: 'data_medicao' },
-  { title: 'Ações', value: 'actions', sortable: false }
-]
+  { title: "Código", value: "codigo" },
+  { title: "Categoria", value: "categoria" },
+  { title: "Fabricante", value: "fabricante" },
+  { title: "Modelo", value: "modelo" },
+  { title: "Cor", value: "cor" },
+  { title: "Status", value: "status_final" },
+  { title: "Data Medição", value: "data_medicao" },
+  { title: "Ações", value: "actions", sortable: false },
+];
 
 const formData = ref({
-  codigo: '',
-  categoria: 'tacha',
-  fabricante: '',
-  modelo: '',
-  cor: '',
-  tipo_corpo: '',
-  tipo_lente: '',
-  tipo_tachao: '',
-  data_medicao: new Date().toISOString().split('T')[0]
-})
+  codigo: "",
+  categoria: "tacha",
+  fabricante: "",
+  modelo: "",
+  cor: "",
+  tipo_corpo: "",
+  tipo_lente: "",
+  tipo_tachao: "",
+  data_medicao: new Date().toISOString().split("T")[0],
+});
 
 function getStatusColor(status) {
   const colors = {
-    'conforme': 'success',
-    'nao-conforme': 'error',
-    'pendente': 'warning'
-  }
-  return colors[status] || 'grey'
+    conforme: "success",
+    "nao-conforme": "error",
+    pendente: "warning",
+  };
+  return colors[status] || "grey";
 }
 
 async function carregarDispositivos() {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await dispositivosService.listarDispositivos(filtros.value)
+    const response = await dispositivosService.listarDispositivos(
+      filtros.value,
+    );
     if (response.success) {
-      dispositivos.value = response.data
+      dispositivos.value = response.data;
     }
-  } catch (error) {
-    mostrarNotificacao('Erro ao carregar dispositivos', 'error')
+  } catch {
+    mostrarNotificacao("Erro ao carregar dispositivos", "error");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function salvarDispositivo() {
   try {
-    const response = await dispositivosService.criarDispositivo(formData.value)
+    const response = await dispositivosService.criarDispositivo(formData.value);
     if (response.success) {
-      mostrarNotificacao('Dispositivo criado com sucesso!', 'success')
-      dialogNovo.value = false
-      carregarDispositivos()
+      mostrarNotificacao("Dispositivo criado com sucesso!", "success");
+      dialogNovo.value = false;
+      carregarDispositivos();
     }
-  } catch (error) {
-    mostrarNotificacao('Erro ao salvar dispositivo', 'error')
+  } catch {
+    mostrarNotificacao("Erro ao salvar dispositivo", "error");
   }
 }
 
-function mostrarNotificacao(text, color = 'success') {
-  snackbar.value = { show: true, text, color }
+function mostrarNotificacao(text, color = "success") {
+  snackbar.value = { show: true, text, color };
 }
 
 onMounted(() => {
-  carregarDispositivos()
-})
+  carregarDispositivos();
+});
 </script>

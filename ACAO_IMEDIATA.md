@@ -37,6 +37,7 @@
    - Pressione **Ctrl+Enter** ou clique em **Run**
 
 4. **Verifique se funcionou**:
+
    ```sql
    SELECT COUNT(*) FROM equipamentos;
    ```

@@ -1,11 +1,10 @@
-import { supabase } from './supabase'
+import { supabase } from "./supabase";
 
 /**
  * Serviço de Upload e Gestão de PDFs
  * Certificados de Calibração e Cautelas de Recebimento
  */
 class PDFService {
-  
   /**
    * Upload de Certificado de Calibração
    * @param {File} arquivo - Arquivo PDF
@@ -16,41 +15,42 @@ class PDFService {
     try {
       // Validar arquivo
       if (!arquivo) {
-        throw new Error('Nenhum arquivo selecionado')
+        throw new Error("Nenhum arquivo selecionado");
       }
 
-      if (arquivo.type !== 'application/pdf') {
-        throw new Error('Apenas arquivos PDF são permitidos')
+      if (arquivo.type !== "application/pdf") {
+        throw new Error("Apenas arquivos PDF são permitidos");
       }
 
-      if (arquivo.size > 10 * 1024 * 1024) { // 10 MB
-        throw new Error('Arquivo muito grande. Tamanho máximo: 10 MB')
+      if (arquivo.size > 10 * 1024 * 1024) {
+        // 10 MB
+        throw new Error("Arquivo muito grande. Tamanho máximo: 10 MB");
       }
 
       // Gerar nome único do arquivo
-      const timestamp = Date.now()
-      const nomeArquivo = `certificados/${equipamento_id}_${timestamp}.pdf`
+      const timestamp = Date.now();
+      const nomeArquivo = `certificados/${equipamento_id}_${timestamp}.pdf`;
 
       // Upload para o storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('medlux-arquivos')
+      const { error: uploadError } = await supabase.storage
+        .from("medlux-arquivos")
         .upload(nomeArquivo, arquivo, {
-          cacheControl: '3600',
-          upsert: false
-        })
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-      if (uploadError) throw uploadError
+      if (uploadError) throw uploadError;
 
       // Obter URL pública
       const { data: urlData } = supabase.storage
-        .from('medlux-arquivos')
-        .getPublicUrl(nomeArquivo)
+        .from("medlux-arquivos")
+        .getPublicUrl(nomeArquivo);
 
-      const certificado_url = urlData.publicUrl
+      const certificado_url = urlData.publicUrl;
 
       // Atualizar equipamento com informações do certificado
       const { data: equipamento, error: updateError } = await supabase
-        .from('equipamentos')
+        .from("equipamentos")
         .update({
           certificado_url,
           certificado_data_upload: new Date().toISOString(),
@@ -58,27 +58,26 @@ class PDFService {
           certificado_numero: dados.numero || null,
           certificado_validade: dados.validade || null,
           certificado_observacoes: dados.observacoes || null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', equipamento_id)
+        .eq("id", equipamento_id)
         .select()
-        .single()
+        .single();
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       return {
         success: true,
         certificado_url,
         equipamento,
-        message: 'Certificado de calibração enviado com sucesso!'
-      }
-
+        message: "Certificado de calibração enviado com sucesso!",
+      };
     } catch (error) {
-      console.error('❌ Erro ao fazer upload do certificado:', error)
+      console.error("❌ Erro ao fazer upload do certificado:", error);
       return {
         success: false,
-        error: error.message
-      }
+        error: error.message,
+      };
     }
   }
 
@@ -92,41 +91,42 @@ class PDFService {
     try {
       // Validar arquivo
       if (!arquivo) {
-        throw new Error('Nenhum arquivo selecionado')
+        throw new Error("Nenhum arquivo selecionado");
       }
 
-      if (arquivo.type !== 'application/pdf') {
-        throw new Error('Apenas arquivos PDF são permitidos')
+      if (arquivo.type !== "application/pdf") {
+        throw new Error("Apenas arquivos PDF são permitidos");
       }
 
-      if (arquivo.size > 10 * 1024 * 1024) { // 10 MB
-        throw new Error('Arquivo muito grande. Tamanho máximo: 10 MB')
+      if (arquivo.size > 10 * 1024 * 1024) {
+        // 10 MB
+        throw new Error("Arquivo muito grande. Tamanho máximo: 10 MB");
       }
 
       // Gerar nome único do arquivo
-      const timestamp = Date.now()
-      const nomeArquivo = `cautelas/${vinculo_id}_${timestamp}.pdf`
+      const timestamp = Date.now();
+      const nomeArquivo = `cautelas/${vinculo_id}_${timestamp}.pdf`;
 
       // Upload para o storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('medlux-arquivos')
+      const { error: uploadError } = await supabase.storage
+        .from("medlux-arquivos")
         .upload(nomeArquivo, arquivo, {
-          cacheControl: '3600',
-          upsert: false
-        })
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-      if (uploadError) throw uploadError
+      if (uploadError) throw uploadError;
 
       // Obter URL pública
       const { data: urlData } = supabase.storage
-        .from('medlux-arquivos')
-        .getPublicUrl(nomeArquivo)
+        .from("medlux-arquivos")
+        .getPublicUrl(nomeArquivo);
 
-      const cautela_url = urlData.publicUrl
+      const cautela_url = urlData.publicUrl;
 
       // Atualizar vínculo com informações da cautela
       const { data: vinculo, error: updateError } = await supabase
-        .from('vinculos')
+        .from("vinculos")
         .update({
           cautela_url,
           cautela_data_upload: new Date().toISOString(),
@@ -134,27 +134,26 @@ class PDFService {
           cautela_tecnico_responsavel: dados.tecnico || null,
           cautela_treinamento_realizado: dados.treinamento || false,
           cautela_observacoes: dados.observacoes || null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', vinculo_id)
+        .eq("id", vinculo_id)
         .select()
-        .single()
+        .single();
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       return {
         success: true,
         cautela_url,
         vinculo,
-        message: 'Cautela de recebimento enviada com sucesso!'
-      }
-
+        message: "Cautela de recebimento enviada com sucesso!",
+      };
     } catch (error) {
-      console.error('❌ Erro ao fazer upload da cautela:', error)
+      console.error("❌ Erro ao fazer upload da cautela:", error);
       return {
         success: false,
-        error: error.message
-      }
+        error: error.message,
+      };
     }
   }
 
@@ -166,32 +165,32 @@ class PDFService {
     try {
       // Buscar equipamento para obter URL do certificado
       const { data: equipamento, error: fetchError } = await supabase
-        .from('equipamentos')
-        .select('certificado_url')
-        .eq('id', equipamento_id)
-        .single()
+        .from("equipamentos")
+        .select("certificado_url")
+        .eq("id", equipamento_id)
+        .single();
 
-      if (fetchError) throw fetchError
+      if (fetchError) throw fetchError;
 
       if (!equipamento.certificado_url) {
-        throw new Error('Equipamento não possui certificado')
+        throw new Error("Equipamento não possui certificado");
       }
 
       // Extrair caminho do arquivo da URL
-      const url = new URL(equipamento.certificado_url)
-      const pathParts = url.pathname.split('/')
-      const caminhoArquivo = pathParts.slice(-2).join('/') // certificados/xxx.pdf
+      const url = new URL(equipamento.certificado_url);
+      const pathParts = url.pathname.split("/");
+      const caminhoArquivo = pathParts.slice(-2).join("/"); // certificados/xxx.pdf
 
       // Remover arquivo do storage
       const { error: deleteError } = await supabase.storage
-        .from('medlux-arquivos')
-        .remove([caminhoArquivo])
+        .from("medlux-arquivos")
+        .remove([caminhoArquivo]);
 
-      if (deleteError) throw deleteError
+      if (deleteError) throw deleteError;
 
       // Atualizar equipamento removendo dados do certificado
-      const { data, error: updateError } = await supabase
-        .from('equipamentos')
+      const { error: updateError } = await supabase
+        .from("equipamentos")
         .update({
           certificado_url: null,
           certificado_data_upload: null,
@@ -199,25 +198,24 @@ class PDFService {
           certificado_numero: null,
           certificado_validade: null,
           certificado_observacoes: null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', equipamento_id)
+        .eq("id", equipamento_id)
         .select()
-        .single()
+        .single();
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       return {
         success: true,
-        message: 'Certificado removido com sucesso!'
-      }
-
+        message: "Certificado removido com sucesso!",
+      };
     } catch (error) {
-      console.error('❌ Erro ao remover certificado:', error)
+      console.error("❌ Erro ao remover certificado:", error);
       return {
         success: false,
-        error: error.message
-      }
+        error: error.message,
+      };
     }
   }
 
@@ -229,32 +227,32 @@ class PDFService {
     try {
       // Buscar vínculo para obter URL da cautela
       const { data: vinculo, error: fetchError } = await supabase
-        .from('vinculos')
-        .select('cautela_url')
-        .eq('id', vinculo_id)
-        .single()
+        .from("vinculos")
+        .select("cautela_url")
+        .eq("id", vinculo_id)
+        .single();
 
-      if (fetchError) throw fetchError
+      if (fetchError) throw fetchError;
 
       if (!vinculo.cautela_url) {
-        throw new Error('Vínculo não possui cautela')
+        throw new Error("Vínculo não possui cautela");
       }
 
       // Extrair caminho do arquivo da URL
-      const url = new URL(vinculo.cautela_url)
-      const pathParts = url.pathname.split('/')
-      const caminhoArquivo = pathParts.slice(-2).join('/') // cautelas/xxx.pdf
+      const url = new URL(vinculo.cautela_url);
+      const pathParts = url.pathname.split("/");
+      const caminhoArquivo = pathParts.slice(-2).join("/"); // cautelas/xxx.pdf
 
       // Remover arquivo do storage
       const { error: deleteError } = await supabase.storage
-        .from('medlux-arquivos')
-        .remove([caminhoArquivo])
+        .from("medlux-arquivos")
+        .remove([caminhoArquivo]);
 
-      if (deleteError) throw deleteError
+      if (deleteError) throw deleteError;
 
       // Atualizar vínculo removendo dados da cautela
-      const { data, error: updateError } = await supabase
-        .from('vinculos')
+      const { error: updateError } = await supabase
+        .from("vinculos")
         .update({
           cautela_url: null,
           cautela_data_upload: null,
@@ -262,25 +260,24 @@ class PDFService {
           cautela_tecnico_responsavel: null,
           cautela_treinamento_realizado: false,
           cautela_observacoes: null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', vinculo_id)
+        .eq("id", vinculo_id)
         .select()
-        .single()
+        .single();
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       return {
         success: true,
-        message: 'Cautela removida com sucesso!'
-      }
-
+        message: "Cautela removida com sucesso!",
+      };
     } catch (error) {
-      console.error('❌ Erro ao remover cautela:', error)
+      console.error("❌ Erro ao remover cautela:", error);
       return {
         success: false,
-        error: error.message
-      }
+        error: error.message,
+      };
     }
   }
 
@@ -290,27 +287,27 @@ class PDFService {
    */
   async buscarCertificadosVencendo(dias = 30) {
     try {
-      const { data, error } = await supabase
-        .rpc('validar_vencimento_certificados')
+      const { data, error } = await supabase.rpc(
+        "validar_vencimento_certificados",
+      );
 
-      if (error) throw error
+      if (error) throw error;
 
       // Filtrar por dias
-      const certificadosVencendo = data.filter(cert => 
-        cert.dias_restantes <= dias && cert.dias_restantes >= 0
-      )
+      const certificadosVencendo = data.filter(
+        (cert) => cert.dias_restantes <= dias && cert.dias_restantes >= 0,
+      );
 
       return {
         success: true,
-        data: certificadosVencendo
-      }
-
+        data: certificadosVencendo,
+      };
     } catch (error) {
-      console.error('❌ Erro ao buscar certificados vencendo:', error)
+      console.error("❌ Erro ao buscar certificados vencendo:", error);
       return {
         success: false,
-        error: error.message
-      }
+        error: error.message,
+      };
     }
   }
 
@@ -319,22 +316,20 @@ class PDFService {
    */
   async buscarCautelasPendentes() {
     try {
-      const { data, error } = await supabase
-        .rpc('listar_cautelas_pendentes')
+      const { data, error } = await supabase.rpc("listar_cautelas_pendentes");
 
-      if (error) throw error
+      if (error) throw error;
 
       return {
         success: true,
-        data
-      }
-
+        data,
+      };
     } catch (error) {
-      console.error('❌ Erro ao buscar cautelas pendentes:', error)
+      console.error("❌ Erro ao buscar cautelas pendentes:", error);
       return {
         success: false,
-        error: error.message
-      }
+        error: error.message,
+      };
     }
   }
 
@@ -344,10 +339,10 @@ class PDFService {
    */
   visualizarPDF(url) {
     if (!url) {
-      console.warn('⚠️ URL do PDF não fornecida')
-      return
+      console.warn("⚠️ URL do PDF não fornecida");
+      return;
     }
-    window.open(url, '_blank')
+    window.open(url, "_blank");
   }
 
   /**
@@ -355,29 +350,28 @@ class PDFService {
    * @param {string} url - URL do PDF
    * @param {string} nomeArquivo - Nome do arquivo para download
    */
-  async baixarPDF(url, nomeArquivo = 'documento.pdf') {
+  async baixarPDF(url, nomeArquivo = "documento.pdf") {
     try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      const link = document.createElement('a')
-      link.href = window.URL.createObjectURL(blob)
-      link.download = nomeArquivo
-      link.click()
-      window.URL.revokeObjectURL(link.href)
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = nomeArquivo;
+      link.click();
+      window.URL.revokeObjectURL(link.href);
 
       return {
         success: true,
-        message: 'Download iniciado com sucesso!'
-      }
-
+        message: "Download iniciado com sucesso!",
+      };
     } catch (error) {
-      console.error('❌ Erro ao baixar PDF:', error)
+      console.error("❌ Erro ao baixar PDF:", error);
       return {
         success: false,
-        error: error.message
-      }
+        error: error.message,
+      };
     }
   }
 }
 
-export default new PDFService()
+export default new PDFService();

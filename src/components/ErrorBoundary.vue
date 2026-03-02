@@ -1,5 +1,8 @@
 <template>
-  <div v-if="error" class="error-boundary">
+  <div
+    v-if="error"
+    class="error-boundary"
+  >
     <v-alert
       type="error"
       prominent
@@ -8,7 +11,9 @@
       @click:close="resetError"
     >
       <v-alert-title>
-        <v-icon class="mr-2">mdi-alert-circle</v-icon>
+        <v-icon class="mr-2">
+          mdi-alert-circle
+        </v-icon>
         Ocorreu um erro inesperado
       </v-alert-title>
 
@@ -17,16 +22,16 @@
         <v-btn
           size="small"
           variant="outlined"
-          @click="resetError"
           class="mt-2"
+          @click="resetError"
         >
           Tentar Novamente
         </v-btn>
         <v-btn
           size="small"
           variant="text"
-          @click="goHome"
           class="mt-2 ml-2"
+          @click="goHome"
         >
           Voltar ao Início
         </v-btn>
@@ -34,20 +39,23 @@
 
       <!-- Detalhes técnicos (apenas em dev) -->
       <v-expand-transition>
-        <div v-if="showDetails && isDev" class="mt-4">
+        <div
+          v-if="showDetails && isDev"
+          class="mt-4"
+        >
           <v-divider class="my-2" />
           <pre class="text-caption">{{ error.stack }}</pre>
         </div>
       </v-expand-transition>
-      
+
       <v-btn
         v-if="isDev"
         size="small"
         variant="text"
-        @click="showDetails = !showDetails"
         class="mt-2"
+        @click="showDetails = !showDetails"
       >
-        {{ showDetails ? 'Ocultar' : 'Ver' }} Detalhes
+        {{ showDetails ? "Ocultar" : "Ver" }} Detalhes
       </v-btn>
     </v-alert>
   </div>
@@ -55,57 +63,57 @@
 </template>
 
 <script setup>
-import { ref, onErrorCaptured } from 'vue'
-import { useRouter } from 'vue-router'
-import { useDiagnosticsStore } from '@/stores/diagnostics'
+import { ref, onErrorCaptured } from "vue";
+import { useRouter } from "vue-router";
+import { useDiagnosticsStore } from "@/stores/diagnostics";
 
-const router = useRouter()
-const error = ref(null)
-const showDetails = ref(false)
-const isDev = import.meta.env.DEV
-const diagnosticsStore = useDiagnosticsStore()
+const router = useRouter();
+const error = ref(null);
+const showDetails = ref(false);
+const isDev = import.meta.env.DEV;
+const diagnosticsStore = useDiagnosticsStore();
 
 onErrorCaptured((err, instance, info) => {
   error.value = {
     message: err.message,
     stack: err.stack,
     info,
-    component: instance?.$options?.name
-  }
-  
+    component: instance?.$options?.name,
+  };
+
   // Log em produção (enviar para Sentry futuramente)
   if (!isDev && window.Sentry) {
     window.Sentry.captureException(err, {
       contexts: {
         vue: {
           component: instance?.$options?.name,
-          info
-        }
-      }
-    })
+          info,
+        },
+      },
+    });
   }
-  
+
   diagnosticsStore.pushEvent({
-    type: 'vue-error-captured',
+    type: "vue-error-captured",
     message: err.message,
     context: { info, component: instance?.$options?.name },
-    error: err
-  })
+    error: err,
+  });
 
-  console.error('Error captured:', err)
-  
+  console.error("Error captured:", err);
+
   // Prevenir propagação
-  return false
-})
+  return false;
+});
 
 const resetError = () => {
-  error.value = null
-}
+  error.value = null;
+};
 
 const goHome = () => {
-  error.value = null
-  router.push('/dashboard')
-}
+  error.value = null;
+  router.push("/dashboard");
+};
 </script>
 
 <style scoped>
